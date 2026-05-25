@@ -103,6 +103,26 @@ rule-engine  ←  services/api
 
 各技术栈的详细标准、注意事项和推荐行为见 [`docs/tech-standards.md`](./docs/tech-standards.md)。
 
+## 工作流程约束
+
+每次任务结束前，必须检查并更新所有与本次任务相关的文件，保持高度一致性。包括但不限于：
+
+- **文档交叉引用**：CLAUDE.md、README.md、docs/ 下的所有文档，确保描述与实际代码状态一致
+- **依赖关系**：package.json 依赖、tsconfig 引用、turbo.json 任务配置
+- **类型与接口**：改动了接口或类型时，检查所有消费方的引用和用法
+- **模块状态表**：`docs/roadmap.md` 中的模块状态和里程碑，反映最新进展
+
+## AI 增强层
+
+`packages/ai/` — 独立 AI 能力包，作为可选增强，不影响核心阅读流程。
+
+- **架构**：Provider 抽象接口，优先云端 AI（用户自带 key）和本地部署（Ollama），暂不支持端侧推理
+- **能力**：书源规则生成、正文智能提取、摘要/翻译/释义、自然语言搜索
+- **隐私**：支持本地部署（Ollama）实现完全离线；云端 AI 由用户自行配置，阅读内容仅在用户主动使用 AI 功能时发送
+- **依赖**：仅 peer dep 引用 rule-engine 类型，不依赖其他业务包
+
+详细规划见 [`docs/roadmap.md`](./docs/roadmap.md) 的 AI 增强规划章节。
+
 ## graphify
 
 This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.

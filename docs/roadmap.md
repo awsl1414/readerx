@@ -13,6 +13,7 @@
 | reader-engine | 类型定义、ContentProcessor | 🔴 仅类型 |
 | services/api | 路由结构 | 🔴 脚手架 |
 | apps/web | Layout、CSS 主题、shadcn button | 🔴 脚手架 |
+| ai | — | ⬜ 待规划（独立包，可随时启动） |
 
 ## 依赖关系
 
@@ -28,6 +29,9 @@ Step 4: quickjs-runtime ──┘                            │     │
 Step 3/4 可并行                                         │
                                                        │
 Step 1.5: rule-engine JS 规则（依赖 Step 4）────────────┘
+
+AI Step A-D 可在 Step 6 之后独立推进（不阻塞核心流程）
+AI 包仅 peer dep 引用 rule-engine，无其他内部依赖
 ```
 
 ---
@@ -246,6 +250,107 @@ Step 1 完成后继续完善 rule-engine。
 
 ---
 
+## AI 增强规划
+
+AI 功能作为可选增强层，不影响核心阅读流程。所有 AI 功能默认关闭，用户主动启用。
+
+### 架构：新增 packages/ai
+
+独立包，作为 AI 能力的统一抽象层。云端 AI 和本地部署 AI（如 Ollama）优先，暂不支持端侧推理。
+
+```
+packages/ai/
+├── src/
+│   ├── index.ts                  # 统一导出
+│   ├── provider.ts               # AI Provider 抽象接口
+│   ├── providers/
+│   │   ├── cloud.ts              # 云端 API（OpenAI / Anthropic / 自定义 endpoint）
+│   │   └── ollama.ts             # 本地部署（Ollama，兼容 OpenAI API 格式）
+│   ├── capabilities/
+│   │   ├── rule-generator.ts     # 书源规则生成
+│   │   ├── content-extractor.ts  # 智能正文提取（规则兜底）
+│   │   ├── text-enhancer.ts      # 摘要 / 翻译 / 释义
+│   │   └── search-assistant.ts   # 自然语言搜索 + 结果去重
+│   └── hooks/
+│       ├── use-ai.ts             # React hook：AI 能力访问
+│       └── use-ai-settings.ts    # AI 设置管理
+```
+
+**依赖方向**：
+
+```
+infrastructure  ←  packages/ai  ←  apps/web (features)
+                       ↑
+              rule-engine (peer dep, 可选)
+```
+
+- `packages/ai` 不依赖 `reader-engine`、`persistence` 等业务包
+- 通过 peer dep 引用 `rule-engine` 类型，仅在规则生成能力中使用
+- 具体功能由 apps/web 的 features 层组合调用
+
+### AI Step A：书源规则智能生成
+
+**依赖**：Step 1（rule-engine）| **对应**：Step 6.2（source-manager）
+
+用户输入目标网站 URL → AI 分析页面 DOM 结构 → 自动生成搜索、书籍信息、目录、正文四组规则。
+
+- A.1 **Provider 接口设计**（provider.ts）
+  - 定义 `AIProvider` 接口：`generateText(prompt)`, `analyzeHTML(html, intent)`
+  - 支持 `cloud`（云端 API，用户自带 key 或自定义 endpoint）和 `ollama`（本地部署）两种 provider
+  - Ollama 兼容 OpenAI API 格式，可复用同一 HTTP 客户端实现
+- A.2 **规则生成器**（rule-generator.ts）
+  - 输入：目标 URL + 页面 HTML 样本
+  - 输出：BookSource 规则对象（CSS/XPath/JSONPath）
+  - 利用 rule-engine 类型定义确保生成结果符合 Schema
+- A.3 **书源调试 AI 助手**（集成到 source-manager）
+  - 规则执行失败时，AI 解释原因并建议修复
+  - 自然语言 → 规则的交互模式
+- **验证**：对 5 个真实小说网站自动生成规则，至少 3 个可用
+
+### AI Step B：智能正文提取
+
+**依赖**：Step 1 + AI Step A | **对应**：Step 5.1（内容获取与解析）
+
+当 rule-engine 解析结果为空或质量低时的兜底方案。
+
+- B.1 **质量评估**：对规则引擎提取结果评分（文本密度、噪声比例、段落结构）
+- B.2 **AI 正文提取**：评分低于阈值时，调用 AI 模型从原始 HTML 中提取正文
+- B.3 **广告清洗**：AI 识别并移除广告、导航等非正文内容
+- **验证**：对规则失败的 10 个页面，AI 提取成功率 > 70%
+
+### AI Step C：阅读体验增强
+
+**依赖**：Step 5 + AI Step A | **对应**：Step 6.5（reader）
+
+阅读过程中的 AI 辅助功能。
+
+- C.1 **章节摘要**：每章结束自动生成内容概要，方便跳读和回顾
+- C.2 **文本翻译**：对外文书籍提供段落级翻译（原文/译文对照）
+- C.3 **生词标注**：识别古文典故、生僻词汇，悬浮显示解释
+- C.4 **上下文问答**：基于当前章节内容回答读者问题
+- **验证**：摘要准确度主观评估，翻译可用性人工校验
+
+### AI Step D：智能搜索与推荐
+
+**依赖**：AI Step A + Step 6.3/6.4 | **对应**：Step 6.3（search）+ Step 6.4（bookshelf）
+
+- D.1 **自然语言搜索**：用户描述需求（如"男主穿越到三国的军事小说"）→ AI 转化为多书源搜索关键词
+- D.2 **结果去重合并**：AI 判断不同书源的相同书籍，合并为一本书的多来源
+- D.3 **阅读推荐**：基于书架和阅读历史，推荐相似书籍
+- **验证**：自然语言搜索返回相关结果，去重准确率 > 90%
+
+### AI 功能里程碑
+
+| 里程碑 | 标准 | 依赖 |
+|---|---|---|
+| **MA1: Provider 可用** | 本地或云端模型能响应基本请求 | AI Step A.1 |
+| **MA2: 规则生成可用** | 输入 URL → 自动生成可用书源规则 | AI Step A |
+| **MA3: 正文兜底可用** | 规则失败页面能通过 AI 提取正文 | AI Step B |
+| **MA4: 阅读增强可用** | 摘要 + 翻译 + 问答功能可用 | AI Step C |
+| **MA5: 智能搜索可用** | 自然语言搜索 + 结果去重可用 | AI Step D |
+
+---
+
 ## 验证里程碑
 
 | 里程碑 | 标准 | 涉及步骤 |
@@ -257,3 +362,4 @@ Step 1 完成后继续完善 rule-engine。
 | **M5: 阅读跑通** | 点击搜索结果 → 获取目录 → 获取正文 → 分页渲染 → 翻页阅读 | Step 1-6 |
 | **M6: 完整体验** | 书源管理 + 搜索 + 书架 + 阅读器全链路可用 | Step 1-6 |
 | **M7: 云端同步** | 阅读进度和书架可跨设备同步 | Step 1-7 |
+| **M8: AI 增强可用** | 书源规则自动生成 + 正文兜底提取 + 阅读辅助 | Step 1-6 + AI A-D |

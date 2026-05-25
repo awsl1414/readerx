@@ -6,7 +6,7 @@
 
 | 文档 | 说明 |
 |---|---|
-| [开发路线图](./roadmap.md) | 6 阶段开发计划、模块进度、验证里程碑 |
+| [开发路线图](./roadmap.md) | 7 阶段开发计划、AI 增强规划、模块进度、验证里程碑 |
 | [技术标准与注意事项](./tech-standards.md) | TypeScript / React / Next.js / Tailwind 等各技术栈的使用规范 |
 
 ## Legado 原版参考文档
