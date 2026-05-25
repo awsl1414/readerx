@@ -34,15 +34,15 @@ readerx/
 | 运行时 | Bun |
 | 包管理 | pnpm (workspace) |
 | 构建 | Turborepo + Turbopack |
-| 前端 | Next.js (App Router, React 19) |
+| 前端 | Next.js 16 (App Router, React 19) |
 | UI | shadcn/ui (radix-nova) + Radix UI + Tailwind CSS 4 |
-| 状态管理 | Zustand（随 feature 组织）+ TanStack Query |
+| 状态管理 | Zustand 5（随 feature 组织）+ TanStack Query 5 |
 | 服务端 | Hono |
 | 数据库（服务端） | PostgreSQL + Drizzle ORM |
 | 数据库（客户端） | IndexedDB + OPFS |
-| 校验 | Zod |
+| 校验 | Zod 4 |
 | JS 沙箱 | QuickJS（Web Worker） |
-| Lint/Format | Biome（tab 缩进, double quotes） |
+| Lint/Format | Biome 2（tab 缩进, double quotes） |
 
 ## 常用命令
 
@@ -94,3 +94,15 @@ rule-engine  ←  services/api
 - Tab 缩进，双引号
 - Biome 负责 lint 和 format，不使用 ESLint/Prettier
 - 路径别名：`@/*` → `apps/web/*`
+
+各技术栈的详细标准、注意事项和推荐行为见 [`docs/tech-standards.md`](./docs/tech-standards.md)。
+
+## graphify
+
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+
+Rules:
+- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
+- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
+- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).

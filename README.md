@@ -82,7 +82,6 @@ rule-engine  ←  services/api
 
 - [Bun](https://bun.sh) >= 1.3
 - [pnpm](https://pnpm.io) >= 11
-- Node.js >= 22 (运行后端服务时需要)
 - PostgreSQL (后端服务可选)
 
 ### 安装
