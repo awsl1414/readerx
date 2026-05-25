@@ -1,0 +1,23 @@
+{
+	"name": "@readerx/api",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit",
+		"lint": "biome check"
+	},
+	"dependencies": {
+		"@readerx/rule-engine": "workspace:*",
+		"drizzle-orm": "^0.45.2",
+		"hono": "^4.12.22"
+	},
+	"devDependencies": {
+		"@hono/node-server": "^2.0.4",
+		"@types/node": "^25.9.1",
+		"typescript": "^6.0.3"
+	}
+}

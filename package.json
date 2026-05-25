@@ -1,0 +1,21 @@
+{
+	"name": "readerx",
+	"version": "1.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "turbo dev",
+		"build": "turbo build",
+		"lint": "turbo lint",
+		"typecheck": "turbo typecheck",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"format": "biome format --write"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.4.15",
+		"turbo": "^2.9.14",
+		"vitest": "^4.1.7"
+	},
+	"packageManager": "pnpm@11.3.0"
+}

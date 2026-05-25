@@ -1,0 +1,20 @@
+{
+	"name": "@readerx/persistence",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit",
+		"lint": "biome check"
+	},
+	"dependencies": {
+		"@readerx/rule-engine": "workspace:*",
+		"dexie": "^4.4.2"
+	},
+	"devDependencies": {
+		"typescript": "^6.0.3"
+	}
+}
