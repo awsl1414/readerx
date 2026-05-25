@@ -81,6 +81,33 @@ if (!item) return
 
 **`moduleResolution: "Bundler"`** — 仅通过 `package.json exports` 解析模块，禁止 deep import（如 `import x from "pkg/dist/internal"`）。
 
+### Node 类型配置
+
+基础配置 `tsconfig.base.json` 不包含 `"types": ["node"]`。使用 `moduleResolution: "Bundler"` 时 TS 不会自动注入 Node 全局类型（`process`、`Buffer`、`__dirname` 等），这是现代前端配置的正常行为。
+
+各包按需添加：
+
+| 包 | 需要 `types: ["node"]` | 原因 |
+|---|---|---|
+| apps/web | ✅ 是 | Next.js Server Component、next.config.ts 需要 `process.env` |
+| packages/infrastructure | ✅ 是 | `config.ts` 使用 `process.env` |
+| services/api | ✅ 是 | Hono 服务端运行在 Node/Bun |
+| packages/persistence | ❌ 否 | 纯浏览器 API（IndexedDB、OPFS） |
+| packages/rule-engine | ❌ 否 | 纯字符串解析，无运行时依赖 |
+| packages/reader-engine | ❌ 否 | 纯计算，零 DOM 依赖 |
+| packages/quickjs-runtime | ❌ 否 | Web Worker 环境 |
+
+配置方式：在包的 `tsconfig.json` 中添加 `"compilerOptions": { "types": ["node"] }`，同时确保 `devDependencies` 中有 `@types/node`。
+
+环境变量读取策略：
+
+| 环境 | 推荐 API | 说明 |
+|---|---|---|
+| Next.js Server Component | `process.env` | 标准 Node 习惯 |
+| Bun-only runtime | `Bun.env` | 类型更完整，更符合 Bun runtime |
+| 浏览器 Client Component | 禁止直接读环境变量 | 使用 `process.env.NEXT_PUBLIC_*` 由构建时注入 |
+| 共享 package | `process.env`（加 typeof 守卫） | 保持 Node/Edge/Bun 兼容 |
+
 **Barrel Export** — 允许 `export * from "./types"` 式的按领域聚合，禁止巨型 index.ts、跨领域 re-export、全局 barrel（降低 tree-shaking 效率、增加循环依赖概率）。
 
 ## React 19（RSC-first）
