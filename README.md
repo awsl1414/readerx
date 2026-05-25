@@ -147,14 +147,9 @@ pnpm format             # 格式化代码
 
 ## 文档
 
-完整的项目架构参考文档位于 [`docs/`](./docs/)：
-
-- [架构总览](./docs/architecture.md)
-- [书源规则引擎](./docs/book-source-rule-engine.md)
-- [书源配置字段](./docs/book-source-fields.md)
-- [净化规则](./docs/replace-rules.md)
-- [数据库 Schema](./docs/database-schema.md)
-- [Web API](./docs/web-api.md)
+- [开发路线图](./docs/roadmap.md) — 6 阶段开发计划与里程碑
+- [技术标准与注意事项](./docs/tech-standards.md) — 各技术栈使用规范
+- [文档索引](./docs/README.md) — 完整的文档目录（含 Legado 原版参考文档）
 
 ## 致谢
 

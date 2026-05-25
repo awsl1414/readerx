@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ReaderX 是 [Legado（阅读）](https://github.com/gedoor/legado) 的 Web 重写增强项目。基于 Legado 的书源规则引擎和 Web API，使用 TypeScript/Web 全栈技术重新实现并增强。`docs/` 目录包含 Legado 原版完整架构文档作为开发参考。
 
+**当前阶段**：脚手架搭建完成，packages 以类型定义和接口为主，核心解析逻辑待实现。开发路线图见 [`docs/roadmap.md`](./docs/roadmap.md)。
+
 ## Monorepo 结构
 
 ```
@@ -17,8 +19,8 @@ readerx/
 │   ├── providers/              # React Context providers
 │   └── lib/                    # 仅 infra helpers（cn.ts, env.ts, fetch.ts）
 ├── packages/
-│   ├── rule-engine/            # 规则引擎（完整：类型+解析+校验+URL解析）
-│   ├── reader-engine/          # 阅读引擎（内部子模块：pagination/ renderer/ content/）
+│   ├── rule-engine/            # 规则引擎
+│   ├── reader-engine/          # 阅读引擎（分页 / 渲染 / 内容处理）
 │   ├── quickjs-runtime/        # QuickJS 沙箱运行时（独立，含 Worker）
 │   ├── persistence/            # 数据持久层（IndexedDB + OPFS）
 │   └── infrastructure/         # 跨域基础设施（fetch, logger, config）
@@ -69,19 +71,19 @@ pnpm --filter web format      # 格式化
 
 ```
 infrastructure  ←  rule-engine  ←  reader-engine
-                        ↑               ↑
-                quickjs-runtime    persistence
                         ↑
-                   (peer dep)
+                quickjs-runtime (peer dep)
 
 rule-engine  ←  services/api
       ↑
   apps/web → reader-engine, persistence, infrastructure, quickjs-runtime
 ```
 
+> `persistence` 不依赖 `rule-engine` — 数据层独立，内部定义自己的数据模型类型。
+
 ## 规则引擎
 
-核心功能是兼容 Legado 的书源规则引擎（`docs/book-source-rule-engine.md`）。`rule-engine` 包含完整的类型定义、Zod 校验、5 种解析模式（CSS/XPath/JSONPath/JS/Regex）、URL 规则解析和组合运算符处理。
+核心功能是兼容 Legado 的书源规则引擎（`docs/book-source-rule-engine.md`）。包含完整的类型定义、Zod 校验、5 种解析模式（CSS/XPath/JSONPath/JS/Regex）、URL 规则解析和组合运算符处理。
 
 ## 数据层
 
@@ -90,7 +92,11 @@ rule-engine  ←  services/api
 
 ## 代码规范
 
-- TypeScript strict mode（`noUncheckedIndexedAccess`）
+- TypeScript strict mode + `erasableSyntaxOnly` + `verbatimModuleSyntax`
+- 禁止 `enum`、`namespace`、parameter properties（用联合类型和模块替代）
+- `noUncheckedIndexedAccess` — 索引返回 `T | undefined`，必须处理
+- `exactOptionalPropertyTypes` — `{ foo?: string }` 不允许 `{ foo: undefined }`
+- `noImplicitOverride` — 子类覆盖必须写 `override`
 - Tab 缩进，双引号
 - Biome 负责 lint 和 format，不使用 ESLint/Prettier
 - 路径别名：`@/*` → `apps/web/*`
