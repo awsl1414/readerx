@@ -195,3 +195,23 @@ export type ParseResult = ParseSuccess | ParseFailure;
 
 /** 内容类型 */
 export type ContentType = "html" | "json" | "xml" | "text";
+
+/** URL 选项 JSON 结构 — 书源 URL 规则中逗号后的 JSON 配置 */
+export interface UrlOption {
+	method?: string;
+	charset?: string;
+	headers?: Record<string, string>;
+	body?: string;
+	retry?: number;
+	webJs?: string;
+	type?: string;
+	webView?: boolean;
+}
+
+/** URL 分析器输入上下文 */
+export interface AnalyzeUrlContext {
+	variables?: Record<string, string>;
+	page?: number;
+	baseUrl?: string;
+	headers?: Record<string, string>;
+}
