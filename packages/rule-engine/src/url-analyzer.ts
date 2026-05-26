@@ -6,18 +6,21 @@
  * 基础URL,@js:JS处理,{{变量}},<page>页码
  */
 
+import type { AnalyzeUrlContext, UrlOption } from "./types";
+
 const URL_OPTION_RE = /,\s*(?=\{)/;
 
 const PAGE_RE = /<([^>]+)>/g;
 
 export interface AnalyzeUrlResult {
 	url: string;
-	method?: string;
+	method: "GET" | "POST";
 	charset?: string;
-	headers?: Record<string, string>;
+	headers: Record<string, string>;
 	body?: string;
 	webJs?: string;
-	retry?: number;
+	retry: number;
+	type?: string;
 }
 
 /**
@@ -86,24 +89,84 @@ export function resolveRelativeUrl(
 	}
 }
 
+/**
+ * 从解析后的 URL 和选项 JSON 构建最终结果。
+ */
+function buildResult(
+	url: string,
+	optionJson: string | null,
+	context: AnalyzeUrlContext,
+): AnalyzeUrlResult {
+	const result: AnalyzeUrlResult = {
+		url,
+		method: "GET",
+		headers: { ...context.headers },
+		retry: 0,
+	};
+
+	if (!optionJson) return result;
+
+	let option: UrlOption;
+	try {
+		option = JSON.parse(optionJson) as UrlOption;
+	} catch {
+		return result;
+	}
+
+	if (option.method?.toUpperCase() === "POST") {
+		result.method = "POST";
+	}
+	if (option.charset) result.charset = option.charset;
+	if (option.body) {
+		result.body = replaceVariables(option.body, context.variables ?? {});
+	}
+	if (option.webJs) result.webJs = option.webJs;
+	if (option.type) result.type = option.type;
+	if (typeof option.retry === "number" && option.retry >= 0) {
+		result.retry = option.retry;
+	}
+	if (option.headers) {
+		result.headers = { ...result.headers, ...option.headers };
+	}
+
+	return result;
+}
+
+/**
+ * 纯函数：完整 URL 规则解析管线。
+ * 依次执行：拆分选项 → 变量替换 → 页码解析 → 相对路径解析 → 构建结果
+ */
+export function analyzeUrl(
+	rule: string,
+	context: AnalyzeUrlContext = {},
+): AnalyzeUrlResult {
+	const { urlPart, optionJson } = splitUrlOptions(rule);
+	const withVars = replaceVariables(urlPart, context.variables ?? {});
+	const withPage = resolvePage(withVars, context.page);
+	const resolved = resolveRelativeUrl(withPage, context.baseUrl);
+	return buildResult(resolved, optionJson, context);
+}
+
+/**
+ * 向后兼容的类 API。
+ * 支持旧的 (rule, variables) 两参数调用和新的 (rule, context) 调用。
+ */
 export class AnalyzeUrl {
-	/**
-	 * 解析 URL 规则字符串
-	 * 支持：变量替换 {{key}}、页码 <page>、JS 嵌入 @js:、URL 选项 JSON
-	 */
 	analyze(
 		rule: string,
-		variables: Record<string, string> = {},
+		variablesOrContext?: Record<string, string> | AnalyzeUrlContext,
 	): AnalyzeUrlResult {
-		let url = rule;
-
-		// 替换 {{变量}} 占位符
-		for (const [key, value] of Object.entries(variables)) {
-			url = url.replaceAll(`{{${key}}}`, value);
+		if (
+			variablesOrContext === undefined ||
+			"variables" in variablesOrContext ||
+			"page" in variablesOrContext ||
+			"baseUrl" in variablesOrContext ||
+			"headers" in variablesOrContext
+		) {
+			return analyzeUrl(rule, variablesOrContext as AnalyzeUrlContext);
 		}
-
-		// TODO: 解析 URL 选项 JSON、JS 嵌入、页码占位符
-
-		return { url };
+		return analyzeUrl(rule, {
+			variables: variablesOrContext as Record<string, string>,
+		});
 	}
 }

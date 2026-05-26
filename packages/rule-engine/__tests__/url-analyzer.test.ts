@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
 	AnalyzeUrl,
+	analyzeUrl,
 	replaceVariables,
 	resolvePage,
 	resolveRelativeUrl,
@@ -218,9 +219,9 @@ describe("resolveRelativeUrl", () => {
 	});
 
 	it("resolves relative path without leading slash", () => {
-		expect(resolveRelativeUrl("books/123", "https://example.com/search/")).toBe(
-			"https://example.com/search/books/123",
-		);
+		expect(
+			resolveRelativeUrl("books/123", "https://example.com/search/"),
+		).toBe("https://example.com/search/books/123");
 	});
 
 	it("resolves protocol-relative URL", () => {
@@ -237,5 +238,97 @@ describe("resolveRelativeUrl", () => {
 
 	it("returns relative path as-is when no baseUrl provided", () => {
 		expect(resolveRelativeUrl("/books/123", undefined)).toBe("/books/123");
+	});
+});
+
+describe("analyzeUrl (full pipeline)", () => {
+	it("returns plain URL with defaults", () => {
+		const result = analyzeUrl("https://example.com/api");
+		expect(result.url).toBe("https://example.com/api");
+		expect(result.method).toBe("GET");
+		expect(result.retry).toBe(0);
+		expect(result.headers).toEqual({});
+	});
+
+	it("replaces variables and resolves page", () => {
+		const result = analyzeUrl(
+			"https://example.com/search?q={{key}}&p=<page>",
+			{ variables: { key: "三体" }, page: 2 },
+		);
+		expect(result.url).toBe("https://example.com/search?q=三体&p=2");
+	});
+
+	it("parses POST method from URL option", () => {
+		const result = analyzeUrl(
+			'https://example.com/api,{"method":"POST","body":"key={{key}}"}',
+			{ variables: { key: "test" } },
+		);
+		expect(result.url).toBe("https://example.com/api");
+		expect(result.method).toBe("POST");
+		expect(result.body).toBe("key=test");
+	});
+
+	it("merges headers from context and URL option", () => {
+		const result = analyzeUrl(
+			'https://example.com/api,{"headers":{"X-Custom":"yes"}}',
+			{ headers: { Authorization: "Bearer token" } },
+		);
+		expect(result.headers).toEqual({
+			Authorization: "Bearer token",
+			"X-Custom": "yes",
+		});
+	});
+
+	it("URL option headers override context headers", () => {
+		const result = analyzeUrl(
+			'https://example.com/api,{"headers":{"Authorization":"new"}}',
+			{ headers: { Authorization: "old" } },
+		);
+		expect(result.headers.Authorization).toBe("new");
+	});
+
+	it("resolves relative URL against baseUrl", () => {
+		const result = analyzeUrl("/books/123", {
+			baseUrl: "https://example.com",
+		});
+		expect(result.url).toBe("https://example.com/books/123");
+	});
+
+	it("handles empty rule string", () => {
+		const result = analyzeUrl("");
+		expect(result.url).toBe("");
+		expect(result.method).toBe("GET");
+	});
+
+	it("handles invalid JSON option gracefully", () => {
+		const result = analyzeUrl("https://example.com/api,{invalid}");
+		expect(result.url).toBe("https://example.com/api");
+		expect(result.method).toBe("GET");
+	});
+
+	it("extracts charset and retry", () => {
+		const result = analyzeUrl(
+			'https://example.com/api,{"charset":"gbk","retry":3}',
+		);
+		expect(result.charset).toBe("gbk");
+		expect(result.retry).toBe(3);
+	});
+
+	it("extracts webJs", () => {
+		const result = analyzeUrl(
+			'https://example.com/api,{"webJs":"document.title"}',
+		);
+		expect(result.webJs).toBe("document.title");
+	});
+});
+
+describe("AnalyzeUrl class (backward compat)", () => {
+	it("works with old two-arg API (variables map)", () => {
+		const analyzer = new AnalyzeUrl();
+		const result = analyzer.analyze(
+			"https://example.com/search?q={{key}}",
+			{ key: "test" },
+		);
+		expect(result.url).toBe("https://example.com/search?q=test");
 	});
 });
