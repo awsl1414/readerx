@@ -1,3 +1,11 @@
 export { ContentProcessor } from "./content-processor";
 export { parseHtmlToDocument, parseTextToDocument } from "./document-parser";
 export type { ReplaceRule } from "./types";
+
+export { decodeBody } from "./charset-decoder";
+export type { FetchResult } from "./content-fetcher";
+export { fetchRaw } from "./content-fetcher";
+export type { ExtractResult } from "./content-extractor";
+export { extractContent } from "./content-extractor";
+export type { PipelineConfig, PipelineDeps } from "./content-pipeline";
+export { fetchAndParse } from "./content-pipeline";
