@@ -47,3 +47,40 @@
 | `rule-operators.ts` | 内容是 `AnalyzeUrl` 的复制粘贴 | 完全重写为操作符拆分算法 |
 | `regex.ts` | `parseReplaceChain` 中 `parts.length < 3` 应为 `< 2` | 修复阈值并重写为 `splitByDoubleHash` |
 | `regex.ts` | class 包装不必要 | 改为纯函数导出 |
+
+## Step 2: URL 分析器 + Schema
+
+### 改进
+
+| 领域 | Legado（原版） | ReaderX（改进） |
+|------|---------------|----------------|
+| URL 解析 | 851 行 AnalyzeUrl 类，混合网络请求、Cookie、WebView | 纯函数管线，仅输出请求配置 |
+| URL 选项 | UrlOption data class + Gson 宽松解析 | Zod urlOptionSchema 严格校验 |
+| 请求配置 | 内部直接 OkHttpClient 发请求 | 输出 AnalyzeUrlResult，调用方决定请求方式 |
+| 页码解析 | 混在 replaceKeyPageJs() 中 | 独立 resolvePage() 纯函数 |
+| 变量替换 | 混在 replaceKeyPageJs() 中 | 独立 replaceVariables() 纯函数 |
+| 相对 URL | NetworkUtils.getAbsoluteURL（Android） | 标准 new URL(path, base)（Web 兼容） |
+| Schema | 无校验（Kotlin 默认值兜底） | Zod 全量校验 + parseBookSource 错误详情 |
+| BookSource 校验 | 导入时静默忽略坏数据 | 导入时立即报错，人类可读错误消息 |
+
+### 舍弃项
+
+| 项 | 原因 |
+|----|------|
+| getStrResponse / getResponse / getByteArray | 网络请求职责，由 infrastructure HttpClient 处理 |
+| Cookie 管理（CookieStore / CookieManager） | Web 端由浏览器/HTTP 客户端处理 |
+| WebView 渲染（BackstageWebView） | Web 端不需要（浏览器本身就是渲染引擎） |
+| Proxy 配置 | 服务端关注，URL 解析不需要 |
+| ConcurrentRateLimiter | 并发控制由调用方处理 |
+| Base64 Data URI | 低优先级，后续按需添加 |
+| GlideUrl / ExoPlayer | Android 图片/音频加载库，Web 端无用 |
+| @js: / {{js}} 执行 | 延迟到 Step 1.5（quickjs-runtime） |
+| @put/@get 变量 | 延迟到 Step 5（reader-engine 运行时） |
+| serverID | Legado 服务器功能，ReaderX 暂不需要 |
+| webViewDelayTime | WebView 功能的一部分，随 WebView 一起舍弃 |
+
+### 新增文件
+
+| 文件 | 说明 |
+|------|------|
+| `__tests__/schemas.test.ts` | Schema 校验测试（31 用例） |

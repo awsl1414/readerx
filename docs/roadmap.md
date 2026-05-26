@@ -7,7 +7,7 @@
 | 模块 | 已完成 | 状态 |
 |---|---|---|
 | infrastructure | HTTP 客户端、Logger、Config | ✅ 完成 |
-| rule-engine | CSS/XPath/JSONPath 解析器、操作符拆分、正则替换、模式检测、44 测试通过 | ✅ Step 1 完成 |
+| rule-engine | CSS/XPath/JSONPath 解析器、操作符拆分、正则替换、模式检测、URL 分析器管线、完整 Zod Schema、230 测试通过 | ✅ Step 1+2 完成 |
 | persistence | 数据模型类型定义 | 🔴 仅类型 |
 | quickjs-runtime | 接口定义 | 🔴 仅类型 |
 | reader-engine | 类型定义、ContentProcessor | 🔴 仅类型 |
