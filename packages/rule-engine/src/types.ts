@@ -215,3 +215,27 @@ export interface AnalyzeUrlContext {
 	baseUrl?: string;
 	headers?: Record<string, string>;
 }
+
+/** JS 规则执行器接口 — 依赖倒置，由消费方注入实现 */
+export interface JsExecutor {
+	eval(code: string, context: JsEvalContext): Promise<JsEvalResult>;
+}
+
+/** JS 规则执行上下文 — 传入沙箱的变量 */
+export interface JsEvalContext {
+	result?: unknown;
+	baseUrl?: string;
+	src?: string;
+	source?: Record<string, unknown>;
+	book?: Record<string, unknown>;
+	chapter?: Record<string, unknown>;
+	key?: string;
+	page?: number;
+}
+
+/** JS 规则执行结果 */
+export interface JsEvalResult {
+	success: boolean;
+	value: unknown;
+	error?: string;
+}

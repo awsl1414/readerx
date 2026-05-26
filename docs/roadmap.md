@@ -7,9 +7,9 @@
 | 模块 | 已完成 | 状态 |
 |---|---|---|
 | infrastructure | HTTP 客户端、Logger、Config | ✅ 完成 |
-| rule-engine | CSS/XPath/JSONPath 解析器、操作符拆分、正则替换、模式检测、URL 分析器管线、完整 Zod Schema、230 测试通过 | ✅ Step 1+2 完成 |
+| rule-engine | CSS/XPath/JSONPath 解析器、操作符拆分、正则替换、模式检测、URL 分析器管线、完整 Zod Schema、JS 规则支持（JsExecutor 依赖倒置）、246 测试通过 | ✅ Step 1+2+1.5 完成 |
 | persistence | IndexedDB(Dexie) + OPFS + 9 Repositories、55 测试通过 | ✅ Step 3 完成 |
-| quickjs-runtime | QuickJS WASM 沙箱、宿主函数注入、comlink Worker、22 测试通过 | ✅ Step 4 完成 |
+| quickjs-runtime | QuickJS WASM 沙箱、宿主函数注入（evalRule/ajaxWithOption）、QuickJsExecutor、comlink Worker、31 测试通过 | ✅ Step 4 完成 |
 | reader-engine | 类型定义、ContentProcessor（13 测试） | 🟡 分析完成，待实现 |
 | services/api | 路由结构 | 🔴 脚手架 |
 | apps/web | Layout、CSS 主题、shadcn button | 🔴 脚手架 |
@@ -149,13 +149,17 @@ Step 1 完成后继续完善 rule-engine。
 
 ---
 
-## Step 1.5: 规则引擎 — JS 规则支持
+## Step 1.5: 规则引擎 — JS 规则支持 ✅
 
-依赖 Step 1 + Step 4。补齐 rule-engine 的 JS 解析能力。
+依赖 Step 1 + Step 4。详细分析见 [`docs/analysis/step1-5-js-rules-analysis.md`](./analysis/step1-5-js-rules-analysis.md)。
 
-- URL 分析器添加 `@js:` 动态 URL 生成支持（调用 quickjs-runtime）
-- AnalyzeRule 支持 `@js:` 和 `<js>` 规则模式
-- **验证**: 用包含 JS 规则的 Legado 书源做端到端测试
+**已完成：**
+- `JsExecutor` 依赖倒置接口 — rule-engine 定义接口，quickjs-runtime 提供实现
+- `AnalyzeRule` 异步化 — `getString()`/`getStringList()`/`getElements()` 支持 JS 规则
+- `AnalyzeUrl` JS 支持 — URL 管线新增 `@js:` 和 `option.webJs` 评估
+- `QuickJsExecutor` — 实现 `JsExecutor` 接口，桥接 rule-engine 和 quickjs-runtime
+- 宿主函数扩展 — 新增 `evalRule`、`evalRuleList`、`ajaxWithOption`
+- 16 个新测试（10 JS 规则 + 5 QuickJsExecutor + 3 宿主函数）
 
 ---
 

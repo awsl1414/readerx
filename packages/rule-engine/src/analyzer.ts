@@ -2,7 +2,7 @@
  * AnalyzeRule — 规则解析主入口
  *
  * 整合所有解析器（CSS、XPath、JSONPath）和操作符处理（&& || %%）。
- * 不包含 JS 规则执行（延迟到 Step 1.5 的 quickjs-runtime）。
+ * JS 规则通过依赖倒置的 JsExecutor 接口执行（Step 1.5）。
  */
 
 import * as css from "./css";
@@ -14,6 +14,8 @@ import type {
 	AnalyzeRuleMode,
 	CombineOperator,
 	ContentType,
+	JsEvalContext,
+	JsExecutor,
 	ParseResult,
 } from "./types";
 import * as xpath from "./xpath";
@@ -21,6 +23,8 @@ import * as xpath from "./xpath";
 export class AnalyzeRule {
 	private content = "";
 	private contentType: ContentType = "text";
+	private jsExecutor: JsExecutor | null = null;
+	private evalContext: Partial<JsEvalContext> = {};
 
 	setContent(content: string): void {
 		this.content = content;
@@ -35,38 +39,83 @@ export class AnalyzeRule {
 		return this.contentType;
 	}
 
-	/**
-	 * 解析规则，返回单个字符串结果（多值用 \n 连接）
-	 */
-	getString(rule: string): ParseResult {
+	/** 注入 JS 执行器（依赖倒置） */
+	setJsExecutor(executor: JsExecutor): void {
+		this.jsExecutor = executor;
+	}
+
+	/** 设置 JS 执行上下文变量 */
+	setEvalContext(ctx: Partial<JsEvalContext>): void {
+		this.evalContext = ctx;
+	}
+
+	/** 解析规则，返回单个字符串结果（多值用 \n 连接） */
+	async getString(rule: string): Promise<ParseResult> {
 		return this.evaluate(rule, "string");
 	}
 
-	/**
-	 * 解析规则，返回字符串列表
-	 */
-	getStringList(rule: string): ParseResult {
+	/** 解析规则，返回字符串列表 */
+	async getStringList(rule: string): Promise<ParseResult> {
 		return this.evaluate(rule, "list");
 	}
 
-	/**
-	 * 解析规则，返回元素引用（outerHTML / JSON 字符串）
-	 */
-	getElements(rule: string): ParseResult {
+	/** 解析规则，返回元素引用（outerHTML / JSON 字符串） */
+	async getElements(rule: string): Promise<ParseResult> {
 		return this.evaluate(rule, "elements");
 	}
 
-	/**
-	 * 检测规则模式（公开方法，供外部使用）
-	 */
+	/** 同步版本 — 仅支持非 JS 规则，含 JS 时返回错误 */
+	getStringSync(rule: string): ParseResult {
+		return this.evaluateSync(rule, "string");
+	}
+
+	/** 同步版本 — 仅支持非 JS 规则 */
+	getStringListSync(rule: string): ParseResult {
+		return this.evaluateSync(rule, "list");
+	}
+
+	/** 同步版本 — 仅支持非 JS 规则 */
+	getElementsSync(rule: string): ParseResult {
+		return this.evaluateSync(rule, "elements");
+	}
+
+	/** 检测规则模式（公开方法，供外部使用） */
 	detectRuleMode(rule: string): AnalyzeRuleMode {
 		return detectMode(rule);
 	}
 
-	/**
-	 * 核心评估逻辑
-	 */
-	private evaluate(
+	/** 核心异步评估逻辑 */
+	private async evaluate(
+		rule: string,
+		mode: "string" | "list" | "elements",
+	): Promise<ParseResult> {
+		if (!rule.trim()) {
+			return { ok: true, value: "", values: [] };
+		}
+
+		const segments = splitRuleByOperators(rule);
+		const segmentResults: Array<{
+			values: string[];
+			operator: CombineOperator | undefined;
+		}> = [];
+
+		for (const segment of segments) {
+			const result = await this.evaluateSegment(segment, mode);
+			if (!result.ok) return result;
+
+			const replaced = applySegmentReplacements(result.values, segment.rule);
+			segmentResults.push({
+				values: replaced,
+				operator: segment.operator,
+			});
+		}
+
+		const finalValues = combineResults(segmentResults);
+		return { ok: true, value: finalValues.join("\n"), values: finalValues };
+	}
+
+	/** 同步评估 — 不支持 JS 规则 */
+	private evaluateSync(
 		rule: string,
 		mode: "string" | "list" | "elements",
 	): ParseResult {
@@ -74,54 +123,63 @@ export class AnalyzeRule {
 			return { ok: true, value: "", values: [] };
 		}
 
-		// 1. 拆分操作符
 		const segments = splitRuleByOperators(rule);
-
-		// 2. 逐段评估
 		const segmentResults: Array<{
 			values: string[];
 			operator: CombineOperator | undefined;
 		}> = [];
 
 		for (const segment of segments) {
-			const result = this.evaluateSegment(segment, mode);
+			const { rule: cleanRule } = parseReplaceChain(segment.rule);
+			const ruleMode = detectMode(cleanRule);
+
+			if (ruleMode === "js") {
+				return {
+					ok: false,
+					error:
+						"Rule contains JS — use async getString()/getStringList()/getElements() instead",
+				};
+			}
+
+			const actualRule = stripModePrefix(cleanRule, ruleMode);
+			const method = toParserMethod(mode);
+			const result = this.callParserByMode(ruleMode, method, actualRule);
 			if (!result.ok) return result;
 
-			// 应用 ## 正则替换
 			const replaced = applySegmentReplacements(result.values, segment.rule);
-
 			segmentResults.push({
 				values: replaced,
 				operator: segment.operator,
 			});
 		}
 
-		// 3. 按操作符合并
 		const finalValues = combineResults(segmentResults);
 		return { ok: true, value: finalValues.join("\n"), values: finalValues };
 	}
 
-	/**
-	 * 评估单个规则段
-	 */
-	private evaluateSegment(
+	/** 评估单个规则段（异步，支持 JS） */
+	private async evaluateSegment(
 		segment: { rule: string; operator: CombineOperator | undefined },
 		mode: "string" | "list" | "elements",
-	): ParseResult {
+	): Promise<ParseResult> {
 		const { rule: cleanRule } = parseReplaceChain(segment.rule);
 		const ruleMode = detectMode(cleanRule);
 		const actualRule = stripModePrefix(cleanRule, ruleMode);
 
 		if (ruleMode === "js") {
-			return {
-				ok: false,
-				error:
-					"JS rules require quickjs-runtime (Step 1.5). Not yet implemented.",
-			};
+			return this.evaluateJs(actualRule);
 		}
 
 		const method = toParserMethod(mode);
+		return this.callParserByMode(ruleMode, method, actualRule);
+	}
 
+	/** 调用对应模式的解析器 */
+	private callParserByMode(
+		ruleMode: AnalyzeRuleMode,
+		method: ParserMethod,
+		actualRule: string,
+	): ParseResult {
 		switch (ruleMode) {
 			case "json":
 				return callParser(jsonpath, method, actualRule, this.content);
@@ -138,6 +196,45 @@ export class AnalyzeRule {
 				return { ok: false, error: `Unknown rule mode: ${ruleMode}` };
 		}
 	}
+
+	/** 执行 JS 规则 */
+	private async evaluateJs(code: string): Promise<ParseResult> {
+		if (!this.jsExecutor) {
+			return {
+				ok: false,
+				error: "No JsExecutor configured — call setJsExecutor() first",
+			};
+		}
+
+		const ctx: JsEvalContext = {
+			src: this.content,
+			...this.evalContext,
+		};
+
+		const result = await this.jsExecutor.eval(code, ctx);
+
+		if (!result.success) {
+			return { ok: false, error: result.error ?? "JS execution failed" };
+		}
+
+		return jsValueToParseResult(result.value);
+	}
+}
+
+/** 将 JS 返回值转换为 ParseResult */
+function jsValueToParseResult(value: unknown): ParseResult {
+	if (value === null || value === undefined) {
+		return { ok: true, value: "", values: [] };
+	}
+	if (Array.isArray(value)) {
+		const strings = value.map((v) => String(v));
+		return { ok: true, value: strings.join("\n"), values: strings };
+	}
+	if (typeof value === "string") {
+		return { ok: true, value, values: [value] };
+	}
+	const str = String(value);
+	return { ok: true, value: str, values: [str] };
 }
 
 /** 检测内容类型 */

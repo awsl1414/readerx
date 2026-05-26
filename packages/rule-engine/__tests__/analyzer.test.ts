@@ -41,30 +41,30 @@ describe("AnalyzeRule", () => {
 			'<a href="/book/123">Link</a>',
 		].join("\n");
 
-		it("extracts text from div.title", () => {
+		it("extracts text from div.title", async () => {
 			const analyzer = new AnalyzeRule();
 			analyzer.setContent(html);
-			const result = analyzer.getString("div.title");
+			const result = await analyzer.getString("div.title");
 			expect(result.ok).toBe(true);
 			if (result.ok) {
 				expect(result.value).toContain("Book Name");
 			}
 		});
 
-		it("extracts text from div.author", () => {
+		it("extracts text from div.author", async () => {
 			const analyzer = new AnalyzeRule();
 			analyzer.setContent(html);
-			const result = analyzer.getString("div.author");
+			const result = await analyzer.getString("div.author");
 			expect(result.ok).toBe(true);
 			if (result.ok) {
 				expect(result.value).toContain("Author Name");
 			}
 		});
 
-		it("extracts href attribute from a@href", () => {
+		it("extracts href attribute from a@href", async () => {
 			const analyzer = new AnalyzeRule();
 			analyzer.setContent(html);
-			const result = analyzer.getString("a@href");
+			const result = await analyzer.getString("a@href");
 			expect(result.ok).toBe(true);
 			if (result.ok) {
 				expect(result.value).toContain("/book/123");
@@ -79,10 +79,10 @@ describe("AnalyzeRule", () => {
 			},
 		});
 
-		it("extracts values via JSONPath", () => {
+		it("extracts values via JSONPath", async () => {
 			const analyzer = new AnalyzeRule();
 			analyzer.setContent(json);
-			const result = analyzer.getString("$.data.books[*].name");
+			const result = await analyzer.getString("$.data.books[*].name");
 			expect(result.ok).toBe(true);
 			if (result.ok) {
 				expect(result.value).toContain("Book1");
@@ -91,10 +91,10 @@ describe("AnalyzeRule", () => {
 			}
 		});
 
-		it("returns multiple values via getStringList", () => {
+		it("returns multiple values via getStringList", async () => {
 			const analyzer = new AnalyzeRule();
 			analyzer.setContent(json);
-			const result = analyzer.getStringList("$.data.books[*].name");
+			const result = await analyzer.getStringList("$.data.books[*].name");
 			expect(result.ok).toBe(true);
 			if (result.ok) {
 				expect(result.values).toEqual(["Book1", "Book2"]);
@@ -108,10 +108,10 @@ describe("AnalyzeRule", () => {
 			'<div class="author">Author Name</div>',
 		].join("\n");
 
-		it("&& operator concatenates both results", () => {
+		it("&& operator concatenates both results", async () => {
 			const analyzer = new AnalyzeRule();
 			analyzer.setContent(html);
-			const result = analyzer.getString("div.title&&div.author");
+			const result = await analyzer.getString("div.title&&div.author");
 			expect(result.ok).toBe(true);
 			if (result.ok) {
 				expect(result.value).toContain("Book Name");
@@ -121,34 +121,34 @@ describe("AnalyzeRule", () => {
 	});
 
 	describe("empty and edge cases", () => {
-		it("returns empty success for empty rule", () => {
+		it("returns empty success for empty rule", async () => {
 			const analyzer = new AnalyzeRule();
 			analyzer.setContent("<div>content</div>");
-			const result = analyzer.getString("");
+			const result = await analyzer.getString("");
 			expect(result).toEqual({ ok: true, value: "", values: [] });
 		});
 
-		it("returns empty success for whitespace-only rule", () => {
+		it("returns empty success for whitespace-only rule", async () => {
 			const analyzer = new AnalyzeRule();
 			analyzer.setContent("<div>content</div>");
-			const result = analyzer.getString("   ");
+			const result = await analyzer.getString("   ");
 			expect(result).toEqual({ ok: true, value: "", values: [] });
 		});
 
-		it("returns error for JS rules", () => {
+		it("returns error for JS rules", async () => {
 			const analyzer = new AnalyzeRule();
 			analyzer.setContent("<div>content</div>");
-			const result = analyzer.getString("@js:result = content;");
+			const result = await analyzer.getString("@js:result = content;");
 			expect(result.ok).toBe(false);
 			if (!result.ok) {
-				expect(result.error).toContain("quickjs-runtime");
+				expect(result.error).toContain("JsExecutor");
 			}
 		});
 
-		it("returns empty for CSS selector with no matches", () => {
+		it("returns empty for CSS selector with no matches", async () => {
 			const analyzer = new AnalyzeRule();
 			analyzer.setContent("<div>content</div>");
-			const result = analyzer.getString("p.nonexistent");
+			const result = await analyzer.getString("p.nonexistent");
 			expect(result.ok).toBe(true);
 			if (result.ok) {
 				expect(result.value).toBe("");

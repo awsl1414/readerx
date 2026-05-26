@@ -90,6 +90,9 @@ describe("QuickJSSandbox", () => {
 			base64Decode: (s: string) => atob(s),
 			put: () => {},
 			get: () => "",
+			evalRule: async () => "",
+			evalRuleList: async () => [],
+			ajaxWithOption: async () => "",
 		});
 		const result = await sandbox.eval("log('test message'); 'done'");
 		expect(result.success).toBe(true);
@@ -117,6 +120,9 @@ describe("QuickJSSandbox", () => {
 			base64Decode: (s: string) => atob(s),
 			put: () => {},
 			get: () => "",
+			evalRule: async () => "",
+			evalRuleList: async () => [],
+			ajaxWithOption: async () => "",
 		});
 		const r = await sandbox.eval("base64Decode(base64Encode('hello'))");
 		expect(r.success).toBe(true);

@@ -164,5 +164,90 @@ export class QuickJSSandbox {
 		});
 		vm.setProp(global, "get", getHandle);
 		getHandle.dispose();
+
+		// evalRule — async, returns Promise<string>
+		const evalRuleHandle = vm.newFunction("evalRule", (ruleHandle) => {
+			const rule = vm.dump(ruleHandle) as string;
+			const promise = fns.evalRule(rule);
+			const deferred = vm.newPromise();
+			promise.then(
+				(val) => {
+					const h = vm.newString(val);
+					deferred.resolve(h);
+					h.dispose();
+				},
+				(err) => {
+					const h = vm.newString(
+						err instanceof Error ? err.message : String(err),
+					);
+					deferred.reject(h);
+					h.dispose();
+				},
+			);
+			deferred.settled.then(() => deferred.dispose());
+			runtime.executePendingJobs();
+			return deferred.handle;
+		});
+		vm.setProp(global, "evalRule", evalRuleHandle);
+		evalRuleHandle.dispose();
+
+		// evalRuleList — async, returns JSON stringified array
+		const evalRuleListHandle = vm.newFunction(
+			"evalRuleList",
+			(ruleHandle) => {
+				const rule = vm.dump(ruleHandle) as string;
+				const promise = fns.evalRuleList(rule);
+				const deferred = vm.newPromise();
+				promise.then(
+					(vals) => {
+						const h = vm.newString(JSON.stringify(vals));
+						deferred.resolve(h);
+						h.dispose();
+					},
+					(err) => {
+						const h = vm.newString(
+							err instanceof Error ? err.message : String(err),
+						);
+						deferred.reject(h);
+						h.dispose();
+					},
+				);
+				deferred.settled.then(() => deferred.dispose());
+				runtime.executePendingJobs();
+				return deferred.handle;
+			},
+		);
+		vm.setProp(global, "evalRuleList", evalRuleListHandle);
+		evalRuleListHandle.dispose();
+
+		// ajaxWithOption — async
+		const ajaxWithOptHandle = vm.newFunction(
+			"ajaxWithOption",
+			(urlHandle, optHandle) => {
+				const url = vm.dump(urlHandle) as string;
+				const opt = vm.dump(optHandle) as string;
+				const promise = fns.ajaxWithOption(url, opt);
+				const deferred = vm.newPromise();
+				promise.then(
+					(val) => {
+						const h = vm.newString(val);
+						deferred.resolve(h);
+						h.dispose();
+					},
+					(err) => {
+						const h = vm.newString(
+							err instanceof Error ? err.message : String(err),
+						);
+						deferred.reject(h);
+						h.dispose();
+					},
+				);
+				deferred.settled.then(() => deferred.dispose());
+				runtime.executePendingJobs();
+				return deferred.handle;
+			},
+		);
+		vm.setProp(global, "ajaxWithOption", ajaxWithOptHandle);
+		ajaxWithOptHandle.dispose();
 	}
 }

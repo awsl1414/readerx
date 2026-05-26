@@ -43,6 +43,9 @@ describe("createWorkerApi", () => {
 			base64Decode: (s: string) => atob(s),
 			put: () => {},
 			get: () => "",
+			evalRule: async () => "",
+			evalRuleList: async () => [],
+			ajaxWithOption: async () => "",
 		});
 		const result = await api.eval("log('worker test'); 'ok'");
 		expect(result.success).toBe(true);

@@ -2,7 +2,13 @@ import type { HostFunctions } from "./types";
 
 export type HostFunctionOptions = {
 	fetchFn: (url: string) => Promise<string>;
+	fetchWithOptions: (
+		url: string,
+		options: Record<string, unknown>,
+	) => Promise<string>;
 	onLog: (message: string) => void;
+	evalRule: (rule: string) => Promise<string>;
+	evalRuleList: (rule: string) => Promise<string[]>;
 };
 
 export function createHostFunctions(
@@ -33,6 +39,30 @@ export function createHostFunctions(
 
 		get(key: string): string {
 			return variables.get(key) ?? "";
+		},
+
+		async evalRule(rule: string): Promise<string> {
+			return options.evalRule(rule);
+		},
+
+		async evalRuleList(rule: string): Promise<string[]> {
+			return options.evalRuleList(rule);
+		},
+
+		async ajaxWithOption(
+			url: string,
+			optionJson: string,
+		): Promise<string> {
+			let parsed: Record<string, unknown> = {};
+			try {
+				const raw: unknown = JSON.parse(optionJson);
+				if (typeof raw === "object" && raw !== null) {
+					parsed = raw as Record<string, unknown>;
+				}
+			} catch {
+				// 无效 JSON，使用空选项
+			}
+			return options.fetchWithOptions(url, parsed);
 		},
 	};
 }

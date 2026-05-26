@@ -21,5 +21,8 @@
 		"@jitl/quickjs-wasmfile-release-sync": "^0.32.0",
 		"comlink": "^4.4.2",
 		"quickjs-emscripten-core": "^0.32.0"
+	},
+	"peerDependencies": {
+		"@readerx/rule-engine": "workspace:*"
 	}
 }

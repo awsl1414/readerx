@@ -41,6 +41,7 @@ export {
 // 类型
 export type {
 	AnalyzeRuleMode,
+	AnalyzeUrlContext,
 	BookInfoRule,
 	BookSource,
 	BookSourceType,
@@ -48,6 +49,9 @@ export type {
 	ContentRule,
 	ContentType,
 	ExploreRule,
+	JsEvalContext,
+	JsEvalResult,
+	JsExecutor,
 	ParseFailure,
 	ParseResult,
 	ParseSuccess,
@@ -58,9 +62,9 @@ export type {
 	TocRule,
 	UrlOption,
 } from "./types";
-export type { AnalyzeUrlResult } from "./url-analyzer";
+export type { AnalyzeUrlOptions, AnalyzeUrlResult } from "./url-analyzer";
 // URL 分析器
-export { AnalyzeUrl } from "./url-analyzer";
+export { AnalyzeUrl, analyzeUrlAsync } from "./url-analyzer";
 export {
 	getElements as xpathGetElements,
 	getString as xpathGetString,

@@ -41,4 +41,10 @@ export type HostFunctions = {
 	base64Decode(str: string): string;
 	put(key: string, value: string): void;
 	get(key: string): string;
+	/** 从 JS 中调用规则引擎，返回单个字符串 */
+	evalRule(rule: string): Promise<string>;
+	/** 从 JS 中调用规则引擎，返回字符串列表 */
+	evalRuleList(rule: string): Promise<string[]>;
+	/** 带选项的 HTTP 请求（optionJson 为 JSON 字符串，含 method/headers/body） */
+	ajaxWithOption(url: string, optionJson: string): Promise<string>;
 };

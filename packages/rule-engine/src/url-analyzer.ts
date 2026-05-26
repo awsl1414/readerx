@@ -6,11 +6,18 @@
  * 基础URL,@js:JS处理,{{变量}},<page>页码
  */
 
-import type { AnalyzeUrlContext, UrlOption } from "./types";
+import type {
+	AnalyzeUrlContext,
+	JsEvalContext,
+	JsExecutor,
+	UrlOption,
+} from "./types";
 
 const URL_OPTION_RE = /,\s*(?=\{)/g;
 
 const PAGE_RE = /<([^>]+)>/g;
+
+const JS_PATTERN = /<js>([\w\W]*?)<\/js>|@js:([\w\W]*)/i;
 
 export interface AnalyzeUrlResult {
 	url: string;
@@ -21,6 +28,11 @@ export interface AnalyzeUrlResult {
 	webJs?: string;
 	retry: number;
 	type?: string;
+}
+
+/** analyzeUrlAsync 的扩展选项 */
+export interface AnalyzeUrlOptions extends AnalyzeUrlContext {
+	jsExecutor?: JsExecutor;
 }
 
 /**
@@ -164,6 +176,60 @@ export function analyzeUrl(
 }
 
 /**
+ * 异步版本：支持 URL 中的 @js: 和 <js> 段，以及 option.webJs。
+ */
+export async function analyzeUrlAsync(
+	rule: string,
+	options: AnalyzeUrlOptions = {},
+): Promise<AnalyzeUrlResult> {
+	const { jsExecutor, ...context } = options;
+	const { urlPart, optionJson } = splitUrlOptions(rule);
+	let url = replaceVariables(urlPart, context.variables ?? {});
+
+	if (jsExecutor && JS_PATTERN.test(url)) {
+		const jsResult = await resolveJsInUrl(url, jsExecutor, context);
+		if (jsResult !== null) url = jsResult;
+	}
+
+	url = resolvePage(url, context.page);
+	url = resolveRelativeUrl(url, context.baseUrl);
+	const result = buildResult(url, optionJson, context);
+
+	if (jsExecutor && result.webJs) {
+		const jsResult = await jsExecutor.eval(result.webJs, {
+			...context,
+			result: result.url,
+			src: result.url,
+		});
+		if (jsResult.success && jsResult.value != null) {
+			result.url = String(jsResult.value);
+		}
+	}
+
+	return result;
+}
+
+/** 解析 URL 中的 JS 段 */
+async function resolveJsInUrl(
+	url: string,
+	executor: JsExecutor,
+	context: AnalyzeUrlContext,
+): Promise<string | null> {
+	const match = url.match(JS_PATTERN);
+	if (!match) return null;
+	const jsCode = (match[2] ?? match[1] ?? "").trim();
+	if (!jsCode) return url.replace(JS_PATTERN, "");
+
+	const ctx: JsEvalContext = {
+		src: url.replace(JS_PATTERN, ""),
+		...context,
+	};
+	const result = await executor.eval(jsCode, ctx);
+	if (!result.success || result.value == null) return null;
+	return String(result.value);
+}
+
+/**
  * 区分 AnalyzeUrlContext 与 Record<string, string>（变量 map）。
  * Context 的值类型包含 object/number，变量 map 的值全是 string。
  */
@@ -190,5 +256,12 @@ export class AnalyzeUrl {
 		return analyzeUrl(rule, {
 			variables: variablesOrContext as Record<string, string>,
 		});
+	}
+
+	async analyzeAsync(
+		rule: string,
+		options: AnalyzeUrlOptions = {},
+	): Promise<AnalyzeUrlResult> {
+		return analyzeUrlAsync(rule, options);
 	}
 }
