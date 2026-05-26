@@ -1,6 +1,6 @@
 # 技术标准与注意事项
 
-本文档描述 ReaderX 项目各技术栈的使用标准、未来兼容策略与推荐行为。所有代码必须遵循这些规范。
+本文档是 CLAUDE.md 中约束条目的详细参考。约束（禁止什么）见 CLAUDE.md，本文档说明正确用法和注意事项。
 
 ## TypeScript 6（ESM + strict + erasable syntax）
 
@@ -9,7 +9,7 @@
 - 项目采用 ESM-only，不用 CommonJS（`require` / `module.exports`）
 - 项目采用 strict mode + 可擦除 TypeScript（Erasable Syntax）
 - TypeScript 仅用于类型系统，不依赖 TS Runtime 特性
-- 优先兼容：Bun、Node 原生 TS、Turbopack、RSC / Edge Runtime
+- 优先兼容：Node 原生 TS、Turbopack、RSC / Edge Runtime
 
 ### tsconfig 基础配置
 
@@ -77,7 +77,7 @@ if (!item) return
 
 **`noFallthroughCasesInSwitch`** — switch case 必须以 `break` / `return` / `throw` 结尾。
 
-**`erasableSyntaxOnly`** — 确保所有 TS 语法都是可擦除的，兼容 Node 原生 TS 和 Bun strip-types。
+**`erasableSyntaxOnly`** — 确保所有 TS 语法都是可擦除的，兼容 Node 原生 TS。
 
 **`moduleResolution: "Bundler"`** — 仅通过 `package.json exports` 解析模块，禁止 deep import（如 `import x from "pkg/dist/internal"`）。
 
@@ -91,7 +91,7 @@ if (!item) return
 |---|---|---|
 | apps/web | ✅ 是 | Next.js Server Component、next.config.ts 需要 `process.env` |
 | packages/infrastructure | ✅ 是 | `config.ts` 使用 `process.env` |
-| services/api | ✅ 是 | Hono 服务端运行在 Node/Bun |
+| services/api | ✅ 是 | Hono 服务端运行在 Node |
 | packages/persistence | ❌ 否 | 纯浏览器 API（IndexedDB、OPFS） |
 | packages/rule-engine | ❌ 否 | 纯字符串解析，无运行时依赖 |
 | packages/reader-engine | ❌ 否 | 纯计算，零 DOM 依赖 |
@@ -104,9 +104,8 @@ if (!item) return
 | 环境 | 推荐 API | 说明 |
 |---|---|---|
 | Next.js Server Component | `process.env` | 标准 Node 习惯 |
-| Bun-only runtime | `Bun.env` | 类型更完整，更符合 Bun runtime |
 | 浏览器 Client Component | 禁止直接读环境变量 | 使用 `process.env.NEXT_PUBLIC_*` 由构建时注入 |
-| 共享 package | `process.env`（加 typeof 守卫） | 保持 Node/Edge/Bun 兼容 |
+| 共享 package | `process.env`（加 typeof 守卫） | 保持 Node/Edge 兼容 |
 
 **Barrel Export** — 允许 `export * from "./types"` 式的按领域聚合，禁止巨型 index.ts、跨领域 re-export、全局 barrel（降低 tree-shaking 效率、增加循环依赖概率）。
 
@@ -231,23 +230,21 @@ if (!item) return
 - Tab 缩进 + 双引号 — 不要在代码中使用空格缩进或单引号
 - **不同时使用 ESLint + Prettier** — Biome 已完全替代，避免规则冲突
 
-## Bun 运行时
+## Node 运行时
 
 - `package.json` 中 `"type": "module"` — 使用 ESM，不用 CommonJS
-- Bun 原生支持 TypeScript，无需 `ts-node` 或编译步骤
-- 使用 `Bun.env` 读取环境变量（兼容 `process.env`）
-- 测试使用 Vitest（已配置），不使用 Bun test runner
+- Node 22+ 原生支持 TypeScript（`--experimental-strip-types`），无需 `ts-node`
+- 测试使用 Vitest（已配置）
 
 ### 注意事项
 
-- Bun 兼容 Node 但不是 Node — 避免依赖 undocumented Node behavior 或 Node internal API
-- 共享 package（`packages/`）中不使用 Bun-specific runtime API，保持 Node / Edge 兼容
+- 共享 package（`packages/`）中不使用 Node 专有 API（除非有 `"types": ["node"]`），保持 Edge 兼容
 
 ## 包管理（pnpm workspace）
 
 - workspace 包引用使用 `"workspace:*"` 版本号
 - 添加依赖到指定包：`pnpm --filter <pkg> add <dep>`
-- 不要使用 `npm`、`yarn` 或 `bun install`
+- 不要使用 `npm` 或 `yarn`
 - `pnpm-workspace.yaml` 定义了三个 workspace：`apps/*`、`packages/*`、`services/*`
 
 ### 注意事项

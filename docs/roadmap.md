@@ -7,7 +7,7 @@
 | 模块 | 已完成 | 状态 |
 |---|---|---|
 | infrastructure | HTTP 客户端、Logger、Config | ✅ 完成 |
-| rule-engine | 类型系统、Zod 校验、正则替换、URL 变量替换、模式检测 | 🟡 部分完成 |
+| rule-engine | CSS/XPath/JSONPath 解析器、操作符拆分、正则替换、模式检测、44 测试通过 | ✅ Step 1 完成 |
 | persistence | 数据模型类型定义 | 🔴 仅类型 |
 | quickjs-runtime | 接口定义 | 🔴 仅类型 |
 | reader-engine | 类型定义、ContentProcessor | 🔴 仅类型 |
@@ -56,7 +56,7 @@ Legado 书源最常用的解析模式。
 - 实现 `getString(rule, content)` / `getStringList(rule, content)` / `getElements(rule, content)`
 - 支持 `@attr` 属性提取（`a@href`、`img@src`）
 - 支持 `tag.class` 简写、`!` 排除、`-1` 最后一个等 Legado 扩展语法
-- DOM 解析：浏览器用 `DOMParser`，Node/Bun 用 `linkedom` 或 `happy-dom`
+- DOM 解析：浏览器用 `DOMParser`，Node 用 `linkedom`
 - 参考 `docs/book-source-rule-engine.md` CSS 规则段落
 - **验证**: 用 Legado 社区实际书源规则作为测试用例
 

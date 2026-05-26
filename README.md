@@ -14,7 +14,7 @@
 
 | 层 | 技术 |
 |---|---|
-| 运行时 | Bun |
+| 运行时 | Node |
 | 包管理 | pnpm 11 |
 | 构建 | Turborepo + Turbopack |
 | 前端 | Next.js 16 (App Router) · React 19 |
@@ -80,7 +80,7 @@ rule-engine  ←  services/api
 
 ### 环境要求
 
-- [Bun](https://bun.sh) >= 1.3
+- [Node](https://nodejs.org) >= 22
 - [pnpm](https://pnpm.io) >= 11
 - PostgreSQL (后端服务可选)
 

@@ -2,7 +2,7 @@
 
 ReaderX 前端应用，基于 Next.js (App Router) + React 19 + shadcn/ui。
 
-> 运行时：Bun · 包管理：pnpm
+> 包管理：pnpm
 
 ## 开发
 

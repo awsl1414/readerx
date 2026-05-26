@@ -1,16 +1,14 @@
-# CLAUDE.md
+# CLAUDE.md — ReaderX AI Coding Rules
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+> 优先保持架构一致性，而不是局部代码便利性。
 
 ## 项目概述
 
-ReaderX 是 [Legado（阅读）](https://github.com/gedoor/legado) 的 Web 重写增强项目。基于 Legado 的书源规则引擎和 Web API，使用 TypeScript/Web 全栈技术重新实现并增强。`docs/` 目录包含 Legado 原版完整架构文档作为开发参考。
-
-**当前阶段**：脚手架搭建完成，packages 以类型定义和接口为主，核心解析逻辑待实现。开发路线图见 [`docs/roadmap.md`](./docs/roadmap.md)。
+ReaderX 是 [Legado（阅读）](https://github.com/gedoor/legado) 的 Web 重写增强项目。`docs/` 包含 Legado 原版架构文档作为参考。开发路线图见 [`docs/roadmap.md`](./docs/roadmap.md)。
 
 ## Monorepo 结构
 
-```
+```text
 readerx/
 ├── apps/web/                   # Next.js 前端（Feature 层）
 │   ├── app/                    # Next.js App Router
@@ -26,25 +24,12 @@ readerx/
 │   └── infrastructure/         # 跨域基础设施（fetch, logger, config）
 ├── services/
 │   └── api/                    # Hono 后端服务（Drizzle + PostgreSQL）
-└── docs/                       # Legado 原版参考文档
+└── docs/                       # 文档（含 Legado 原版参考）
 ```
 
 ## 技术栈
 
-| 层 | 技术 |
-|---|---|
-| 运行时 | Bun |
-| 包管理 | pnpm (workspace) |
-| 构建 | Turborepo + Turbopack |
-| 前端 | Next.js 16 (App Router, React 19) |
-| UI | shadcn/ui (radix-nova) + Radix UI + Tailwind CSS 4 |
-| 状态管理 | Zustand 5（随 feature 组织）+ TanStack Query 5 |
-| 服务端 | Hono |
-| 数据库（服务端） | PostgreSQL + Drizzle ORM |
-| 数据库（客户端） | IndexedDB + OPFS |
-| 校验 | Zod 4 |
-| JS 沙箱 | QuickJS（Web Worker） |
-| Lint/Format | Biome 2（tab 缩进, double quotes） |
+pnpm workspace · Turborepo · Next.js 16 (App Router, React 19) · shadcn/ui + Radix UI + Tailwind CSS 4 · Zustand 5 · TanStack Query 5 · Hono · PostgreSQL + Drizzle ORM · IndexedDB + OPFS · Zod 4 · QuickJS (Web Worker) · Biome 2
 
 ## 常用命令
 
@@ -55,21 +40,25 @@ turbo build                   # 构建
 turbo lint                    # Lint
 turbo typecheck               # 类型检查
 pnpm --filter web dev         # 仅启动 web
-pnpm --filter web format      # 格式化
 ```
 
-## 架构原则
+---
 
-1. **按边界分包** — 每个包是完整领域，类型/逻辑/校验内聚，不按文件类型拆
-2. **Feature 和 Engine 分离** — Engine 是纯逻辑（packages/），Feature 是 UI 层（apps/web/features/）
-3. **Runtime 独立** — quickjs-runtime 无内部依赖，独立运行
-4. **shared 克制** — 无独立 shared 包；apps/web/lib/ 只放 infra helper（cn.ts, env.ts, fetch.ts）
-5. **Store 随 Feature** — Zustand store 在 feature 内部，不设全局 stores/
-6. **Worker 随 Runtime** — Worker 入口在 runtime 包内，不在 apps/web
+## Architecture Constraints
 
-## 包依赖方向
+1. **按边界分包** — 每个包是完整领域，类型/逻辑/校验内聚，禁止按文件类型拆包
+2. **Feature 和 Engine 分离** — Engine 是纯逻辑（packages/），Feature 是 UI 层（apps/web/features/），禁止交叉
+3. **Runtime 独立** — quickjs-runtime 无内部依赖，禁止引入其他包
+4. **shared 克制** — 禁止创建独立 shared 包；apps/web/lib/ 只放 infra helper（cn.ts, env.ts, fetch.ts）
+5. **Store 随 Feature** — Zustand store 在 feature 内部，禁止全局 stores/
+6. **Worker 随 Runtime** — Worker 入口在 runtime 包内，禁止放在 apps/web
+7. **RSC-first** — Server Components 是默认的，Client Components 仅在需要 hooks / 浏览器 API / 交互时使用
+8. **ESM-only** — 禁止 CommonJS（`require` / `module.exports`）
+9. **Edge-compatible** — packages/ 中的代码必须兼容 Edge Runtime，禁止使用 Node 专有 API（除非有 `"types": ["node"]` 的包）
 
-```
+## 包依赖方向（禁止违反）
+
+```text
 infrastructure  ←  rule-engine  ←  reader-engine
                         ↑
                 quickjs-runtime (peer dep)
@@ -79,33 +68,113 @@ rule-engine  ←  services/api
   apps/web → reader-engine, persistence, infrastructure, quickjs-runtime
 ```
 
-> `persistence` 不依赖 `rule-engine` — 数据层独立，内部定义自己的数据模型类型。
+禁止：
+- `persistence` 依赖 `rule-engine`
+- 任何包循环依赖
+- 从 `dist/` 导入
+- 不通过 package.json exports 导入
 
-## 规则引擎
+## TypeScript Constraints
 
-核心功能是兼容 Legado 的书源规则引擎（`docs/book-source-rule-engine.md`）。包含完整的类型定义、Zod 校验、5 种解析模式（CSS/XPath/JSONPath/JS/Regex）、URL 规则解析和组合运算符处理。
-
-## 数据层
-
-- **客户端**（`persistence`）：IndexedDB + OPFS，数据模型参考 `docs/database-schema.md`
-- **服务端**（`services/api/db/`）：PostgreSQL + Drizzle ORM
-
-## 代码规范
-
-- TypeScript strict mode + `erasableSyntaxOnly` + `verbatimModuleSyntax`
-- 禁止 `enum`、`namespace`、parameter properties（用联合类型和模块替代）
-- `noUncheckedIndexedAccess` — 索引返回 `T | undefined`，必须处理
+- strict mode + `erasableSyntaxOnly` + `verbatimModuleSyntax`
+- **禁止 `any`** — 使用 `unknown`
+- **禁止 `enum`** — 使用联合类型
+- **禁止 `namespace`** — 使用模块
+- **禁止 parameter properties** — 使用显式赋值
+- **禁止 non-null assertion (`!`)** — 使用可选链 `?.` 和空值合并 `??`
+- **禁止直接 `arr[i]` 不处理 undefined** — `noUncheckedIndexedAccess` 要求索引返回 `T | undefined`
+- 必须使用 `import type` / `export type` 标记类型导入导出
 - `exactOptionalPropertyTypes` — `{ foo?: string }` 不允许 `{ foo: undefined }`
 - `noImplicitOverride` — 子类覆盖必须写 `override`
+- 优先 `type` 而非 `interface`
+- 环境变量必须经过 Zod 校验（禁止裸 `process.env.MY_KEY!`）
 - Tab 缩进，双引号
-- Biome 负责 lint 和 format，不使用 ESLint/Prettier
+- Biome 负责 lint 和 format，禁止 ESLint / Prettier
 - 路径别名：`@/*` → `apps/web/*`
 
-各技术栈的详细标准、注意事项和推荐行为见 [`docs/tech-standards.md`](./docs/tech-standards.md)。
+## React Constraints
+
+- **禁止 `useEffect` 获取数据** — 数据必须在 Server Component / TanStack Query / Server Action 中获取
+- **禁止在 render 中产生副作用**
+- Client Components 必须下沉到叶子节点
+- 优先 Server Actions 处理 mutation
+- 优先 async Server Components 获取数据
+- 优先 `use()` hook 读取 Promise 和 Context
+- `<form action={fn}>` 替代手动 onSubmit + fetch
+- React Compiler 兼容：保持纯函数 render，immutable update（禁止 `arr.push()`、`obj.x = 1`）
+
+## State Constraints
+
+- **Zustand 仅用于 client UI state** — 禁止用 Zustand 缓存 API 数据
+- **TanStack Query 用于 server state**
+- **禁止创建全局大 store** — store 按 feature 拆分
+- 禁止 selector 返回新对象导致重渲染 — 必须用 `useShallow`
+- Query Key 必须稳定 — 使用原始值数组 `["user", id]`，禁止对象
+
+## Dependency Constraints
+
+- **禁止跨 feature deep import** — `features/reader/` 不能 import `features/search/` 的内部文件
+- **禁止循环依赖** — 特别是 package ↔ package、feature ↔ feature
+- **禁止 giant barrel exports** — 允许按领域聚合 `export * from "./types"`，禁止巨型 index.ts
+- **禁止 deep relative import** — 不允许 `../../../`
+- **禁止 client-side database access** — Prisma/Drizzle/filesystem/secret 不能进入客户端 bundle
+- 依赖必须显式声明在 package.json — 禁止依赖 hoisting 偶然工作
+
+## File Organization
+
+```text
+features/{name}/
+  components/     # React 组件
+  hooks/          # React hooks
+  actions/        # Server Actions
+  store/          # Zustand store
+  schemas/        # Zod schemas
+  types/          # 类型定义
+```
+
+每个 feature 自包含，禁止跨 feature 引用内部文件。
+
+## Forbidden Patterns
+
+- `useEffect` fetch
+- `any`
+- `enum`
+- `namespace`
+- non-null assertion `!`
+- global mutable singleton
+- giant index.ts barrel
+- default export（组件除外）
+- `// @ts-ignore` / `// @ts-expect-error`（除非有注释说明原因）
+- magic numbers（提取为命名常量）
+- 直接 `process.env` 不做校验
+
+## Review Checklist
+
+提交代码前必须检查：
+
+- [ ] 是否破坏 RSC 边界？（Server/Client Component 边界）
+- [ ] 是否引入 client bundle 膨胀？
+- [ ] 是否新增循环依赖？
+- [ ] 是否新增 deep import？
+- [ ] 是否新增 `any`？
+- [ ] 是否新增 `useEffect` fetch？
+- [ ] 是否违反 feature boundary？
+- [ ] 是否兼容 strict TypeScript？
+- [ ] 包依赖方向是否正确？
+
+## Performance Constraints
+
+- 避免不必要 Client Components
+- 避免 hydration-heavy libraries
+- 优先 tree-shakeable packages
+- 优先 Web Standard APIs
+- 共享 package 禁止使用 Node 专有 API，保持 Edge 兼容
+
+---
 
 ## 工作流程约束
 
-每次任务结束前，必须检查并更新所有与本次任务相关的文件，保持高度一致性。包括但不限于：
+每次任务结束前，必须检查并更新所有与本次任务相关的文件，保持高度一致性：
 
 - **文档交叉引用**：CLAUDE.md、README.md、docs/ 下的所有文档，确保描述与实际代码状态一致
 - **依赖关系**：package.json 依赖、tsconfig 引用、turbo.json 任务配置
@@ -114,14 +183,11 @@ rule-engine  ←  services/api
 
 ## AI 增强层
 
-`packages/ai/` — 独立 AI 能力包，作为可选增强，不影响核心阅读流程。
+`packages/ai/` — 独立 AI 能力包，可选增强，不影响核心阅读流程。
 
-- **架构**：Provider 抽象接口，优先云端 AI（用户自带 key）和本地部署（Ollama），暂不支持端侧推理
-- **能力**：书源规则生成、正文智能提取、摘要/翻译/释义、自然语言搜索
-- **隐私**：支持本地部署（Ollama）实现完全离线；云端 AI 由用户自行配置，阅读内容仅在用户主动使用 AI 功能时发送
-- **依赖**：仅 peer dep 引用 rule-engine 类型，不依赖其他业务包
-
-详细规划见 [`docs/roadmap.md`](./docs/roadmap.md) 的 AI 增强规划章节。
+- 优先云端 AI（用户自带 key）和本地部署（Ollama），暂不支持端侧推理
+- 仅 peer dep 引用 rule-engine 类型，不依赖其他业务包
+- 详细规划见 [`docs/roadmap.md`](./docs/roadmap.md) AI 增强规划章节
 
 ## graphify
 
