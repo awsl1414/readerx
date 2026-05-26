@@ -98,6 +98,14 @@ describe("splitUrlOptions", () => {
 		expect(result.optionJson).toBe(null);
 	});
 
+	it("takes last comma-brace as split point", () => {
+		const result = splitUrlOptions(
+			'https://example.com/search?q={"a":1},{"method":"POST"}',
+		);
+		expect(result.urlPart).toBe('https://example.com/search?q={"a":1}');
+		expect(result.optionJson).toBe('{"method":"POST"}');
+	});
+
 	it("handles empty string", () => {
 		const result = splitUrlOptions("");
 		expect(result).toEqual({ urlPart: "", optionJson: null });
@@ -201,6 +209,18 @@ describe("resolvePage", () => {
 	it("replaces single-item list with page number", () => {
 		expect(resolvePage("https://example.com/<page>", 3)).toBe(
 			"https://example.com/3",
+		);
+	});
+
+	it("returns URL unchanged when page is 0", () => {
+		expect(resolvePage("https://example.com/page/<page>", 0)).toBe(
+			"https://example.com/page/<page>",
+		);
+	});
+
+	it("returns URL unchanged when page is negative", () => {
+		expect(resolvePage("https://example.com/page/<page>", -1)).toBe(
+			"https://example.com/page/<page>",
 		);
 	});
 });
@@ -329,5 +349,27 @@ describe("AnalyzeUrl class (backward compat)", () => {
 			key: "test",
 		});
 		expect(result.url).toBe("https://example.com/search?q=test");
+	});
+
+	it("treats string-only object as variables map", () => {
+		const analyzer = new AnalyzeUrl();
+		const result = analyzer.analyze("https://example.com/{{page}}", {
+			page: "2",
+		});
+		expect(result.url).toBe("https://example.com/2");
+	});
+
+	it("treats object with number value as context", () => {
+		const analyzer = new AnalyzeUrl();
+		const result = analyzer.analyze("https://example.com/p/<page>", {
+			page: 2,
+		});
+		expect(result.url).toBe("https://example.com/p/2");
+	});
+
+	it("no argument returns URL as-is", () => {
+		const analyzer = new AnalyzeUrl();
+		const result = analyzer.analyze("https://example.com/api");
+		expect(result.url).toBe("https://example.com/api");
 	});
 });

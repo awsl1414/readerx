@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { BookSource } from "./types";
 
 /**
  * Zod Schema 体系 — 书源配置校验
@@ -30,7 +31,7 @@ export function parseUrlOption(
 	| { success: true; data: z.infer<typeof urlOptionSchema> }
 	| { success: false; error: string } {
 	try {
-		const raw = JSON.parse(json);
+		const raw: unknown = JSON.parse(json);
 		const result = urlOptionSchema.safeParse(raw);
 		if (result.success) return { success: true, data: result.data };
 		return {
@@ -187,9 +188,7 @@ export function parseBookSource(
 /**
  * 类型守卫：判断输入是否为合法 BookSource
  */
-export function validateBookSource(
-	source: unknown,
-): source is Record<string, unknown> {
+export function validateBookSource(source: unknown): source is BookSource {
 	return bookSourceSchema.safeParse(source).success;
 }
 

@@ -8,7 +8,7 @@
 
 import type { AnalyzeUrlContext, UrlOption } from "./types";
 
-const URL_OPTION_RE = /,\s*(?=\{)/;
+const URL_OPTION_RE = /,\s*(?=\{)/g;
 
 const PAGE_RE = /<([^>]+)>/g;
 
@@ -25,20 +25,34 @@ export interface AnalyzeUrlResult {
 
 /**
  * 将规则 URL 拆分为 URL 部分和 JSON 选项部分。
- * 匹配逗号后紧跟 `{` 的位置进行分割，避免误匹配查询参数中的 JSON。
+ * 从末尾查找最后一个 ",{" 分割点，避免误匹配查询参数中的 JSON。
  */
 export function splitUrlOptions(ruleUrl: string): {
 	urlPart: string;
 	optionJson: string | null;
 } {
-	const match = ruleUrl.match(URL_OPTION_RE);
-	if (!match?.index) {
+	const matches = [...ruleUrl.matchAll(URL_OPTION_RE)];
+	if (matches.length === 0) {
 		return { urlPart: ruleUrl, optionJson: null };
 	}
-	return {
-		urlPart: ruleUrl.substring(0, match.index).trimEnd(),
-		optionJson: ruleUrl.substring(match.index + 1).trim(),
-	};
+
+	const lastMatch = matches[matches.length - 1];
+	if (!lastMatch?.index) {
+		return { urlPart: ruleUrl, optionJson: null };
+	}
+	const splitIndex = lastMatch.index;
+	if (splitIndex === undefined) {
+		return { urlPart: ruleUrl, optionJson: null };
+	}
+
+	const urlPart = ruleUrl.substring(0, splitIndex).trimEnd();
+	const optionJson = ruleUrl.substring(splitIndex + 1).trim();
+
+	if (!optionJson.startsWith("{") || !optionJson.endsWith("}")) {
+		return { urlPart: ruleUrl, optionJson: null };
+	}
+
+	return { urlPart, optionJson };
 }
 
 /**
@@ -62,7 +76,7 @@ export function replaceVariables(
  * - 超出列表范围取最后一项
  */
 export function resolvePage(url: string, page: number | undefined): string {
-	if (page === undefined) return url;
+	if (page === undefined || page < 1) return url;
 	return url.replace(PAGE_RE, (_match, content: string) => {
 		const parts = content.split(",").map((s: string) => s.trim());
 		if (parts.length === 1) {
@@ -108,7 +122,9 @@ function buildResult(
 
 	let option: UrlOption;
 	try {
-		option = JSON.parse(optionJson) as UrlOption;
+		const raw: unknown = JSON.parse(optionJson);
+		if (typeof raw !== "object" || raw === null) return result;
+		option = raw as UrlOption;
 	} catch {
 		return result;
 	}
@@ -148,6 +164,15 @@ export function analyzeUrl(
 }
 
 /**
+ * 区分 AnalyzeUrlContext 与 Record<string, string>（变量 map）。
+ * Context 的值类型包含 object/number，变量 map 的值全是 string。
+ */
+function isAnalyzeUrlContext(obj: Record<string, unknown>): boolean {
+	const values = Object.values(obj);
+	return values.some((v) => typeof v !== "string");
+}
+
+/**
  * 向后兼容的类 API。
  * 支持旧的 (rule, variables) 两参数调用和新的 (rule, context) 调用。
  */
@@ -156,13 +181,10 @@ export class AnalyzeUrl {
 		rule: string,
 		variablesOrContext?: Record<string, string> | AnalyzeUrlContext,
 	): AnalyzeUrlResult {
-		if (
-			variablesOrContext === undefined ||
-			"variables" in variablesOrContext ||
-			"page" in variablesOrContext ||
-			"baseUrl" in variablesOrContext ||
-			"headers" in variablesOrContext
-		) {
+		if (variablesOrContext === undefined) {
+			return analyzeUrl(rule);
+		}
+		if (isAnalyzeUrlContext(variablesOrContext as Record<string, unknown>)) {
 			return analyzeUrl(rule, variablesOrContext as AnalyzeUrlContext);
 		}
 		return analyzeUrl(rule, {
