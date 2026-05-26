@@ -1,1 +1,5 @@
-export type { JsExecutor, JsEvalContext, JsEvalResult } from "@readerx/rule-engine";
+export type {
+	JsExecutor,
+	JsEvalContext,
+	JsEvalResult,
+} from "@readerx/rule-engine";

@@ -1,5 +1,8 @@
 import type { ContentRule, JsExecutor } from "@readerx/rule-engine";
-import type { HttpFetcher, HttpFetcherOptions } from "../contracts/http-fetcher";
+import type {
+	HttpFetcher,
+	HttpFetcherOptions,
+} from "../contracts/http-fetcher";
 import type { Document } from "../document/nodes";
 import type { ReplaceRule } from "./types";
 import { AnalyzeRule } from "@readerx/rule-engine";
@@ -48,9 +51,11 @@ async function fetchAndParse(
 	);
 
 	// 4. Parse into Document AST
-	const title = config.contentRule.title
-		? (await analyzer.getString(config.contentRule.title)).value ?? undefined
-		: undefined;
+	let title: string | undefined;
+	if (config.contentRule.title) {
+		const titleResult = await analyzer.getString(config.contentRule.title);
+		title = titleResult.ok ? (titleResult.value ?? undefined) : undefined;
+	}
 
 	const doc = isHtml
 		? parseHtmlToDocument(content, title)

@@ -6,8 +6,7 @@
 		"useIgnoreFile": true
 	},
 	"files": {
-		"ignoreUnknown": false,
-		"ignore": [".claude/**"]
+		"ignoreUnknown": false
 	},
 	"formatter": {
 		"enabled": true,

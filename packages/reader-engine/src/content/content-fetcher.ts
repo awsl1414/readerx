@@ -5,7 +5,7 @@ import type {
 
 type FetchResult = {
 	readonly body: Uint8Array;
-	readonly detectedCharset?: string;
+	readonly detectedCharset: string | undefined;
 };
 
 async function fetchRaw(

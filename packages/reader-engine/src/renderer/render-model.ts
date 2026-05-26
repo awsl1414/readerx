@@ -51,23 +51,32 @@ type RenderResult = {
  * This is a 1:1 structural mapping — no re-layout occurs.
  */
 function toRenderModel(layout: LayoutResult): RenderResult {
-	const pages = layout.pages.map((page: LayoutPage): RenderPage => ({
-		index: page.index,
-		lines: page.lines.map((line: LayoutLine): RenderLine => ({
-			runs: line.runs.map((run: LayoutRun): RenderRun => ({
-				text: run.text,
-				x: run.x,
-				width: run.width,
-				style: run.style,
-				sourceNodeId: run.sourceNodeId,
-			})),
-			x: line.x,
-			y: line.y,
-			width: line.width,
-			height: line.height,
-		})),
-		dimensions: page.dimensions,
-	}));
+	const pages = layout.pages.map(
+		(page: LayoutPage): RenderPage => ({
+			index: page.index,
+			lines: page.lines.map(
+				(line: LayoutLine): RenderLine => ({
+					runs: line.runs.map((run: LayoutRun): RenderRun => {
+						const rendered: RenderRun = {
+							text: run.text,
+							x: run.x,
+							width: run.width,
+							sourceNodeId: run.sourceNodeId,
+						};
+						if (run.style !== undefined) {
+							(rendered as { style: InlineStyle }).style = run.style;
+						}
+						return rendered;
+					}),
+					x: line.x,
+					y: line.y,
+					width: line.width,
+					height: line.height,
+				}),
+			),
+			dimensions: page.dimensions,
+		}),
+	);
 
 	return {
 		pages,

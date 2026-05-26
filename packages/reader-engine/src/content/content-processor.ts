@@ -46,7 +46,10 @@ export class ContentProcessor {
 		}
 	}
 
-	private processParagraph(node: ParagraphNode, isTitle: boolean): ParagraphNode {
+	private processParagraph(
+		node: ParagraphNode,
+		isTitle: boolean,
+	): ParagraphNode {
 		return {
 			id: nodeId(),
 			type: "paragraph",

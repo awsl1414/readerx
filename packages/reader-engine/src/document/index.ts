@@ -16,4 +16,10 @@ export type {
 	TextNode,
 } from "./nodes";
 
-export { documentNode, headingNode, nodeId, paragraphNode, textNode } from "./nodes";
+export {
+	documentNode,
+	headingNode,
+	nodeId,
+	paragraphNode,
+	textNode,
+} from "./nodes";

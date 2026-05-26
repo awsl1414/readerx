@@ -1,8 +1,4 @@
-import type {
-	ImageInlineNode,
-	InlineNode,
-	LinkNode,
-} from "../document/nodes";
+import type { ImageInlineNode, InlineNode, LinkNode } from "../document/nodes";
 import type { InlineStyle } from "./types";
 
 type InlineSegment = {
@@ -35,10 +31,7 @@ function flattenInlines(
 					...parentStyle,
 					bold: true,
 				};
-				const childSegments = flattenInlines(
-					node.children,
-					childStyle,
-				);
+				const childSegments = flattenInlines(node.children, childStyle);
 				for (const seg of childSegments) {
 					result.push(seg);
 				}
@@ -49,10 +42,7 @@ function flattenInlines(
 					...parentStyle,
 					italic: true,
 				};
-				const childSegments = flattenInlines(
-					node.children,
-					childStyle,
-				);
+				const childSegments = flattenInlines(node.children, childStyle);
 				for (const seg of childSegments) {
 					result.push(seg);
 				}
@@ -64,10 +54,7 @@ function flattenInlines(
 					...parentStyle,
 					href: linkNode.href,
 				};
-				const childSegments = flattenInlines(
-					linkNode.children,
-					childStyle,
-				);
+				const childSegments = flattenInlines(linkNode.children, childStyle);
 				for (const seg of childSegments) {
 					result.push(seg);
 				}

@@ -15,11 +15,7 @@ import type {
 import { flattenInlines } from "./inline-flatten";
 import type { InlineSegment } from "./inline-flatten";
 import { mapLineToRuns } from "./run-mapper";
-import {
-	addLine,
-	createPaginationState,
-	flushPage,
-} from "./pagination";
+import { addLine, createPaginationState, flushPage } from "./pagination";
 import type { TextLayoutOptions } from "../contracts/text-layouter";
 
 const CONTENT_WIDTH_FACTOR = 1;
@@ -32,8 +28,7 @@ function layoutDocument(
 	const dimensions: PageDimensions = {
 		width: config.pageWidth,
 		height: config.pageHeight,
-		contentHeight:
-			config.pageHeight - config.paddingTop - config.paddingBottom,
+		contentHeight: config.pageHeight - config.paddingTop - config.paddingBottom,
 		paddingTop: config.paddingTop,
 		paddingBottom: config.paddingBottom,
 		paddingLeft: config.paddingLeft,
@@ -57,10 +52,7 @@ function layoutDocument(
 	function addLayoutLine(line: LayoutLine): void {
 		const newHeight = yOffset + line.height;
 
-		if (
-			newHeight > maxContentHeight &&
-			state.currentPageLines.length > 0
-		) {
+		if (newHeight > maxContentHeight && state.currentPageLines.length > 0) {
 			flushCurrentPage();
 		}
 
