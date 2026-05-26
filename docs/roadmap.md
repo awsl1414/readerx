@@ -10,7 +10,7 @@
 | rule-engine | CSS/XPath/JSONPath 解析器、操作符拆分、正则替换、模式检测、URL 分析器管线、完整 Zod Schema、230 测试通过 | ✅ Step 1+2 完成 |
 | persistence | IndexedDB(Dexie) + OPFS + 9 Repositories、55 测试通过 | ✅ Step 3 完成 |
 | quickjs-runtime | QuickJS WASM 沙箱、宿主函数注入、comlink Worker、22 测试通过 | ✅ Step 4 完成 |
-| reader-engine | 类型定义、ContentProcessor | 🔴 仅类型 |
+| reader-engine | 类型定义、ContentProcessor（13 测试） | 🟡 分析完成，待实现 |
 | services/api | 路由结构 | 🔴 脚手架 |
 | apps/web | Layout、CSS 主题、shadcn button | 🔴 脚手架 |
 | ai | — | ⬜ 待规划（独立包，可随时启动） |
@@ -161,27 +161,39 @@ Step 1 完成后继续完善 rule-engine。
 
 ## Step 5: 阅读引擎（reader-engine）
 
-依赖 Step 1 + Step 3。
+依赖 Step 1 + Step 3。详细架构分析见 [`docs/analysis/step5-reader-engine-analysis.md`](./analysis/step5-reader-engine-analysis.md)。
 
-### 5.1 内容获取与解析
+**架构决策：**
+- `@chenglou/pretext` 替代 Legado 整个排版层（ZhLayout / TextMeasure / TextChapterLayout）
+- 渲染器移至 `apps/web/features/reader/`，engine 包只输出纯数据 `Page[]`
+- DOM 渲染 + CSS 动画替代 Legado 的 Canvas 逐字渲染
 
-- 使用 rule-engine 的 ContentRule 从网页提取正文
+### 5.1 内容获取与解析（content/）
+
+- `content-fetcher.ts` — 整合 rule-engine AnalyzeRule + infrastructure HTTP 提取正文
+- `html-formatter.ts` — DOMParser 清洗 HTML，保留 `<img>` 标签
+- `content-processor.ts` — 已实现 ReplaceRule 执行，需扩展：去重标题、段落缩进、scope/excludeScope、regex timeout
+- `content-pipeline.ts` — 组合 fetcher → processor 的纯函数管线
 - 处理分页内容（`nextContentUrl` 串联多页）
-- 应用净化规则（ReplaceRule）清洗正文
 
 ### 5.2 分页引擎（pagination/）
 
 - 基于 `@chenglou/pretext` 实现纯数学文本排版
-- 输入：正文文本 + PaginationConfig（字号、行高、页面尺寸、边距）
-- 输出：Page 数组（每页文本内容和位置信息）
+- `paginator.ts` — 用 `prepareWithSegments()` + `layoutWithLines()` 逐段排版，按页高切割
+- `text-measurer.ts` — 字体/尺寸配置管理，封装 pretext API
+- 支持图片混排（`layoutNextLineRange()` 变宽模式）
 - 纯计算，零 DOM 依赖
+- 输入：`ChapterContent` + `PaginationConfig`
+- 输出：`Page[]`（每页包含文本、行数据、偏移量）
 
-### 5.3 渲染器（renderer/）
+### 5.3 渲染器（移至 apps/web/features/reader/）
 
-- 将分页结果渲染到 DOM / Canvas
-- 支持主题切换（字体、颜色、行距）
-- 支持图片混排
-- 支持翻页动画（滑动/覆盖/无动画）
+- 渲染器是 UI 层职责，不属于 engine 包
+- `packages/reader-engine/src/renderer/` 仅保留类型定义
+- 实际渲染在 `apps/web/features/reader/` 中实现：
+  - DOM 渲染（支持文字选中、无障碍、响应式）
+  - CSS View Transitions / Web Animations 翻页动画
+  - 可选 Canvas 仿真翻页（贝塞尔曲线）
 
 ---
 

@@ -18,7 +18,7 @@ readerx/
 │   └── lib/                    # 仅 infra helpers（cn.ts, env.ts, fetch.ts）
 ├── packages/
 │   ├── rule-engine/            # 规则引擎
-│   ├── reader-engine/          # 阅读引擎（分页 / 渲染 / 内容处理）
+│   ├── reader-engine/          # 阅读引擎（内容获取 / 净化 / 分页 — 纯逻辑，渲染在 apps/web）
 │   ├── quickjs-runtime/        # QuickJS 沙箱运行时（独立，含 Worker）
 │   ├── persistence/            # 数据持久层（IndexedDB + OPFS）
 │   └── infrastructure/         # 跨域基础设施（fetch, logger, config）
