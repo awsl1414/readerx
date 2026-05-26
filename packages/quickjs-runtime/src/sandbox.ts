@@ -150,9 +150,7 @@ export class QuickJSSandbox {
 			err: unknown,
 			deferred: ReturnType<QuickJSContext["newPromise"]>,
 		) => {
-			const h = vm.newString(
-				err instanceof Error ? err.message : String(err),
-			);
+			const h = vm.newString(err instanceof Error ? err.message : String(err));
 			deferred.reject(h);
 			h.dispose();
 		};
@@ -161,7 +159,9 @@ export class QuickJSSandbox {
 			deferred: ReturnType<QuickJSContext["newPromise"]>,
 		) => {
 			deferred.settled.then(() => {
-				try { deferred.dispose(); } catch {}
+				try {
+					deferred.dispose();
+				} catch {}
 			});
 		};
 
@@ -177,7 +177,9 @@ export class QuickJSSandbox {
 					deferred.resolve(strHandle);
 					strHandle.dispose();
 				},
-				(err) => { rejectDeferred(err, deferred); },
+				(err) => {
+					rejectDeferred(err, deferred);
+				},
 			);
 			hostCompletions.push(completion);
 			trackDeferred(deferred);
@@ -229,7 +231,9 @@ export class QuickJSSandbox {
 					deferred.resolve(h);
 					h.dispose();
 				},
-				(err) => { rejectDeferred(err, deferred); },
+				(err) => {
+					rejectDeferred(err, deferred);
+				},
 			);
 			hostCompletions.push(completion);
 			trackDeferred(deferred);
@@ -240,33 +244,32 @@ export class QuickJSSandbox {
 		evalRuleHandle.dispose();
 
 		// evalRuleList — async, returns native QuickJS array
-		const evalRuleListHandle = vm.newFunction(
-			"evalRuleList",
-			(ruleHandle) => {
-				const rule = vm.dump(ruleHandle) as string;
-				const deferred = vm.newPromise();
+		const evalRuleListHandle = vm.newFunction("evalRuleList", (ruleHandle) => {
+			const rule = vm.dump(ruleHandle) as string;
+			const deferred = vm.newPromise();
 
-				const completion = settleHostPromise(
-					fns.evalRuleList(rule),
-					(val) => {
-						const vals = val as string[];
-						const arr = vm.newArray();
-						for (let i = 0; i < vals.length; i++) {
-							const el = vm.newString(vals[i] ?? "");
-							vm.setProp(arr, i, el);
-							el.dispose();
-						}
-						deferred.resolve(arr);
-						arr.dispose();
-					},
-					(err) => { rejectDeferred(err, deferred); },
-				);
-				hostCompletions.push(completion);
-				trackDeferred(deferred);
-				runtime.executePendingJobs();
-				return deferred.handle;
-			},
-		);
+			const completion = settleHostPromise(
+				fns.evalRuleList(rule),
+				(val) => {
+					const vals = val as string[];
+					const arr = vm.newArray();
+					for (let i = 0; i < vals.length; i++) {
+						const el = vm.newString(vals[i] ?? "");
+						vm.setProp(arr, i, el);
+						el.dispose();
+					}
+					deferred.resolve(arr);
+					arr.dispose();
+				},
+				(err) => {
+					rejectDeferred(err, deferred);
+				},
+			);
+			hostCompletions.push(completion);
+			trackDeferred(deferred);
+			runtime.executePendingJobs();
+			return deferred.handle;
+		});
 		vm.setProp(global, "evalRuleList", evalRuleListHandle);
 		evalRuleListHandle.dispose();
 
@@ -285,7 +288,9 @@ export class QuickJSSandbox {
 						deferred.resolve(h);
 						h.dispose();
 					},
-					(err) => { rejectDeferred(err, deferred); },
+					(err) => {
+						rejectDeferred(err, deferred);
+					},
 				);
 				hostCompletions.push(completion);
 				trackDeferred(deferred);

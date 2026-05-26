@@ -49,10 +49,7 @@ export function createHostFunctions(
 			return options.evalRuleList(rule);
 		},
 
-		async ajaxWithOption(
-			url: string,
-			optionJson: string,
-		): Promise<string> {
+		async ajaxWithOption(url: string, optionJson: string): Promise<string> {
 			let parsed: Record<string, unknown> = {};
 			try {
 				const raw: unknown = JSON.parse(optionJson);

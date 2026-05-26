@@ -114,7 +114,9 @@ function evaluateWithLib(rule: string, html: string): unknown[] {
 		xpathLib = nodeRequire("xpath") as typeof import("xpath");
 	}
 	if (!xmldomDOMParser) {
-		const xmldom = nodeRequire("@xmldom/xmldom") as typeof import("@xmldom/xmldom");
+		const xmldom = nodeRequire(
+			"@xmldom/xmldom",
+		) as typeof import("@xmldom/xmldom");
 		xmldomDOMParser = new xmldom.DOMParser();
 	}
 

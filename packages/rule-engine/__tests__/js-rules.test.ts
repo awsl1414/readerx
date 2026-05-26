@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { AnalyzeRule } from "../src/analyzer";
-import type { JsExecutor, JsEvalContext } from "../src/types";
+import type { JsEvalContext, JsExecutor } from "../src/types";
 
 function createMockExecutor(
 	impl?: (code: string, context: JsEvalContext) => unknown,
@@ -151,7 +151,9 @@ describe("AnalyzeRule JS rules", () => {
 		const analyzer = new AnalyzeRule();
 		analyzer.setJsExecutor(executor);
 		analyzer.setContent("<div class='title'>hello</div>");
-		const result = await analyzer.getString("div.title&&@js:result.toUpperCase()");
+		const result = await analyzer.getString(
+			"div.title&&@js:result.toUpperCase()",
+		);
 		expect(result.ok).toBe(true);
 		expect(receivedCtx?.result).toBe("hello");
 		// && operator concatenates CSS result + JS result
@@ -169,7 +171,10 @@ describe("AnalyzeRule JS rules", () => {
 		const analyzer = new AnalyzeRule();
 		analyzer.setJsExecutor(executor);
 		analyzer.setContent("<div>real content</div>");
-		analyzer.setEvalContext({ src: "should not override", baseUrl: "https://example.com" });
+		analyzer.setEvalContext({
+			src: "should not override",
+			baseUrl: "https://example.com",
+		});
 		await analyzer.getString("@js:test");
 		expect(receivedSrc).toBe("<div>real content</div>");
 	});

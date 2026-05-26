@@ -3,7 +3,10 @@ import type {
 	JsEvalResult,
 	JsExecutor,
 } from "@readerx/rule-engine";
-import { createHostFunctions, type HostFunctionOptions } from "./host-functions";
+import {
+	createHostFunctions,
+	type HostFunctionOptions,
+} from "./host-functions";
 import { QuickJSSandbox } from "./sandbox";
 
 export interface QuickJsExecutorOptions extends HostFunctionOptions {
@@ -22,8 +25,10 @@ export class QuickJsExecutor implements JsExecutor {
 
 	async eval(code: string, context: JsEvalContext): Promise<JsEvalResult> {
 		const options: { timeout?: number; memoryLimit?: number } = {};
-		if (this.options.timeout !== undefined) options.timeout = this.options.timeout;
-		if (this.options.memoryLimit !== undefined) options.memoryLimit = this.options.memoryLimit;
+		if (this.options.timeout !== undefined)
+			options.timeout = this.options.timeout;
+		if (this.options.memoryLimit !== undefined)
+			options.memoryLimit = this.options.memoryLimit;
 
 		const result = await this.sandbox.eval(code, context, options);
 		return {
