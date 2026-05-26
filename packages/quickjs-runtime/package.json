@@ -4,16 +4,22 @@
 	"private": true,
 	"type": "module",
 	"exports": {
-		".": "./src/index.ts"
+		".": "./src/index.ts",
+		"./worker": "./src/worker.ts"
 	},
 	"scripts": {
 		"typecheck": "tsc --noEmit",
-		"lint": "biome check"
+		"lint": "biome check src __tests__",
+		"test": "vitest run",
+		"test:watch": "vitest"
 	},
 	"devDependencies": {
-		"typescript": "^6.0.3"
+		"typescript": "^6.0.3",
+		"vitest": "^4.1.7"
 	},
 	"dependencies": {
-		"comlink": "^4.4.2"
+		"@jitl/quickjs-wasmfile-release-sync": "^0.32.0",
+		"comlink": "^4.4.2",
+		"quickjs-emscripten-core": "^0.32.0"
 	}
 }
