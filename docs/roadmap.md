@@ -10,7 +10,7 @@
 | rule-engine | CSS/XPath/JSONPath 解析器、操作符拆分、正则替换、模式检测、URL 分析器管线、完整 Zod Schema、JS 规则支持（JsExecutor 依赖倒置）、248 测试通过 | ✅ Step 1+2+1.5 完成 |
 | persistence | IndexedDB(Dexie) + OPFS + 9 Repositories、55 测试通过 | ✅ Step 3 完成 |
 | quickjs-runtime | QuickJS WASM 沙箱、宿主函数注入（evalRule/ajaxWithOption）、async safe settlement、QuickJsExecutor、comlink Worker、31 测试通过 | ✅ Step 4 完成 |
-| reader-engine | 类型定义、ContentProcessor（13 测试） | 🟡 分析完成，待实现 |
+| reader-engine | V3 设计完成（Document AST pipeline）、ContentProcessor（13 测试） | 🟡 设计定稿，待实现 |
 | services/api | 路由结构 | 🔴 脚手架 |
 | apps/web | Layout、CSS 主题、shadcn button | 🔴 脚手架 |
 | ai | — | ⬜ 待规划（独立包，可随时启动） |
@@ -165,39 +165,67 @@ Step 1 完成后继续完善 rule-engine。
 
 ## Step 5: 阅读引擎（reader-engine）
 
-依赖 Step 1 + Step 3。详细架构分析见 [`docs/analysis/step5-reader-engine-analysis.md`](./analysis/step5-reader-engine-analysis.md)。
+依赖 Step 1 + Step 3 + Step 4。详细设计规格见 [`docs/analysis/step5-reader-engine-spec-v3.md`](./analysis/step5-reader-engine-spec-v3.md)。改进对照见 [`docs/analysis/step5-improvements-over-legado.md`](./analysis/step5-improvements-over-legado.md)。
+
+**核心架构：Document AST Pipeline**
+
+数据流：`bytes → string → structured AST → positioned layout → render model`，语义从不丢失。
+
+```
+BookSource.ruleContent
+       ↓ fetchRaw (HttpFetcher) → body: Uint8Array
+       ↓ decodeBody (charset 分离) → string
+       ↓ extractContent (AnalyzeRule + JsExecutor) → extracted HTML/text
+       ↓ parseHtmlToDocument / parseTextToDocument → Document AST
+       ↓ ContentProcessor.process (immutable transform) → Document
+       ↓ layoutDocument (TextLayouter + LayoutConfig) → LayoutResult
+       ↓ toRenderModel → RenderResult
+  apps/web (DOM / Canvas / SVG renderer)
+```
 
 **架构决策：**
-- `@chenglou/pretext` 替代 Legado 整个排版层（ZhLayout / TextMeasure / TextChapterLayout）
-- 渲染器移至 `apps/web/features/reader/`，engine 包只输出纯数据 `Page[]`
-- DOM 渲染 + CSS 动画替代 Legado 的 Canvas 逐字渲染
+- Document AST 替代 string pipeline — 结构化内容模型，支持富文本扩展
+- `TextLayouter` 抽象替代直接依赖 pretext — 排版后端可替换
+- `LayoutRun[]` 替代 plain text — 语义从 AST 一路保留到渲染
+- Positioned layout — LayoutEngine 输出坐标，renderer 不重算
+- Immutable AST — 全部 readonly，ContentProcessor 返回新 Document
+- Node ID — 稳定引用，支持 selection / annotation / incremental layout
+- Cursor 模型 — grapheme-level 定位，替代不稳定的 number offset
 
 ### 5.1 内容获取与解析（content/）
 
-- `content-fetcher.ts` — 整合 rule-engine AnalyzeRule + infrastructure HTTP 提取正文
-- `html-formatter.ts` — DOMParser 清洗 HTML，保留 `<img>` 标签
-- `content-processor.ts` — 已实现 ReplaceRule 执行，需扩展：去重标题、段落缩进、scope/excludeScope、regex timeout
-- `content-pipeline.ts` — 组合 fetcher → processor 的纯函数管线
-- 处理分页内容（`nextContentUrl` 串联多页）
+- `contracts/` — 依赖倒置接口：HttpFetcher（body bytes）、JsExecutor（re-export）、TextLayouter
+- `content-fetcher.ts` — HTTP 获取原始 bytes
+- `charset-decoder.ts` — Uint8Array → string（charset 解码分离）
+- `content-extractor.ts` — AnalyzeRule 提取正文（处理 JSON transport format + 多页串联 + 50 页上限）
+- `document-parser.ts` — DOMParser 语义解析 HTML → Document AST（不是正则清洗）
+- `content-processor.ts` — 已实现，适配为 Document → Document immutable transform
+- `content-pipeline.ts` — 编排 fetch → decode → extract → parse → process
 
-### 5.2 分页引擎（pagination/）
+### 5.2 排版引擎（layout/）
 
-- 基于 `@chenglou/pretext` 实现纯数学文本排版
-- `paginator.ts` — 用 `prepareWithSegments()` + `layoutWithLines()` 逐段排版，按页高切割
-- `text-measurer.ts` — 字体/尺寸配置管理，封装 pretext API
-- 支持图片混排（`layoutNextLineRange()` 变宽模式）
-- 纯计算，零 DOM 依赖
-- 输入：`ChapterContent` + `PaginationConfig`
-- 输出：`Page[]`（每页包含文本、行数据、偏移量）
+- `document/nodes.ts` — Document AST：BlockNode（Paragraph/Heading/Image/Blockquote/Separator）+ InlineNode（Text/Strong/Emphasis/Link）
+- `inline-flatten.ts` — InlineNode[] → InlineSegment[]（保留 style + nodeId）
+- `run-mapper.ts` — TextLayoutLine → LayoutRun[]（字符范围→段映射，语义保留）
+- `pretext-layouter.ts` — TextLayouter 的 pretext 实现（封装 `prepareWithSegments` + `layoutNextLine`，不泄漏 pretext 类型）
+- `layout-engine.ts` — 核心：Document → LayoutResult（positioned LayoutPage[]）
+- `pagination.ts` — 分页状态机（累积行高 → 满页切割）
+- 纯计算，零 DOM 依赖，pretext 仅在 pretext-layouter.ts 一处引用
+- 输入：`Document` + `LayoutConfig`
+- 输出：`LayoutResult { pages: LayoutPage[] }`（每页含 positioned LayoutLine[] + LayoutRun[]）
 
-### 5.3 渲染器（移至 apps/web/features/reader/）
+### 5.3 渲染模型（renderer/）
 
-- 渲染器是 UI 层职责，不属于 engine 包
-- `packages/reader-engine/src/renderer/` 仅保留类型定义
-- 实际渲染在 `apps/web/features/reader/` 中实现：
-  - DOM 渲染（支持文字选中、无障碍、响应式）
-  - CSS View Transitions / Web Animations 翻页动画
-  - 可选 Canvas 仿真翻页（贝塞尔曲线）
+- `render-model.ts` — RenderResult / RenderPage / RenderLine / RenderRun 输出契约
+- `toRenderModel(layout)` — LayoutResult → RenderResult 转换
+- 实际渲染在 `apps/web/features/reader/` 中实现（DOM + CSS 翻页动画）
+- 多端适配：DOM / Canvas / SVG / Native 均可消费 RenderResult
+
+### 5.4 Cursor 模型（shared/）
+
+- `DocumentCursor { blockId, inlineIndex, graphemeIndex }` — selection / annotation / TTS
+- `PageCursor { pageIndex, lineIndex, runIndex, graphemeIndex }` — 翻页定位 / 进度恢复
+- `LayoutCursor { segmentIndex, graphemeIndex }` — TextLayouter 内部游标
 
 ---
 
