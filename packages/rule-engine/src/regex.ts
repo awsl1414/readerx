@@ -1,45 +1,116 @@
 /**
  * 正则替换
  * 参考 docs/book-source-rule-engine.md 正则替换部分
+ *
+ * 处理规则中的 ## 正则替换链
+ * 格式：规则##正则##替换文本##正则2##替换2
  */
 
-export class AnalyzeByRegex {
-	/**
-	 * 执行正则替换
-	 * 格式：规则##正则表达式##替换文本
-	 * 支持 $1, $2... 引用捕获组
-	 */
-	replace(content: string, pattern: string, replacement: string): string {
+/** 正则替换项 */
+export interface RegexReplacement {
+	pattern: string;
+	replacement: string;
+	/** 是否只替换第一个匹配（### 三井号分隔时为 true） */
+	replaceFirst: boolean;
+}
+
+/**
+ * 解析 ## 分隔的替换链
+ *
+ * @example
+ * parseReplaceChain("class.title##^【(.+)】##$1")
+ * // { rule: "class.title", replacements: [{ pattern: "^【(.+)】", replacement: "$1", replaceFirst: false }] }
+ *
+ * parseReplaceChain("class.title##regex###replace")
+ * // replaceFirst: true（### 三井号表示只替换第一个匹配）
+ */
+export function parseReplaceChain(ruleStr: string): {
+	rule: string;
+	replacements: RegexReplacement[];
+} {
+	// 按 ## 分割，但需要区分 ### (replaceFirst)
+	const parts = splitByDoubleHash(ruleStr);
+
+	if (parts.length < 2) {
+		return { rule: ruleStr, replacements: [] };
+	}
+
+	const baseRule = parts[0] ?? "";
+	const replacements: RegexReplacement[] = [];
+
+	// 交替 pattern / replacement
+	let i = 1;
+	while (i < parts.length) {
+		const pattern = parts[i] ?? "";
+		const replacement = parts[i + 1] ?? "";
+		// ### 三井号分隔时 replacement 后面紧跟 ### 表示 replaceFirst
+		const replaceFirst = parts[i + 2] === "";
+		replacements.push({ pattern, replacement, replaceFirst });
+		i += replaceFirst ? 3 : 2;
+	}
+
+	return { rule: baseRule, replacements };
+}
+
+/**
+ * 对内容应用替换链
+ */
+export function applyReplacements(
+	content: string,
+	replacements: RegexReplacement[],
+): string {
+	let result = content;
+	for (const { pattern, replacement, replaceFirst } of replacements) {
+		if (pattern === "") continue;
 		try {
-			const regex = new RegExp(pattern, "g");
-			return content.replace(regex, replacement);
+			const regex = new RegExp(pattern, replaceFirst ? "" : "g");
+			if (replaceFirst) {
+				result = result.replace(regex, replacement);
+			} else {
+				result = result.replace(regex, replacement);
+			}
 		} catch {
-			return content;
+			// 无效正则，跳过
 		}
 	}
+	return result;
+}
 
-	/**
-	 * 解析 ## 分隔的替换链
-	 */
-	parseReplaceChain(rule: string): {
-		rule: string;
-		replacements: Array<{ pattern: string; replacement: string }>;
-	} {
-		const parts = rule.split("##");
-		if (parts.length < 3) {
-			return { rule, replacements: [] };
+/**
+ * 按 ## 分割字符串，处理 ### 三井号
+ * ### 表示 replaceFirst，会产生一个空字符串元素
+ */
+function splitByDoubleHash(str: string): string[] {
+	const result: string[] = [];
+	let current = "";
+	let i = 0;
+
+	while (i < str.length) {
+		// 检查 ### (三井号)
+		if (
+			str[i] === "#" &&
+			i + 2 < str.length &&
+			str[i + 1] === "#" &&
+			str[i + 2] === "#"
+		) {
+			result.push(current);
+			current = "";
+			// ### 等同于 ## + ##，插入一个空段标记 replaceFirst
+			result.push("");
+			i += 3;
+			continue;
 		}
-
-		const baseRule = parts[0] ?? "";
-		const replacements: Array<{ pattern: string; replacement: string }> = [];
-
-		for (let i = 1; i < parts.length - 1; i += 2) {
-			replacements.push({
-				pattern: parts[i] ?? "",
-				replacement: parts[i + 1] ?? "",
-			});
+		// 检查 ## (双井号)
+		if (str[i] === "#" && i + 1 < str.length && str[i + 1] === "#") {
+			result.push(current);
+			current = "";
+			i += 2;
+			continue;
 		}
-
-		return { rule: baseRule, replacements };
+		current += str[i];
+		i++;
 	}
+
+	result.push(current);
+	return result;
 }

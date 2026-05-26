@@ -160,5 +160,38 @@ export type AnalyzeRuleMode =
 	| "js"
 	| "regex";
 
-/** 规则组合运算符 */
+/** 规则组合运算符（拆分用：&& || %%，正则用：##） */
 export type RuleOperator = "&&" | "||" | "%%" | "##";
+
+/** 仅用于操作符拆分的运算符（不含 ##） */
+export type CombineOperator = "&&" | "||" | "%%";
+
+/** 运算符拆分后的规则片段 */
+export interface RuleSegment {
+	/** 子规则字符串（可能包含 ## 正则替换） */
+	rule: string;
+	/** 前置运算符（第一段为 undefined） */
+	operator: CombineOperator | undefined;
+}
+
+/** 解析成功 */
+export interface ParseSuccess {
+	ok: true;
+	/** 单字符串结果（多值用 \n 连接） */
+	value: string;
+	/** 所有匹配结果 */
+	values: string[];
+}
+
+/** 解析失败 */
+export interface ParseFailure {
+	ok: false;
+	/** 错误描述 */
+	error: string;
+}
+
+/** 统一解析结果 — discriminated union */
+export type ParseResult = ParseSuccess | ParseFailure;
+
+/** 内容类型 */
+export type ContentType = "html" | "json" | "xml" | "text";
