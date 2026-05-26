@@ -7,9 +7,9 @@
 | 模块 | 已完成 | 状态 |
 |---|---|---|
 | infrastructure | HTTP 客户端、Logger、Config | ✅ 完成 |
-| rule-engine | CSS/XPath/JSONPath 解析器、操作符拆分、正则替换、模式检测、URL 分析器管线、完整 Zod Schema、JS 规则支持（JsExecutor 依赖倒置）、246 测试通过 | ✅ Step 1+2+1.5 完成 |
+| rule-engine | CSS/XPath/JSONPath 解析器、操作符拆分、正则替换、模式检测、URL 分析器管线、完整 Zod Schema、JS 规则支持（JsExecutor 依赖倒置）、248 测试通过 | ✅ Step 1+2+1.5 完成 |
 | persistence | IndexedDB(Dexie) + OPFS + 9 Repositories、55 测试通过 | ✅ Step 3 完成 |
-| quickjs-runtime | QuickJS WASM 沙箱、宿主函数注入（evalRule/ajaxWithOption）、QuickJsExecutor、comlink Worker、31 测试通过 | ✅ Step 4 完成 |
+| quickjs-runtime | QuickJS WASM 沙箱、宿主函数注入（evalRule/ajaxWithOption）、async safe settlement、QuickJsExecutor、comlink Worker、31 测试通过 | ✅ Step 4 完成 |
 | reader-engine | 类型定义、ContentProcessor（13 测试） | 🟡 分析完成，待实现 |
 | services/api | 路由结构 | 🔴 脚手架 |
 | apps/web | Layout、CSS 主题、shadcn button | 🔴 脚手架 |

@@ -4,6 +4,7 @@
  * Node：xpath 库 + @xmldom/xmldom
  */
 
+import { createRequire } from "node:module";
 import type { RuleParser } from "./parser-interface";
 import { fail, ok, okList } from "./parser-interface";
 import type { ParseResult } from "./types";
@@ -101,6 +102,8 @@ function evaluateNative(rule: string, html: string): unknown[] {
 
 // --- Node 路径 ---
 
+const nodeRequire = createRequire(import.meta.url);
+
 let xpathLib: typeof import("xpath") | undefined;
 let xmldomDOMParser:
 	| InstanceType<typeof import("@xmldom/xmldom").DOMParser>
@@ -108,10 +111,10 @@ let xmldomDOMParser:
 
 function evaluateWithLib(rule: string, html: string): unknown[] {
 	if (!xpathLib) {
-		xpathLib = require("xpath") as typeof import("xpath");
+		xpathLib = nodeRequire("xpath") as typeof import("xpath");
 	}
 	if (!xmldomDOMParser) {
-		const xmldom = require("@xmldom/xmldom") as typeof import("@xmldom/xmldom");
+		const xmldom = nodeRequire("@xmldom/xmldom") as typeof import("@xmldom/xmldom");
 		xmldomDOMParser = new xmldom.DOMParser();
 	}
 

@@ -93,9 +93,9 @@ if (!item) return
 | packages/infrastructure | ✅ 是 | `config.ts` 使用 `process.env` |
 | services/api | ✅ 是 | Hono 服务端运行在 Node |
 | packages/persistence | ❌ 否 | 纯浏览器 API（IndexedDB、OPFS） |
-| packages/rule-engine | ❌ 否 | 纯字符串解析，无运行时依赖 |
+| packages/rule-engine | ✅ 是 | Node-only fallback 用 `createRequire` 加载 CJS 模块（linkedom、xpath） |
 | packages/reader-engine | ❌ 否 | 纯计算，零 DOM 依赖 |
-| packages/quickjs-runtime | ❌ 否 | Web Worker 环境 |
+| packages/quickjs-runtime | ✅ 是 | peer dep 引用 rule-engine 源码时需要 `node:module` 类型 |
 
 配置方式：在包的 `tsconfig.json` 中添加 `"compilerOptions": { "types": ["node"] }`，同时确保 `devDependencies` 中有 `@types/node`。
 
@@ -108,6 +108,49 @@ if (!item) return
 | 共享 package | `process.env`（加 typeof 守卫） | 保持 Node/Edge 兼容 |
 
 **Barrel Export** — 允许 `export * from "./types"` 式的按领域聚合，禁止巨型 index.ts、跨领域 re-export、全局 barrel（降低 tree-shaking 效率、增加循环依赖概率）。
+
+### ESM 兼容的同步模块加载
+
+项目 `erasableSyntaxOnly` 配置禁止裸 `require()` 调用。当 Node-only 代码路径需要同步加载 CJS 模块时（如测试环境的 DOM 解析库），使用 `node:module` 的 `createRequire`：
+
+```ts
+import { createRequire } from "node:module";
+const nodeRequire = createRequire(import.meta.url);
+
+// 延迟加载 Node-only 依赖
+const lib = nodeRequire("some-cjs-package") as typeof import("some-cjs-package");
+```
+
+使用条件：
+- 仅在浏览器 API 不可用时执行的 Node fallback 路径中使用
+- 包必须有 `"types": ["node"]` 和 `@types/node` devDependency
+- 浏览器路径通过 `typeof DOMParser !== "undefined"` 等检测跳过，由 bundler tree-shake 移除
+
+### Promise 错误处理模式
+
+禁止 `.then(onFulfilled, onRejected)` 双参数模式，推荐 `async/await + try/catch`。
+
+```ts
+// ❌ 禁止 — onFulfilled 内部 throw 不会被 onRejected 捕获
+promise.then(
+    (val) => { mightThrow(val); },
+    (err) => { handleError(err); },
+);
+
+// ✅ 推荐 — 任何阶段异常都进入统一 catch
+async function settle() {
+    try {
+        const val = await promise;
+        mightThrow(val);
+    } catch (err) {
+        handleError(err);
+    }
+}
+```
+
+双参数模式的问题：
+1. **错误传播语义不明确** — `.then(success, error)` 的第二参数只处理原 Promise reject，不捕获 fulfilled handler 内部 throw
+2. **strict TS 类型困难** — onRejected 必须返回 `PromiseLike<never>`，`void` 不满足要求（`TS2345`）
 
 ## React 19（RSC-first）
 

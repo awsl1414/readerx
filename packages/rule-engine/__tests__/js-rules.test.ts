@@ -139,4 +139,38 @@ describe("AnalyzeRule JS rules", () => {
 		expect(result.ok).toBe(true);
 		expect(capturedCode).toContain("toUpperCase");
 	});
+
+	it("passes prior segment output as result to JS in chained rules", async () => {
+		let receivedCtx: JsEvalContext | undefined;
+		const executor: JsExecutor = {
+			async eval(code, context) {
+				receivedCtx = context;
+				return { success: true, value: String(context.result).toUpperCase() };
+			},
+		};
+		const analyzer = new AnalyzeRule();
+		analyzer.setJsExecutor(executor);
+		analyzer.setContent("<div class='title'>hello</div>");
+		const result = await analyzer.getString("div.title&&@js:result.toUpperCase()");
+		expect(result.ok).toBe(true);
+		expect(receivedCtx?.result).toBe("hello");
+		// && operator concatenates CSS result + JS result
+		expect(result.value).toBe("hello\nHELLO");
+	});
+
+	it("does not allow evalContext to override src", async () => {
+		let receivedSrc: string | undefined;
+		const executor: JsExecutor = {
+			async eval(code, context) {
+				receivedSrc = context.src;
+				return { success: true, value: "ok" };
+			},
+		};
+		const analyzer = new AnalyzeRule();
+		analyzer.setJsExecutor(executor);
+		analyzer.setContent("<div>real content</div>");
+		analyzer.setEvalContext({ src: "should not override", baseUrl: "https://example.com" });
+		await analyzer.getString("@js:test");
+		expect(receivedSrc).toBe("<div>real content</div>");
+	});
 });

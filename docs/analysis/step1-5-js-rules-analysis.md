@@ -303,3 +303,101 @@ export type HostFunctions = {
 | ESM-only | ✅ | 所有新代码使用 ESM |
 | Edge-compatible | ✅ | QuickJS WASM 在 Edge Runtime 可用 |
 | 禁止循环依赖 | ✅ | rule-engine → (interface) ← quickjs-runtime |
+
+---
+
+## 六、代码审查修复记录
+
+Step 1.5 代码审查发现 5 个问题，全部已修复。记录修复方案供后续参考。
+
+### 6.1 `result` 未传递给 JS 上下文（严重）
+
+**问题**：`evaluate()` 循环独立评估每个段，但从不将前序段的输出作为 `result` 传递给后续 JS 段。链式规则 `div.title&&@js:result.trim()` 中，JS 收到 `result: undefined`。
+
+**修复**：循环中跟踪 `accumulatedResult`，通过 `evaluateSegment()` → `evaluateJs()` 传递给 JS 上下文。
+
+```typescript
+// analyzer.ts evaluate() 循环
+let accumulatedResult: string | undefined;
+for (const segment of segments) {
+    const result = await this.evaluateSegment(segment, mode, accumulatedResult);
+    // ...
+    if (replaced.length > 0) {
+        accumulatedResult = replaced.join("\n");
+    }
+}
+```
+
+### 6.2 `evalContext` 可覆盖 `src`（中等）
+
+**问题**：`evaluateJs` 展开顺序 `{ src: this.content, ...this.evalContext }` 允许 `evalContext.src` 静默覆盖页面内容。
+
+**修复**：反转展开顺序，`src`（页面内容）始终优先。
+
+```typescript
+const ctx: JsEvalContext = {
+    ...this.evalContext,
+    src: this.content,
+    ...(priorResult !== undefined ? { result: priorResult } : {}),
+};
+```
+
+### 6.3 `evalRuleList` 返回 JSON 字符串而非原生数组（严重）
+
+**问题**：sandbox.ts 中 `vm.newString(JSON.stringify(vals))` 将数组序列化为字符串返回给 QuickJS。JS 规则代码收到 `'["a","b"]'` 而非 `["a","b"]`。
+
+**修复**：用 `vm.newArray()` + `vm.setProp()` 构建原生 QuickJS 数组。
+
+```typescript
+const arr = vm.newArray();
+for (let i = 0; i < vals.length; i++) {
+    const el = vm.newString(vals[i] ?? "");
+    vm.setProp(arr, i, el);
+    el.dispose();
+}
+deferred.resolve(arr);
+```
+
+### 6.4 异步宿主函数 use-after-free（严重）
+
+**问题**：`evalCode()` 同步返回后 `finally` 立即 dispose VM，但异步宿主回调（ajax/evalRule 等）的 deferred promise 尚未 resolve。回调中的 `vm.newString()` 操作已释放的 VM。
+
+**修复**：三层防护机制：
+
+1. **`hostCompletions` 追踪** — `settleHostPromise()` 用 `async/await + try/catch` 桥接宿主 Promise，completion Promise 始终 settle
+2. **超时保护** — `Promise.race([allSettled, setTimeout(3s)])` 防止宿主 Promise 永不 resolve 时无限等待
+3. **错误容错** — `onReject` 内部异常（VM 已释放）被内层 `catch` 静默吞掉，避免 unhandled rejection
+
+```typescript
+async function settleHostPromise(
+    promise: Promise<unknown>,
+    onResolve: (val: unknown) => void,
+    onReject: (err: unknown) => void,
+): Promise<void> {
+    try {
+        const val = await promise;
+        onResolve(val);
+    } catch (err: unknown) {
+        try {
+            onReject(err);
+        } catch {
+            // VM 已释放，静默吞掉
+        }
+    }
+}
+```
+
+### 6.5 ESM 兼容性：`require` 改为 `createRequire`（编译错误）
+
+**问题**：`erasableSyntaxOnly` + `verbatimModuleSyntax` 配置下，`dom-utils.ts` 和 `xpath.ts` 中的裸 `require()` 调用无法通过 typecheck。
+
+**修复**：用 `import { createRequire } from "node:module"` + `createRequire(import.meta.url)` 替代，符合 ESM 规范。
+
+### 设计决策：为什么不使用 `.then(onFulfilled, onRejected)`
+
+在现代 TypeScript（5.7+ / strict）中，`.then(success, error)` 模式存在两个问题：
+
+1. **错误传播语义不明确** — `onFulfilled` 内部 throw 不会进入 `onRejected`（Promise 规范行为，第二参数只处理原 promise reject）
+2. **类型推断复杂化** — `TS2345: Type 'void' is not assignable to parameter of type '(reason: any) => PromiseLike<never>'`
+
+推荐使用 `async/await + try/catch`（最终采用）或 `.then(success).catch(error)` 链式模式。

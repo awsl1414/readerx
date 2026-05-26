@@ -15,6 +15,7 @@ import type {
 
 const DEFAULT_TIMEOUT = 5000;
 const DEFAULT_MEMORY_LIMIT = 8 * 1024 * 1024;
+const ASYNC_SETTLE_GRACE_MS = 3000;
 
 let modulePromise: Promise<QuickJSWASMModule> | null = null;
 
@@ -23,6 +24,28 @@ async function getModule(): Promise<QuickJSWASMModule> {
 		modulePromise = newQuickJSWASMModuleFromVariant(RELEASE_SYNC);
 	}
 	return modulePromise;
+}
+
+/**
+ * 桥接宿主异步 Promise 到 QuickJS deferred。
+ * 使用 async/await 统一错误处理：原 promise reject、onResolve throw、onReject throw
+ * 都不会产生 unhandled rejection（completion promise 始终 settle）。
+ */
+async function settleHostPromise(
+	promise: Promise<unknown>,
+	onResolve: (val: unknown) => void,
+	onReject: (err: unknown) => void,
+): Promise<void> {
+	try {
+		const val = await promise;
+		onResolve(val);
+	} catch (err: unknown) {
+		try {
+			onReject(err);
+		} catch {
+			// onReject 内部异常（如 VM 已释放）静默吞掉，避免 unhandled rejection
+		}
+	}
 }
 
 export class QuickJSSandbox {
@@ -50,6 +73,8 @@ export class QuickJSSandbox {
 		const vm = runtime.newContext();
 		const global = vm.global;
 
+		const hostCompletions: Array<Promise<void>> = [];
+
 		try {
 			for (const [key, value] of Object.entries(context)) {
 				if (value === undefined) continue;
@@ -61,7 +86,7 @@ export class QuickJSSandbox {
 			}
 
 			if (this.hostFunctions) {
-				this.injectHostFunctions(vm, runtime, global);
+				this.injectHostFunctions(vm, runtime, global, hostCompletions);
 			}
 
 			const result = vm.evalCode(code);
@@ -87,6 +112,16 @@ export class QuickJSSandbox {
 				error: err instanceof Error ? err.message : String(err),
 			};
 		} finally {
+			if (hostCompletions.length > 0) {
+				const settleDeadline = Date.now() + ASYNC_SETTLE_GRACE_MS;
+				await Promise.race([
+					Promise.allSettled(hostCompletions),
+					new Promise<void>((resolve) => {
+						const remaining = Math.max(0, settleDeadline - Date.now());
+						setTimeout(resolve, remaining);
+					}),
+				]);
+			}
 			vm.dispose();
 			runtime.dispose();
 		}
@@ -105,30 +140,47 @@ export class QuickJSSandbox {
 		vm: QuickJSContext,
 		runtime: QuickJSRuntime,
 		global: QuickJSHandle,
+		hostCompletions: Array<Promise<void>>,
 	): void {
 		if (!this.hostFunctions) return;
 
 		const fns = this.hostFunctions;
 
+		const rejectDeferred = (
+			err: unknown,
+			deferred: ReturnType<QuickJSContext["newPromise"]>,
+		) => {
+			const h = vm.newString(
+				err instanceof Error ? err.message : String(err),
+			);
+			deferred.reject(h);
+			h.dispose();
+		};
+
+		const trackDeferred = (
+			deferred: ReturnType<QuickJSContext["newPromise"]>,
+		) => {
+			deferred.settled.then(() => {
+				try { deferred.dispose(); } catch {}
+			});
+		};
+
+		// ajax — async
 		const ajaxHandle = vm.newFunction("ajax", (urlHandle) => {
 			const url = vm.dump(urlHandle) as string;
-			const promise = fns.ajax(url);
 			const deferred = vm.newPromise();
-			promise.then(
+
+			const completion = settleHostPromise(
+				fns.ajax(url),
 				(val) => {
-					const strHandle = vm.newString(val);
+					const strHandle = vm.newString(val as string);
 					deferred.resolve(strHandle);
 					strHandle.dispose();
 				},
-				(err) => {
-					const errHandle = vm.newString(
-						err instanceof Error ? err.message : String(err),
-					);
-					deferred.reject(errHandle);
-					errHandle.dispose();
-				},
+				(err) => { rejectDeferred(err, deferred); },
 			);
-			deferred.settled.then(() => deferred.dispose());
+			hostCompletions.push(completion);
+			trackDeferred(deferred);
 			runtime.executePendingJobs();
 			return deferred.handle;
 		});
@@ -168,51 +220,49 @@ export class QuickJSSandbox {
 		// evalRule — async, returns Promise<string>
 		const evalRuleHandle = vm.newFunction("evalRule", (ruleHandle) => {
 			const rule = vm.dump(ruleHandle) as string;
-			const promise = fns.evalRule(rule);
 			const deferred = vm.newPromise();
-			promise.then(
+
+			const completion = settleHostPromise(
+				fns.evalRule(rule),
 				(val) => {
-					const h = vm.newString(val);
+					const h = vm.newString(val as string);
 					deferred.resolve(h);
 					h.dispose();
 				},
-				(err) => {
-					const h = vm.newString(
-						err instanceof Error ? err.message : String(err),
-					);
-					deferred.reject(h);
-					h.dispose();
-				},
+				(err) => { rejectDeferred(err, deferred); },
 			);
-			deferred.settled.then(() => deferred.dispose());
+			hostCompletions.push(completion);
+			trackDeferred(deferred);
 			runtime.executePendingJobs();
 			return deferred.handle;
 		});
 		vm.setProp(global, "evalRule", evalRuleHandle);
 		evalRuleHandle.dispose();
 
-		// evalRuleList — async, returns JSON stringified array
+		// evalRuleList — async, returns native QuickJS array
 		const evalRuleListHandle = vm.newFunction(
 			"evalRuleList",
 			(ruleHandle) => {
 				const rule = vm.dump(ruleHandle) as string;
-				const promise = fns.evalRuleList(rule);
 				const deferred = vm.newPromise();
-				promise.then(
-					(vals) => {
-						const h = vm.newString(JSON.stringify(vals));
-						deferred.resolve(h);
-						h.dispose();
+
+				const completion = settleHostPromise(
+					fns.evalRuleList(rule),
+					(val) => {
+						const vals = val as string[];
+						const arr = vm.newArray();
+						for (let i = 0; i < vals.length; i++) {
+							const el = vm.newString(vals[i] ?? "");
+							vm.setProp(arr, i, el);
+							el.dispose();
+						}
+						deferred.resolve(arr);
+						arr.dispose();
 					},
-					(err) => {
-						const h = vm.newString(
-							err instanceof Error ? err.message : String(err),
-						);
-						deferred.reject(h);
-						h.dispose();
-					},
+					(err) => { rejectDeferred(err, deferred); },
 				);
-				deferred.settled.then(() => deferred.dispose());
+				hostCompletions.push(completion);
+				trackDeferred(deferred);
 				runtime.executePendingJobs();
 				return deferred.handle;
 			},
@@ -226,23 +276,19 @@ export class QuickJSSandbox {
 			(urlHandle, optHandle) => {
 				const url = vm.dump(urlHandle) as string;
 				const opt = vm.dump(optHandle) as string;
-				const promise = fns.ajaxWithOption(url, opt);
 				const deferred = vm.newPromise();
-				promise.then(
+
+				const completion = settleHostPromise(
+					fns.ajaxWithOption(url, opt),
 					(val) => {
-						const h = vm.newString(val);
+						const h = vm.newString(val as string);
 						deferred.resolve(h);
 						h.dispose();
 					},
-					(err) => {
-						const h = vm.newString(
-							err instanceof Error ? err.message : String(err),
-						);
-						deferred.reject(h);
-						h.dispose();
-					},
+					(err) => { rejectDeferred(err, deferred); },
 				);
-				deferred.settled.then(() => deferred.dispose());
+				hostCompletions.push(completion);
+				trackDeferred(deferred);
 				runtime.executePendingJobs();
 				return deferred.handle;
 			},

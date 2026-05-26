@@ -99,8 +99,14 @@ export class AnalyzeRule {
 			operator: CombineOperator | undefined;
 		}> = [];
 
+		let accumulatedResult: string | undefined;
+
 		for (const segment of segments) {
-			const result = await this.evaluateSegment(segment, mode);
+			const result = await this.evaluateSegment(
+				segment,
+				mode,
+				accumulatedResult,
+			);
 			if (!result.ok) return result;
 
 			const replaced = applySegmentReplacements(result.values, segment.rule);
@@ -108,6 +114,10 @@ export class AnalyzeRule {
 				values: replaced,
 				operator: segment.operator,
 			});
+
+			if (replaced.length > 0) {
+				accumulatedResult = replaced.join("\n");
+			}
 		}
 
 		const finalValues = combineResults(segmentResults);
@@ -161,13 +171,14 @@ export class AnalyzeRule {
 	private async evaluateSegment(
 		segment: { rule: string; operator: CombineOperator | undefined },
 		mode: "string" | "list" | "elements",
+		priorResult?: string,
 	): Promise<ParseResult> {
 		const { rule: cleanRule } = parseReplaceChain(segment.rule);
 		const ruleMode = detectMode(cleanRule);
 		const actualRule = stripModePrefix(cleanRule, ruleMode);
 
 		if (ruleMode === "js") {
-			return this.evaluateJs(actualRule);
+			return this.evaluateJs(actualRule, priorResult);
 		}
 
 		const method = toParserMethod(mode);
@@ -198,7 +209,10 @@ export class AnalyzeRule {
 	}
 
 	/** 执行 JS 规则 */
-	private async evaluateJs(code: string): Promise<ParseResult> {
+	private async evaluateJs(
+		code: string,
+		priorResult?: string,
+	): Promise<ParseResult> {
 		if (!this.jsExecutor) {
 			return {
 				ok: false,
@@ -207,8 +221,9 @@ export class AnalyzeRule {
 		}
 
 		const ctx: JsEvalContext = {
-			src: this.content,
 			...this.evalContext,
+			src: this.content,
+			...(priorResult !== undefined ? { result: priorResult } : {}),
 		};
 
 		const result = await this.jsExecutor.eval(code, ctx);

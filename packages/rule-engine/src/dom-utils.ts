@@ -4,6 +4,8 @@
  * Node：linkedom (HTML) + @xmldom/xmldom (XML)
  */
 
+import { createRequire } from "node:module";
+
 export interface ParsedDocument {
 	querySelectorAll(selector: string): NodeListOf<Element>;
 	/** XPath 求值（浏览器原生或 @xmldom polyfill） */
@@ -63,18 +65,12 @@ export function fixHtmlFragment(html: string): string {
 // 浏览器环境通过 typeof DOMParser 检测跳过，由 bundler tree-shake 移除
 
 /**
- * ESM 兼容的同步模块加载器
- * 仅在 Node 环境调用（浏览器路径由原生 DOMParser 处理）
+ * ESM 兼容的同步 require — 通过 node:module createRequire 获取。
  */
+const nodeRequire = createRequire(import.meta.url);
+
 function loadModule<T>(id: string): T {
-	// Node / Vitest: 全局 require 可用
-	if (typeof require === "function") {
-		return require(id) as T;
-	}
-	throw new Error(
-		`Cannot load "${id}" — no module loader available. ` +
-			"This code path should only run in Node environments.",
-	);
+	return nodeRequire(id) as T;
 }
 
 let linkedomModule: ReturnType<typeof loadModule<typeof import("linkedom")>>;
