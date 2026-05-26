@@ -64,8 +64,9 @@ export class BookRepository {
 		const book = await this.table.get(bookUrl);
 		if (!book) return;
 		if (!book.groupIds.includes(groupId)) {
-			book.groupIds.push(groupId);
-			await this.table.update(bookUrl, { groupIds: book.groupIds });
+			await this.table.update(bookUrl, {
+				groupIds: [...book.groupIds, groupId],
+			});
 		}
 	}
 

@@ -33,11 +33,13 @@ export class BookSourceRepository {
 	}
 
 	async getEnabled(): Promise<BookSourceRecord[]> {
-		return this.table.where("enabled").equals(1).toArray();
+		const all = await this.table.toArray();
+		return all.filter((source) => source.enabled);
 	}
 
 	async getEnabledExplore(): Promise<BookSourceRecord[]> {
-		return this.table.where("enabledExplore").equals(1).toArray();
+		const all = await this.table.toArray();
+		return all.filter((source) => source.enabledExplore);
 	}
 
 	async getByGroup(group: string): Promise<BookSourceRecord[]> {

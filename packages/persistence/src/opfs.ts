@@ -29,8 +29,10 @@ export class OPFSStorage {
 		const writable = await handle.createWritable();
 		try {
 			await writable.write(data);
-		} finally {
 			await writable.close();
+		} catch (error) {
+			await writable.abort();
+			throw error;
 		}
 	}
 

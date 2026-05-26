@@ -109,7 +109,7 @@ export type Cache = {
 // ─── ReplaceRule ───────────────────────────────────────────
 
 export type ReplaceRule = {
-	id: number;
+	id?: number;
 	name: string;
 	group?: string;
 	pattern: string;

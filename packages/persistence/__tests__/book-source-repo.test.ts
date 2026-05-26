@@ -105,6 +105,42 @@ describe("BookSourceRepository", () => {
 		await testDb.delete();
 	});
 
+	it("filters enabled sources", async () => {
+		const { testDb, repo } = await setup();
+		await repo.saveBatch([
+			makeSource({
+				bookSourceUrl: "https://a.com",
+				enabled: true,
+			}),
+			makeSource({
+				bookSourceUrl: "https://b.com",
+				enabled: false,
+			}),
+		]);
+		const enabled = await repo.getEnabled();
+		expect(enabled).toHaveLength(1);
+		expect(enabled[0]?.bookSourceUrl).toBe("https://a.com");
+		await testDb.delete();
+	});
+
+	it("filters enabled explore sources", async () => {
+		const { testDb, repo } = await setup();
+		await repo.saveBatch([
+			makeSource({
+				bookSourceUrl: "https://a.com",
+				enabledExplore: true,
+			}),
+			makeSource({
+				bookSourceUrl: "https://b.com",
+				enabledExplore: false,
+			}),
+		]);
+		const enabled = await repo.getEnabledExplore();
+		expect(enabled).toHaveLength(1);
+		expect(enabled[0]?.bookSourceUrl).toBe("https://a.com");
+		await testDb.delete();
+	});
+
 	it("checks existence", async () => {
 		const { testDb, repo } = await setup();
 		expect(await repo.has("https://example.com")).toBe(false);
