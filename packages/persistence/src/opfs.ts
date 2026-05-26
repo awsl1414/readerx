@@ -1,23 +1,66 @@
-/**
- * OPFS（Origin Private File System）文件操作
- * 用于存储缓存文件（如书籍内容、图片等）
- */
-
 export class OPFSStorage {
+	private root: FileSystemDirectoryHandle | null = null;
+
+	private async getRoot(): Promise<FileSystemDirectoryHandle> {
+		if (!this.root) {
+			this.root = await navigator.storage.getDirectory();
+		}
+		return this.root;
+	}
+
+	private async getFileHandle(
+		path: string,
+		create = false,
+	): Promise<FileSystemFileHandle> {
+		const parts = path.split("/").filter(Boolean);
+		const fileName = parts.pop();
+		if (!fileName) {
+			throw new Error(`Invalid path: ${path}`);
+		}
+		let dir = await this.getRoot();
+		for (const part of parts) {
+			dir = await dir.getDirectoryHandle(part, { create });
+		}
+		return dir.getFileHandle(fileName, { create });
+	}
+
 	async writeFile(path: string, data: ArrayBuffer): Promise<void> {
-		// TODO: 实现 OPFS 写入
-		void path;
-		void data;
+		const handle = await this.getFileHandle(path, true);
+		const writable = await handle.createWritable();
+		try {
+			await writable.write(data);
+		} finally {
+			await writable.close();
+		}
 	}
 
 	async readFile(path: string): Promise<ArrayBuffer | null> {
-		// TODO: 实现 OPFS 读取
-		void path;
-		return null;
+		try {
+			const handle = await this.getFileHandle(path);
+			const file = await handle.getFile();
+			return file.arrayBuffer();
+		} catch {
+			return null;
+		}
 	}
 
 	async deleteFile(path: string): Promise<void> {
-		// TODO: 实现 OPFS 删除
-		void path;
+		const parts = path.split("/").filter(Boolean);
+		const fileName = parts.pop();
+		if (!fileName) return;
+		let dir = await this.getRoot();
+		for (const part of parts) {
+			dir = await dir.getDirectoryHandle(part);
+		}
+		await dir.removeEntry(fileName);
+	}
+
+	async exists(path: string): Promise<boolean> {
+		try {
+			await this.getFileHandle(path);
+			return true;
+		} catch {
+			return false;
+		}
 	}
 }
