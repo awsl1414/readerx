@@ -38,7 +38,6 @@ export {
 	urlOptionSchema,
 	validateBookSource,
 } from "./schemas";
-export type { UrlOption } from "./types";
 // 类型
 export type {
 	AnalyzeRuleMode,
@@ -57,6 +56,7 @@ export type {
 	RuleSegment,
 	SearchRule,
 	TocRule,
+	UrlOption,
 } from "./types";
 export type { AnalyzeUrlResult } from "./url-analyzer";
 // URL 分析器

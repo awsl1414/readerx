@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
 	bookSourceSchema,
-	bookInfoRuleSchema,
 	contentRuleSchema,
 	exploreRuleSchema,
 	isValidBookSourceType,
@@ -10,7 +9,6 @@ import {
 	reviewRuleSchema,
 	searchRuleSchema,
 	tocRuleSchema,
-	urlOptionSchema,
 	validateBookSource,
 } from "../src/schemas";
 
@@ -72,9 +70,7 @@ describe("parseUrlOption", () => {
 	});
 
 	it("allows unknown fields via passthrough", () => {
-		const result = parseUrlOption(
-			'{"method":"GET","customField":"value"}',
-		);
+		const result = parseUrlOption('{"method":"GET","customField":"value"}');
 		expect(result.success).toBe(true);
 		if (result.success) {
 			expect(result.data.customField).toBe("value");

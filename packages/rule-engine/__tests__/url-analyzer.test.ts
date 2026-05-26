@@ -219,9 +219,9 @@ describe("resolveRelativeUrl", () => {
 	});
 
 	it("resolves relative path without leading slash", () => {
-		expect(
-			resolveRelativeUrl("books/123", "https://example.com/search/"),
-		).toBe("https://example.com/search/books/123");
+		expect(resolveRelativeUrl("books/123", "https://example.com/search/")).toBe(
+			"https://example.com/search/books/123",
+		);
 	});
 
 	it("resolves protocol-relative URL", () => {
@@ -251,10 +251,10 @@ describe("analyzeUrl (full pipeline)", () => {
 	});
 
 	it("replaces variables and resolves page", () => {
-		const result = analyzeUrl(
-			"https://example.com/search?q={{key}}&p=<page>",
-			{ variables: { key: "三体" }, page: 2 },
-		);
+		const result = analyzeUrl("https://example.com/search?q={{key}}&p=<page>", {
+			variables: { key: "三体" },
+			page: 2,
+		});
 		expect(result.url).toBe("https://example.com/search?q=三体&p=2");
 	});
 
@@ -325,10 +325,9 @@ describe("analyzeUrl (full pipeline)", () => {
 describe("AnalyzeUrl class (backward compat)", () => {
 	it("works with old two-arg API (variables map)", () => {
 		const analyzer = new AnalyzeUrl();
-		const result = analyzer.analyze(
-			"https://example.com/search?q={{key}}",
-			{ key: "test" },
-		);
+		const result = analyzer.analyze("https://example.com/search?q={{key}}", {
+			key: "test",
+		});
 		expect(result.url).toBe("https://example.com/search?q=test");
 	});
 });
