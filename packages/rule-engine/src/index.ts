@@ -23,8 +23,22 @@ export { fail, ok, okList } from "./parser-interface";
 export { applyReplacements, parseReplaceChain } from "./regex";
 // 操作符和正则
 export { combineResults, splitRuleByOperators } from "./rule-operators";
-// 校验
-export { isValidBookSourceType, validateBookSource } from "./schemas";
+// 校验 Schemas
+export {
+	bookInfoRuleSchema,
+	bookSourceSchema,
+	contentRuleSchema,
+	exploreRuleSchema,
+	isValidBookSourceType,
+	parseBookSource,
+	parseUrlOption,
+	reviewRuleSchema,
+	searchRuleSchema,
+	tocRuleSchema,
+	urlOptionSchema,
+	validateBookSource,
+} from "./schemas";
+export type { UrlOption } from "./types";
 // 类型
 export type {
 	AnalyzeRuleMode,
