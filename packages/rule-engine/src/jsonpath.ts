@@ -4,8 +4,8 @@
  */
 
 import { JSONPath } from "jsonpath-plus";
-import { fail, okList } from "./parser-interface";
 import type { RuleParser } from "./parser-interface";
+import { fail, okList } from "./parser-interface";
 import type { ParseResult } from "./types";
 
 /**

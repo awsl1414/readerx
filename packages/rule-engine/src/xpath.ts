@@ -4,8 +4,8 @@
  * Node：xpath 库 + @xmldom/xmldom
  */
 
-import { fail, ok, okList } from "./parser-interface";
 import type { RuleParser } from "./parser-interface";
+import { fail, ok, okList } from "./parser-interface";
 import type { ParseResult } from "./types";
 
 /**
@@ -102,16 +102,16 @@ function evaluateNative(rule: string, html: string): unknown[] {
 // --- Node 路径 ---
 
 let xpathLib: typeof import("xpath") | undefined;
-let xmldomDOMParser: InstanceType<typeof import("@xmldom/xmldom").DOMParser> | undefined;
+let xmldomDOMParser:
+	| InstanceType<typeof import("@xmldom/xmldom").DOMParser>
+	| undefined;
 
 function evaluateWithLib(rule: string, html: string): unknown[] {
 	if (!xpathLib) {
 		xpathLib = require("xpath") as typeof import("xpath");
 	}
 	if (!xmldomDOMParser) {
-		const xmldom = require("@xmldom/xmldom") as typeof import(
-			"@xmldom/xmldom"
-		);
+		const xmldom = require("@xmldom/xmldom") as typeof import("@xmldom/xmldom");
 		xmldomDOMParser = new xmldom.DOMParser();
 	}
 
@@ -130,13 +130,11 @@ function evaluateWithLib(rule: string, html: string): unknown[] {
 function stripNamespaces(node: unknown): void {
 	if (!node || typeof node !== "object") return;
 	const el = node as Record<string, unknown>;
-	if (el["nodeType"] === 1) {
-		el["namespaceURI"] = null;
-		el["prefix"] = null;
+	if (el.nodeType === 1) {
+		el.namespaceURI = null;
+		el.prefix = null;
 	}
-	const children = el["childNodes"] as
-		| ArrayLike<unknown>
-		| undefined;
+	const children = el.childNodes as ArrayLike<unknown> | undefined;
 	if (children) {
 		for (let i = 0; i < children.length; i++) {
 			stripNamespaces(children[i]);
@@ -155,9 +153,7 @@ function nodeText(node: unknown): string {
 
 function isElement(node: unknown): boolean {
 	return (
-		node !== null &&
-		typeof node === "object" &&
-		"outerHTML" in (node as object)
+		node !== null && typeof node === "object" && "outerHTML" in (node as object)
 	);
 }
 

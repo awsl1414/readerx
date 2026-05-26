@@ -7,16 +7,16 @@
 
 import * as css from "./css";
 import * as jsonpath from "./jsonpath";
-import * as xpath from "./xpath";
+import type { RuleParser } from "./parser-interface";
 import { applyReplacements, parseReplaceChain } from "./regex";
 import { combineResults, splitRuleByOperators } from "./rule-operators";
-import type { RuleParser } from "./parser-interface";
 import type {
 	AnalyzeRuleMode,
 	CombineOperator,
 	ContentType,
 	ParseResult,
 } from "./types";
+import * as xpath from "./xpath";
 
 export class AnalyzeRule {
 	private content = "";

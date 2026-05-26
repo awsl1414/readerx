@@ -1,8 +1,8 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
+	getElements,
 	getString,
 	getStringList,
-	getElements,
 	parseCssRule,
 } from "../src/css";
 
@@ -109,7 +109,9 @@ describe("parseCssRule", () => {
 	});
 
 	it("handles text.value shorthand as filter marker", () => {
-		expect(parseCssRule("text.刘慈欣").selector).toContain("__TEXT_FILTER__刘慈欣");
+		expect(parseCssRule("text.刘慈欣").selector).toContain(
+			"__TEXT_FILTER__刘慈欣",
+		);
 	});
 
 	it("leaves standard CSS selectors unchanged", () => {
@@ -255,7 +257,7 @@ describe("CSS getStringList", () => {
 	});
 
 	it("preserves empty values in list", () => {
-		const html = '<div><span></span><span>text</span></div>';
+		const html = "<div><span></span><span>text</span></div>";
 		const result = getStringList("span@text", html);
 		expect(result.ok).toBe(true);
 		if (result.ok) {
@@ -307,8 +309,7 @@ describe("CSS extractAttribute edge cases", () => {
 	});
 
 	it("@textNodes returns all text nodes recursively", () => {
-		const html =
-			'<div class="container">直接文本<span>子元素文本</span></div>';
+		const html = '<div class="container">直接文本<span>子元素文本</span></div>';
 		const result = getString("class.container@textNodes", html);
 		expect(result.ok).toBe(true);
 		if (result.ok) {

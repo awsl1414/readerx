@@ -1,6 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { getString, getStringList, getElements } from "../src/xpath";
-
+import { describe, expect, it } from "vitest";
+import { getElements, getString, getStringList } from "../src/xpath";
 
 const HTML = `
 <html><body>
@@ -31,7 +30,6 @@ const XML = `<?xml version="1.0" encoding="UTF-8"?>
     </item>
   </channel>
 </rss>`;
-
 
 describe("XPath getString", () => {
 	it("extracts single text from XPath expression", () => {

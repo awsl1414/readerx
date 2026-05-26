@@ -22,7 +22,7 @@ export class HttpClient {
 		return fetch(url, {
 			method: options.method ?? "GET",
 			headers,
-			body: options.body,
+			body: options.body ?? null,
 		});
 	}
 }

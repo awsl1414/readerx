@@ -9,12 +9,6 @@ export interface SandboxOptions {
 }
 
 export class QuickJSSandbox {
-	private options: SandboxOptions;
-
-	constructor(options: SandboxOptions = {}) {
-		this.options = options;
-	}
-
 	async eval(
 		code: string,
 		context: Record<string, unknown> = {},

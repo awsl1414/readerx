@@ -107,7 +107,8 @@ export function splitRuleByOperators(rule: string): RuleSegment[] {
 	let cursor = 0;
 
 	for (let idx = 0; idx < splitPoints.length; idx++) {
-		const sp = splitPoints[idx]!;
+		const sp = splitPoints[idx];
+		if (!sp) continue;
 		segments.push({
 			rule: rule.substring(cursor, sp.pos).trim(),
 			operator: idx === 0 ? undefined : splitPoints[idx - 1]?.op,
@@ -168,8 +169,14 @@ function zipMerge(a: string[], b: string[]): string[] {
 	const result: string[] = [];
 	const maxLen = Math.max(a.length, b.length);
 	for (let i = 0; i < maxLen; i++) {
-		if (i < a.length) result.push(a[i]!);
-		if (i < b.length) result.push(b[i]!);
+		if (i < a.length) {
+			const v = a[i];
+			if (v !== undefined) result.push(v);
+		}
+		if (i < b.length) {
+			const v = b[i];
+			if (v !== undefined) result.push(v);
+		}
 	}
 	return result;
 }

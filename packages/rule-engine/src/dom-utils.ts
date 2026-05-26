@@ -87,13 +87,14 @@ function parseHTMLWithLinkedom(content: string): ParsedDocument {
 	return document as unknown as ParsedDocument;
 }
 
-let xmldomModule: ReturnType<typeof loadModule<typeof import("@xmldom/xmldom")>>;
+let xmldomModule: ReturnType<
+	typeof loadModule<typeof import("@xmldom/xmldom")>
+>;
 
 function parseXMLWithXmldom(content: string): ParsedDocument {
 	if (!xmldomModule) {
-		xmldomModule = loadModule<typeof import("@xmldom/xmldom")>(
-			"@xmldom/xmldom",
-		);
+		xmldomModule =
+			loadModule<typeof import("@xmldom/xmldom")>("@xmldom/xmldom");
 	}
 	const parser = new xmldomModule.DOMParser();
 	const doc = parser.parseFromString(content, "application/xml");

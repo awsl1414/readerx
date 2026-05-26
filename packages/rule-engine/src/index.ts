@@ -13,9 +13,9 @@ export {
 } from "./css";
 export {
 	getElements as jsonpathGetElements,
-	jsonpathParser,
 	getString as jsonpathGetString,
 	getStringList as jsonpathGetStringList,
+	jsonpathParser,
 } from "./jsonpath";
 export type { RuleParser } from "./parser-interface";
 // 解析器辅助

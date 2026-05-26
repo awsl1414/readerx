@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { parseHTML, parseXML, fixHtmlFragment } from "../src/dom-utils";
+import { describe, expect, it } from "vitest";
+import { fixHtmlFragment, parseHTML, parseXML } from "../src/dom-utils";
 
 describe("parseHTML", () => {
 	it("parses basic HTML string", () => {
@@ -10,9 +10,7 @@ describe("parseHTML", () => {
 	});
 
 	it("parses complete HTML document", () => {
-		const doc = parseHTML(
-			"<html><body><h1>Title</h1></body></html>",
-		);
+		const doc = parseHTML("<html><body><h1>Title</h1></body></html>");
 		const h1 = doc.querySelectorAll("h1");
 		expect(h1).toHaveLength(1);
 		expect(h1[0]?.textContent).toBe("Title");
@@ -81,17 +79,13 @@ describe("parseXML", () => {
 	});
 
 	it("parses XML with child elements", () => {
-		const doc = parseXML(
-			'<?xml version="1.0"?><root><a>1</a><a>2</a></root>',
-		);
+		const doc = parseXML('<?xml version="1.0"?><root><a>1</a><a>2</a></root>');
 		const items = doc.documentElement.childNodes;
 		expect(items.length).toBeGreaterThanOrEqual(2);
 	});
 
 	it("returns documentElement for XML", () => {
-		const doc = parseXML(
-			'<?xml version="1.0"?><root><child/></root>',
-		);
+		const doc = parseXML('<?xml version="1.0"?><root><child/></root>');
 		expect(doc.documentElement).toBeDefined();
 	});
 });
@@ -109,9 +103,7 @@ describe("fixHtmlFragment", () => {
 
 	it("wraps </tbody> fragments in <table>", () => {
 		const result = fixHtmlFragment("<tbody><tr><td>cell</td></tr></tbody>");
-		expect(result).toBe(
-			"<table><tbody><tr><td>cell</td></tr></tbody></table>",
-		);
+		expect(result).toBe("<table><tbody><tr><td>cell</td></tr></tbody></table>");
 	});
 
 	it("does not modify non-table fragments", () => {

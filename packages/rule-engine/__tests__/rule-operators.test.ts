@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { splitRuleByOperators, combineResults } from "../src/rule-operators";
+import { describe, expect, it } from "vitest";
+import { combineResults, splitRuleByOperators } from "../src/rule-operators";
 
 describe("splitRuleByOperators", () => {
 	it("splits simple && into 2 segments", () => {

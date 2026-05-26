@@ -9,8 +9,8 @@
  */
 
 import { parseHTML } from "./dom-utils";
-import { fail, ok, okList } from "./parser-interface";
 import type { RuleParser } from "./parser-interface";
+import { fail, ok, okList } from "./parser-interface";
 import type { ParseResult } from "./types";
 
 /** 解析后的 CSS 规则结构 */
@@ -110,9 +110,7 @@ export function parseCssRule(rule: string): ParsedCssRule {
 	}
 
 	// 2. 从 selector 部分提取索引（selector.index@attr 格式）
-	const selMatch = remaining.match(
-		/^(.+)\.([!]?-?\d+(?::-?\d+(?::-?\d+)?)?)$/,
-	);
+	const selMatch = remaining.match(/^(.+)\.([!]?-?\d+(?::-?\d+(?::-?\d+)?)?)$/);
 	if (selMatch?.[1]) {
 		remaining = selMatch[1];
 		// @attr.index 优先级更高
@@ -251,11 +249,17 @@ function applyRangeIndex(elements: Element[], expr: string): Element[] {
 	const result: Element[] = [];
 	if (step > 0) {
 		for (let i = start; i <= end && i < len; i += step) {
-			if (i >= 0) result.push(elements[i]!);
+			if (i >= 0) {
+				const el = elements[i];
+				if (el) result.push(el);
+			}
 		}
 	} else {
 		for (let i = start; i >= end && i >= 0; i += step) {
-			if (i < len) result.push(elements[i]!);
+			if (i < len) {
+				const el = elements[i];
+				if (el) result.push(el);
+			}
 		}
 	}
 

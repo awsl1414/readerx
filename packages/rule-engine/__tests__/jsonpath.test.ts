@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { getString, getStringList, getElements } from "../src/jsonpath";
+import { describe, expect, it } from "vitest";
+import { getElements, getString, getStringList } from "../src/jsonpath";
 
 const JSON_CONTENT = JSON.stringify({
 	store: {

@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { parseReplaceChain, applyReplacements } from "../src/regex";
+import { describe, expect, it } from "vitest";
+import { applyReplacements, parseReplaceChain } from "../src/regex";
 
 describe("parseReplaceChain", () => {
 	it("parses a single replacement", () => {

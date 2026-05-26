@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { AnalyzeUrl } from "../src/url-analyzer";
 
 describe("AnalyzeUrl", () => {
@@ -18,10 +18,10 @@ describe("AnalyzeUrl", () => {
 	});
 
 	it("replaces multiple variables", () => {
-		const result = analyzer.analyze(
-			"https://example.com/{{category}}/{{id}}",
-			{ category: "book", id: "123" },
-		);
+		const result = analyzer.analyze("https://example.com/{{category}}/{{id}}", {
+			category: "book",
+			id: "123",
+		});
 		expect(result.url).toBe("https://example.com/book/123");
 	});
 
@@ -36,10 +36,7 @@ describe("AnalyzeUrl", () => {
 	});
 
 	it("leaves unreferenced variables as-is", () => {
-		const result = analyzer.analyze(
-			"https://example.com/{{page}}",
-			{},
-		);
+		const result = analyzer.analyze("https://example.com/{{page}}", {});
 		expect(result.url).toBe("https://example.com/{{page}}");
 	});
 
@@ -49,20 +46,19 @@ describe("AnalyzeUrl", () => {
 	});
 
 	it("handles variables with special characters in value", () => {
-		const result = analyzer.analyze(
-			"https://example.com/search?q={{query}}",
-			{ query: "hello world&filter=all" },
-		);
+		const result = analyzer.analyze("https://example.com/search?q={{query}}", {
+			query: "hello world&filter=all",
+		});
 		expect(result.url).toBe(
 			"https://example.com/search?q=hello world&filter=all",
 		);
 	});
 
 	it("ignores extra variables not in URL", () => {
-		const result = analyzer.analyze(
-			"https://example.com/page",
-			{ unused: "value", extra: "data" },
-		);
+		const result = analyzer.analyze("https://example.com/page", {
+			unused: "value",
+			extra: "data",
+		});
 		expect(result.url).toBe("https://example.com/page");
 	});
 });
