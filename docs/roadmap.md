@@ -279,46 +279,159 @@ const result = await ruleExecutor.execute(rule, content)
 // 内部走 Worker RPC，feature 无感知
 ```
 
+### 6.0 Worker Bridge 基础设施
+
+所有 feature 的前置依赖。架构指南见 [`docs/web/worker-bridge.md`](./web/worker-bridge.md)。
+
+- 6.0.1 **Worker Bridge 模块**（`apps/web/lib/worker-bridge.ts`）
+  - comlink Worker 懒初始化（首次调用时创建，单例复用）
+  - async API 封装：`executeRule(rule, content, options?)` / `evalJs(code, context)`
+  - 请求队列：单 Worker 串行执行，后续请求排队
+  - 超时处理：默认 10s，可配置
+
+- 6.0.2 **WorkerBridgeProvider**（`apps/web/components/providers.tsx`）
+  - React Context 注入 bridge 实例
+  - `useWorkerBridge()` hook 供 feature 调用
+  - `useEffect` cleanup 中调用 `dispose()`
+
+- 6.0.3 **错误恢复**
+  - Worker crash 检测 → 销毁旧连接 → 下次调用自动重建
+  - 规则语法错误 → 返回含 error 字段的结果，不抛异常
+  - **验证**：模拟 Worker crash，确认自动恢复且不丢失后续请求
+
 ### 6.1 阅读器原型（features/reader/）
 
-阅读器是技术风险最高的 feature，优先验证可行性。
+技术风险最高的 feature，优先验证可行性。架构指南见 [`docs/web/reader.md`](./web/reader.md)。
 
-- RenderModel → React 渲染：将 reader-engine 的 Page/Line/Run 映射为 React 组件
-- 翻页手势：touch/pointer 事件，上下/左右/滚动三种模式
-- ReaderSession：session 级别的分页状态管理
-- 布局调度：viewport/font 变更时的 layout invalidation，不使用 useEffect
-- 目录跳转 + 上下章切换
-- 进度保存与恢复
+- 6.1.1 **ReaderSession 类**（`session.ts`）
+  - `open(bookId)` — 从 IndexedDB 加载书籍 → Worker Bridge 获取章节内容 → reader-engine 排版 → 返回 session
+  - `getPage(cursor)` / `nextPage()` / `prevPage()` — 分页导航
+  - `jumpToChapter(index)` — 章节跳转（触发新章节加载 + 排版）
+  - `updateSettings(settings)` — 设置变更，触发 Render Scheduler
+  - `dispose()` — 保存进度 + 清理缓存
 
-**验证标准**：用测试 fixture 内容（不依赖真实书源），渲染出可翻页的阅读界面。
+- 6.1.2 **RenderModel → React 渲染**（`page-renderer.tsx`）
+  - Page.lines → `<p>` 元素列表
+  - Line.segments → inline 元素（`<span>` / `<strong>` / `<a>`）
+  - flatMap 渲染，禁止递归组件
+  - **验证**：用 reader-engine 测试 fixture 渲染出正确的 HTML 结构
+
+- 6.1.3 **翻页手势**（`use-gesture.ts`）
+  - 左右翻页模式：touch/pointer 水平滑动，超过阈值翻页
+  - 上下翻页模式：touch/pointer 垂直滑动
+  - 滚动模式：wheel / touch scroll，按页截断
+  - 翻页无动画（直接内容切换）
+  - **验证**：三种模式均可正常翻页
+
+- 6.1.4 **Render Scheduler**（`render-scheduler.ts`）
+  - 收集 invalidation 源：字号/行距变更、窗口 Resize
+  - 取消未完成的重排 → 用新 settings 调用 `layoutDocument()` → 通知 React
+  - ResizeObserver 监听窗口变更，debounce 200ms
+  - 主题变更仅切换 CSS class，不触发重排
+  - **验证**：连续快速变更字号，确认无竞态、无卡顿
+
+- 6.1.5 **控制层 UI**（`control-bar.tsx` + `settings-panel.tsx` + `toc-panel.tsx`）
+  - 点击/轻触浮出控制层，3s 无操作淡出
+  - 顶栏：返回按钮、章节标题
+  - 底栏：翻页模式切换、上下章按钮、进度百分比
+  - 设置面板：字号滑块、行距滑块、阅读器主题选择（5 套）
+  - 目录面板：章节列表，点击跳转
+
+- 6.1.6 **章节预取**
+  - 当前章节加载完成后，自动预取下一章和上一章
+  - 预取异步执行，不阻塞阅读
+  - 缓存在 session 内部，翻到时直接使用
+
+- 6.1.7 **进度保存与恢复**
+  - 翻页时更新 session 内 cursor（chapterIndex + pageIndex）
+  - 退出时一次性写入 IndexedDB
+  - 再次打开同一本书恢复到上次位置
+
+**验证标准**：用测试 fixture 内容（不依赖真实书源），渲染出可翻页的阅读界面，字号变更触发的重排不卡顿。
 
 ### 6.2 书架（features/bookshelf/）
 
-- 书架展示：网格/列表视图切换
-- 添加书籍（从搜索结果）
-- 阅读进度显示
-- 书籍分组管理
-- 本地数据持久化
+- 6.2.1 **书架列表**
+  - 网格视图（封面 + 书名 + 进度条）和列表视图切换
+  - 按"最近阅读"排序（默认）
+  - 下拉刷新（检查书源更新）
+  - 空状态：引导添加书籍或导入书源
+
+- 6.2.2 **书籍操作**
+  - 长按/右键菜单：删除、移入分组、查看详情
+  - 点击进入阅读器
+  - 从搜索结果添加到书架
+
+- 6.2.3 **分组管理**
+  - 分组侧栏（桌面）/ 底部 sheet（移动）
+  - 创建、重命名、删除分组
+  - 拖拽排序分组（可选）
+
+- 6.2.4 **数据层**
+  - TanStack Query 缓存书籍列表
+  - mutation 写入 IndexedDB（通过 persistence 包的 BookRepository）
+  - 乐观更新：添加/删除后立即更新 UI，后台持久化
 
 ### 6.3 搜索（features/search/）
 
-- 搜索界面：输入关键词，多书源并发搜索
-- 搜索结果：书籍列表（书名、作者、来源、简介、封面）
-- 搜索结果缓存（TanStack Query + persistence）
+- 6.3.1 **搜索输入**
+  - 搜索框 + 书源选择（全部 / 指定分组）
+  - 搜索历史（最近 20 条，persistence SearchKeywordRepository）
+  - 搜索建议（从历史匹配）
+
+- 6.3.2 **多源并发搜索**
+  - 遍历已启用的书源，通过 Worker Bridge 并发执行搜索规则
+  - 结果流式展示：哪个书源返回了就先显示
+  - 搜索超时：单个书源 15s，总体 30s
+
+- 6.3.3 **搜索结果展示**
+  - 书籍卡片：封面、书名、作者、来源、简介
+  - 相同书籍去重提示（不同书源的同名书）
+  - 点击结果：查看详情 / 直接加入书架 / 开始阅读
+
+- 6.3.4 **结果缓存**
+  - TanStack Query 缓存搜索结果（key: `["search", keyword, sourceIds]`）
+  - 缓存时间 5 分钟
 
 ### 6.4 书源管理（features/source-manager/）
 
-- 书源列表：搜索、分组、启用/禁用
-- 书源导入：URL 导入、文件导入、粘贴 JSON
-- 书源编辑：表单编辑各规则字段，实时校验（Zod）
-- 书源调试：输入规则 → 实时显示解析结果
+- 6.4.1 **书源列表**
+  - 全部书源，按名称排序
+  - 搜索过滤
+  - 分组筛选标签
+  - 启用/禁用开关（单行操作）
+
+- 6.4.2 **书源导入**
+  - URL 导入：输入 URL → fetch JSON → Zod 校验 → 存储
+  - 文件导入：文件选择器 → 读取 JSON → 校验 → 存储
+  - 粘贴导入：文本区域粘贴 JSON → 校验 → 存储
+  - 批量导入：支持包含多个书源的 JSON 数组
+  - 导入结果报告：成功 N 个 / 失败 M 个（附失败原因）
+
+- 6.4.3 **书源编辑**
+  - 表单编辑各规则字段（搜索规则、书籍信息规则、目录规则、正文规则、翻页规则）
+  - Zod 实时校验，字段旁显示错误提示
+  - 保存前完整校验
+
+- 6.4.4 **书源调试**
+  - 输入 URL → 通过 Worker Bridge 执行各阶段规则
+  - 逐步展示结果：搜索结果 → 书籍信息 → 目录 → 正文
+  - 规则执行错误高亮
 
 ### 6.5 基础 UI 完善
 
-- shadcn/ui 组件补全：Dialog、Sheet、Toast、Tabs
-- 全局 Toast / 错误处理
-- 命令面板（⌘K）
-- 响应式布局细化
+- 6.5.1 **组件补全**
+  - shadcn/ui：Dialog、Sheet、Toast、Tabs、Command（⌘K）
+  - 全局 Toast Provider：成功/错误/加载提示
+
+- 6.5.2 **命令面板**（⌘K）
+  - 搜索书籍、跳转页面、切换主题
+  - 基于 cmdk
+
+- 6.5.3 **响应式细化**
+  - 移动端底栏导航
+  - 桌面端侧边栏折叠
+  - 阅读器全屏适配
 
 ---
 
