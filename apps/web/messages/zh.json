@@ -1,0 +1,35 @@
+{
+	"nav": {
+		"home": "首页",
+		"library": "书库",
+		"search": "搜索",
+		"settings": "设置"
+	},
+	"home": {
+		"continueReading": "继续阅读",
+		"recentBooks": "最近在读",
+		"noBooks": "还没有书籍",
+		"searchToAdd": "搜索添加你的第一本书"
+	},
+	"library": { "title": "书库" },
+	"search": {
+		"title": "搜索",
+		"placeholder": "搜索书名或作者..."
+	},
+	"settings": {
+		"title": "设置",
+		"sources": "书源管理",
+		"reading": "阅读设置",
+		"system": "系统",
+		"theme": "主题",
+		"themeLight": "亮色",
+		"themeDark": "暗色",
+		"themeSystem": "跟随系统",
+		"language": "语言"
+	},
+	"common": {
+		"loading": "加载中...",
+		"error": "出错了",
+		"retry": "重试"
+	}
+}
