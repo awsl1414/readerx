@@ -1,3 +1,10 @@
+import type { JsEvalContext, JsEvalResult, JsExecutor } from "@readerx/rule-engine";
+import type { HostFunctionOptions } from "@readerx/quickjs-runtime";
+import type { WorkerApi } from "@readerx/quickjs-runtime/worker";
+import { AnalyzeRule } from "@readerx/rule-engine";
+import { createHostFunctions } from "@readerx/quickjs-runtime";
+import * as Comlink from "comlink";
+
 // --- Public types ---
 
 type RuleOptions = {
@@ -32,5 +39,232 @@ class WorkerUnavailableError extends Error {
 	}
 }
 
+// --- WorkerBridge ---
+
+const DEFAULT_TIMEOUT = 10_000;
+
+type WorkerFactory = () => Worker;
+
+class WorkerBridge {
+	#worker: Worker | null = null;
+	#api: Comlink.Remote<WorkerApi> | null = null;
+	#queue: Promise<unknown> = Promise.resolve();
+	#disposed = false;
+	#workerFactory: WorkerFactory;
+	#activeContent: string | null = null;
+
+	constructor(options?: { workerFactory?: WorkerFactory }) {
+		this.#workerFactory = options?.workerFactory ?? this.#defaultWorkerFactory;
+	}
+
+	#defaultWorkerFactory(): Worker {
+		try {
+			return new Worker(
+				new URL("@readerx/quickjs-runtime/worker", import.meta.url),
+				{ type: "module" },
+			);
+		} catch (e: unknown) {
+			throw new WorkerUnavailableError(String(e));
+		}
+	}
+
+	#ensureNotDisposed(): void {
+		if (this.#disposed) throw new BridgeDisposedError();
+	}
+
+	async #ensureWorker(): Promise<Comlink.Remote<WorkerApi>> {
+		this.#ensureNotDisposed();
+		if (this.#api) return this.#api;
+
+		this.#worker = this.#workerFactory();
+		this.#api = Comlink.wrap<WorkerApi>(this.#worker);
+		const hostFns = this.#createHostFunctionOptions();
+		this.#api.setHostFunctions(createHostFunctions(hostFns));
+		return this.#api;
+	}
+
+	#createHostFunctionOptions(): HostFunctionOptions {
+		return {
+			fetchFn: async (url: string) => {
+				const resp = await fetch(url);
+				return resp.text();
+			},
+			fetchWithOptions: async (url: string, options: Record<string, unknown>) => {
+				const resp = await fetch(url, options as RequestInit);
+				return resp.text();
+			},
+			onLog: (message: string) => {
+				console.log("[QuickJS]", message);
+			},
+			evalRule: async (rule: string) => {
+				const content = this.#activeContent ?? "";
+				const analyzer = new AnalyzeRule();
+				analyzer.setContent(content);
+				const result = analyzer.getStringSync(rule);
+				if (result.ok) return result.value;
+				return "";
+			},
+			evalRuleList: async (rule: string) => {
+				const content = this.#activeContent ?? "";
+				const analyzer = new AnalyzeRule();
+				analyzer.setContent(content);
+				const result = analyzer.getStringListSync(rule);
+				if (result.ok) return result.values;
+				return [];
+			},
+		};
+	}
+
+	#enqueue<T>(
+		fn: (api: Comlink.Remote<WorkerApi>) => Promise<T>,
+		timeout: number = DEFAULT_TIMEOUT,
+		signal?: AbortSignal,
+	): Promise<T> {
+		this.#ensureNotDisposed();
+
+		const execute = async (): Promise<T> => {
+			if (signal?.aborted) {
+				throw new DOMException("Operation aborted", "AbortError");
+			}
+
+			const api = await this.#ensureWorker();
+
+			const timeoutPromise = new Promise<never>((_, reject) => {
+				const timer = setTimeout(
+					() => reject(new DOMException("Execution timeout", "TimeoutError")),
+					timeout,
+				);
+				signal?.addEventListener(
+					"abort",
+					() => {
+						clearTimeout(timer);
+						reject(new DOMException("Operation aborted", "AbortError"));
+					},
+					{ once: true },
+				);
+			});
+
+			try {
+				return await Promise.race([fn(api), timeoutPromise]);
+			} catch (error: unknown) {
+				if (this.#isWorkerError(error)) {
+					this.#destroyWorker();
+				}
+				throw error;
+			}
+		};
+
+		const chain = this.#queue.then(() => execute());
+		this.#queue = chain.catch(() => {});
+		return chain as Promise<T>;
+	}
+
+	#isWorkerError(error: unknown): boolean {
+		if (error instanceof Error) {
+			const msg = error.message;
+			return (
+				msg.includes("Worker") ||
+				msg.includes("comlink") ||
+				msg.includes("MessagePort") ||
+				msg.includes("terminated")
+			);
+		}
+		return false;
+	}
+
+	#destroyWorker(): void {
+		this.#worker?.terminate();
+		this.#worker = null;
+		this.#api?.[Comlink.releaseProxy]();
+		this.#api = null;
+	}
+
+	#createJsExecutor(): JsExecutor {
+		const bridge = this;
+		return {
+			async eval(code: string, context: JsEvalContext): Promise<JsEvalResult> {
+				return bridge.evalJs(code, context);
+			},
+		};
+	}
+
+	// --- Public API ---
+
+	async executeRule(
+		rule: string,
+		content: string,
+		options?: RuleOptions,
+	): Promise<RuleResult> {
+		this.#ensureNotDisposed();
+
+		const prevContent = this.#activeContent;
+		this.#activeContent = content;
+
+		try {
+			const analyzer = new AnalyzeRule();
+			analyzer.setContent(content);
+			analyzer.setJsExecutor(this.#createJsExecutor());
+			if (options?.baseUrl) {
+				analyzer.setEvalContext({ baseUrl: options.baseUrl });
+			}
+
+			const result = await this.#enqueue(
+				async () => analyzer.getString(rule),
+				options?.timeout,
+				options?.signal,
+			);
+
+			if (result.ok) {
+				return {
+					ok: true,
+					value: result.values.length > 1 ? result.values : result.value,
+				};
+			}
+			return { ok: false, error: { type: "runtime", message: result.error } };
+		} catch (error: unknown) {
+			if (error instanceof DOMException && error.name === "TimeoutError") {
+				return { ok: false, error: { type: "timeout", message: error.message } };
+			}
+			if (error instanceof DOMException && error.name === "AbortError") {
+				throw error;
+			}
+			const msg = error instanceof Error ? error.message : String(error);
+			return { ok: false, error: { type: "runtime", message: msg } };
+		} finally {
+			this.#activeContent = prevContent;
+		}
+	}
+
+	async evalJs(
+		code: string,
+		context?: JsEvalContext,
+		options?: RuleOptions,
+	): Promise<JsEvalResult> {
+		this.#ensureNotDisposed();
+
+		return this.#enqueue(
+			async (api) => {
+				const result = await api.eval(code, context);
+				const out: JsEvalResult = {
+					success: result.success,
+					value: result.value ?? null,
+				};
+				if (result.error) {
+					out.error = result.error;
+				}
+				return out;
+			},
+			options?.timeout,
+			options?.signal,
+		);
+	}
+
+	dispose(): void {
+		if (this.#disposed) throw new BridgeDisposedError();
+		this.#disposed = true;
+		this.#destroyWorker();
+	}
+}
+
 export type { RuleError, RuleOptions, RuleResult };
-export { BridgeDisposedError, WorkerUnavailableError };
+export { BridgeDisposedError, WorkerBridge, WorkerUnavailableError };
