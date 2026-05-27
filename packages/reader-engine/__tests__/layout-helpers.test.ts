@@ -1,14 +1,9 @@
 import { describe, expect, it } from "vitest";
-import {
-	type InlineNode,
-	paragraphNode,
-	textNode,
-} from "../src/document/nodes";
-import { flattenInlines } from "../src/layout/inline-flatten";
-import type { InlineSegment } from "../src/layout/inline-flatten";
-import { mapLineToRuns } from "../src/layout/run-mapper";
-import type { RunMapperResult } from "../src/layout/run-mapper";
 import type { TextLayoutLine } from "../src/contracts/text-layouter";
+import { type InlineNode, textNode } from "../src/document/nodes";
+import type { InlineSegment } from "../src/layout/inline-flatten";
+import { flattenInlines } from "../src/layout/inline-flatten";
+import { mapLineToRuns } from "../src/layout/run-mapper";
 
 // --- flattenInlines tests ---
 

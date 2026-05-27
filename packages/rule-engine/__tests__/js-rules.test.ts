@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { AnalyzeRule } from "../src/analyzer";
 import type { JsEvalContext, JsExecutor } from "../src/types";
 
@@ -69,7 +69,7 @@ describe("AnalyzeRule JS rules", () => {
 	it("passes context to executor", async () => {
 		let receivedCtx: JsEvalContext | undefined;
 		const executor: JsExecutor = {
-			async eval(code, context) {
+			async eval(_code, context) {
 				receivedCtx = context;
 				return { success: true, value: "ok" };
 			},
@@ -136,7 +136,6 @@ describe("AnalyzeRule JS rules", () => {
 		const analyzer = new AnalyzeRule();
 		analyzer.setJsExecutor(executor);
 		analyzer.setContent("<div class='content'>hello world</div>");
-		// CSS && @js: — operator splits into two segments
 		const result = await analyzer.getString(
 			"div.content&&@js:result.toUpperCase()",
 		);
@@ -147,7 +146,7 @@ describe("AnalyzeRule JS rules", () => {
 	it("passes prior segment output as result to JS in chained rules", async () => {
 		let receivedCtx: JsEvalContext | undefined;
 		const executor: JsExecutor = {
-			async eval(code, context) {
+			async eval(_code, context) {
 				receivedCtx = context;
 				return { success: true, value: String(context.result).toUpperCase() };
 			},
@@ -160,14 +159,13 @@ describe("AnalyzeRule JS rules", () => {
 		);
 		expect(result.ok).toBe(true);
 		expect(receivedCtx?.result).toBe("hello");
-		// && operator concatenates CSS result + JS result
 		if (result.ok) expect(result.value).toBe("hello\nHELLO");
 	});
 
 	it("does not allow evalContext to override src", async () => {
 		let receivedSrc: string | undefined;
 		const executor: JsExecutor = {
-			async eval(code, context) {
+			async eval(_code, context) {
 				receivedSrc = context.src;
 				return { success: true, value: "ok" };
 			},

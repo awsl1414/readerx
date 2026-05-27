@@ -377,9 +377,12 @@ describe("AnalyzeUrl class (backward compat)", () => {
 
 describe("analyzeUrlAsync", () => {
 	it("resolves URL without JS the same as sync", async () => {
-		const result = await analyzeUrlAsync("https://example.com/search?q={{key}}", {
-			variables: { key: "test" },
-		});
+		const result = await analyzeUrlAsync(
+			"https://example.com/search?q={{key}}",
+			{
+				variables: { key: "test" },
+			},
+		);
 		expect(result.url).toBe("https://example.com/search?q=test");
 		expect(result.method).toBe("GET");
 	});
@@ -420,10 +423,9 @@ describe("analyzeUrlAsync", () => {
 				error: "JS error",
 			}),
 		};
-		const result = await analyzeUrlAsync(
-			"@js:throw new Error('fail')",
-			{ jsExecutor: mockExecutor },
-		);
+		const result = await analyzeUrlAsync("@js:throw new Error('fail')", {
+			jsExecutor: mockExecutor,
+		});
 		// When JS eval fails, resolveJsInUrl returns null and URL is unchanged
 		expect(result.url).toBe("@js:throw new Error('fail')");
 	});

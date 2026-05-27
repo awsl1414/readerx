@@ -5,21 +5,21 @@ describe("HttpClient", () => {
 	it("sets default headers", () => {
 		const client = new HttpClient();
 		client.setDefaultHeaders({ "X-Default": "yes" });
-		expect(client["defaultHeaders"]).toEqual({ "X-Default": "yes" });
+		expect(client.defaultHeaders).toEqual({ "X-Default": "yes" });
 	});
 
 	it("merges default headers on subsequent setDefaultHeaders calls", () => {
 		const client = new HttpClient();
 		client.setDefaultHeaders({ A: "1" });
 		client.setDefaultHeaders({ B: "2" });
-		expect(client["defaultHeaders"]).toEqual({ A: "1", B: "2" });
+		expect(client.defaultHeaders).toEqual({ A: "1", B: "2" });
 	});
 
 	it("overwrites existing default header", () => {
 		const client = new HttpClient();
 		client.setDefaultHeaders({ A: "1" });
 		client.setDefaultHeaders({ A: "2" });
-		expect(client["defaultHeaders"]).toEqual({ A: "2" });
+		expect(client.defaultHeaders).toEqual({ A: "2" });
 	});
 
 	it("calls fetch with merged headers", async () => {

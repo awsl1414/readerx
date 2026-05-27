@@ -1,4 +1,3 @@
-import { describe, expect, it, vi } from "vitest";
 import type {
 	AnalyzeRule,
 	ContentRule,
@@ -7,6 +6,7 @@ import type {
 	JsExecutor,
 	ParseResult,
 } from "@readerx/rule-engine";
+import { describe, expect, it, vi } from "vitest";
 import { extractContent } from "../src/content/content-extractor";
 
 // --- Helpers ---
@@ -62,8 +62,7 @@ function makeContentRule(overrides: Partial<ContentRule> = {}): ContentRule {
 
 describe("extractContent", () => {
 	it("extracts HTML content and detects isHtml=true", async () => {
-		const htmlContent =
-			'<div class="content"><p>Hello world</p></div>';
+		const htmlContent = '<div class="content"><p>Hello world</p></div>';
 		const analyzer = createMockAnalyzer(successResult(htmlContent));
 		const rule = makeContentRule();
 
@@ -126,10 +125,7 @@ describe("extractContent", () => {
 
 	it("calls setJsExecutor when jsExecutor is provided", async () => {
 		const state: MockAnalyzerState = { jsExecutorSet: false };
-		const analyzer = createMockAnalyzer(
-			successResult("<p>test</p>"),
-			state,
-		);
+		const analyzer = createMockAnalyzer(successResult("<p>test</p>"), state);
 
 		const mockJsExecutor: JsExecutor = {
 			async eval(

@@ -4,11 +4,9 @@ import type {
 	Document,
 	DocumentMeta,
 	EmphasisNode,
-	HeadingNode,
 	ImageNode,
 	InlineNode,
 	LinkNode,
-	ParagraphNode,
 	SeparatorNode,
 	StrongNode,
 } from "../document/nodes";

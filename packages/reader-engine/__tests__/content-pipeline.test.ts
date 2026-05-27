@@ -1,11 +1,18 @@
 // @vitest-environment jsdom
-import { describe, expect, it } from "vitest";
+
 import type { ContentRule } from "@readerx/rule-engine";
+import { describe, expect, it } from "vitest";
 import { decodeBody } from "../src/content/charset-decoder";
-import { detectCharsetFromHeaders, fetchRaw } from "../src/content/content-fetcher";
-import type { HttpFetcher, HttpFetcherResponse } from "../src/contracts/http-fetcher";
+import {
+	detectCharsetFromHeaders,
+	fetchRaw,
+} from "../src/content/content-fetcher";
 import { fetchAndParse } from "../src/content/content-pipeline";
-import { toRenderModel } from "../src/renderer/render-model";
+import type { ReplaceRule } from "../src/content/types";
+import type {
+	HttpFetcher,
+	HttpFetcherResponse,
+} from "../src/contracts/http-fetcher";
 import type {
 	InlineStyle,
 	LayoutLine,
@@ -14,7 +21,7 @@ import type {
 	LayoutRun,
 	PageDimensions,
 } from "../src/layout/types";
-import type { ReplaceRule } from "../src/content/types";
+import { toRenderModel } from "../src/renderer/render-model";
 
 // ---------------------------------------------------------------------------
 // decodeBody

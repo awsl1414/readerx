@@ -4,7 +4,7 @@ import {
 	createPaginationState,
 	flushPage,
 } from "../src/layout/pagination";
-import type { LayoutLine, LayoutPage } from "../src/layout/types";
+import type { LayoutLine } from "../src/layout/types";
 
 function makeLine(height: number): LayoutLine {
 	return {

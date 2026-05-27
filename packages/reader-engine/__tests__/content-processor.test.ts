@@ -1,23 +1,22 @@
 import { describe, expect, it } from "vitest";
+import { ContentProcessor } from "../src/content/content-processor";
+import type { ReplaceRule } from "../src/content/types";
 import {
 	type BlockNode,
 	type BlockquoteNode,
 	type Document,
+	documentNode,
 	type EmphasisNode,
+	headingNode,
 	type ImageNode,
 	type InlineNode,
 	type LinkNode,
-	type SeparatorNode,
-	type StrongNode,
-	type TextNode,
-	documentNode,
-	headingNode,
 	nodeId,
 	paragraphNode,
+	type SeparatorNode,
+	type StrongNode,
 	textNode,
 } from "../src/document/nodes";
-import { ContentProcessor } from "../src/content/content-processor";
-import type { ReplaceRule } from "../src/content/types";
 
 // --- Helpers ---
 
@@ -275,10 +274,7 @@ describe("ContentProcessor", () => {
 		const outerBq: BlockquoteNode = {
 			id: nodeId(),
 			type: "blockquote",
-			children: [
-				paragraphNode([textNode("a")]),
-				innerBq,
-			],
+			children: [paragraphNode([textNode("a")]), innerBq],
 		};
 		const doc = documentNode([outerBq]);
 		const result = cp.process(doc);

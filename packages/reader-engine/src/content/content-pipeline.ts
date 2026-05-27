@@ -1,9 +1,6 @@
 import type { ContentRule, JsExecutor } from "@readerx/rule-engine";
 import { AnalyzeRule } from "@readerx/rule-engine";
-import type {
-	HttpFetcher,
-	HttpFetcherOptions,
-} from "../contracts/http-fetcher";
+import type { HttpFetcher } from "../contracts/http-fetcher";
 import type { Document } from "../document/nodes";
 import { decodeBody } from "./charset-decoder";
 import { extractContent } from "./content-extractor";

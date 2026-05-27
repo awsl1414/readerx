@@ -1,4 +1,4 @@
-import type { LayoutLine, LayoutPage, PageDimensions } from "./types";
+import type { LayoutLine, LayoutPage } from "./types";
 
 type PaginationState = {
 	readonly currentPageLines: readonly LayoutLine[];

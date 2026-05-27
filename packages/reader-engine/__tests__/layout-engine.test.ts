@@ -1,25 +1,23 @@
 import { describe, expect, it } from "vitest";
-import {
-	type BlockquoteNode,
-	type Document,
-	type ImageNode,
-	type SeparatorNode,
-	documentNode,
-	headingNode,
-	nodeId,
-	paragraphNode,
-	textNode,
-} from "../src/document/nodes";
 import type {
 	LayoutCursor,
+	TextLayouter,
 	TextLayoutHandle,
 	TextLayoutLine,
 	TextLayoutOptions,
-	TextLayouter,
 } from "../src/contracts/text-layouter";
+import {
+	type BlockquoteNode,
+	documentNode,
+	headingNode,
+	type ImageNode,
+	nodeId,
+	paragraphNode,
+	type SeparatorNode,
+	textNode,
+} from "../src/document/nodes";
 import { layoutDocument } from "../src/layout/layout-engine";
-import type { LayoutConfig, LayoutResult } from "../src/layout/types";
-import type { InlineNode } from "../src/document/nodes";
+import type { LayoutConfig } from "../src/layout/types";
 
 // --- Mock TextLayouter ---
 
@@ -30,16 +28,13 @@ type MockLine = {
 	end: LayoutCursor;
 };
 
-function createMockLayouter(
+function _createMockLayouter(
 	linesPerParagraph: number,
 	lineWidth: number,
 	lineCharsPerLine: number,
 ): TextLayouter {
 	return {
-		prepare(
-			_text: string,
-			_options: TextLayoutOptions,
-		): TextLayoutHandle {
+		prepare(_text: string, _options: TextLayoutOptions): TextLayoutHandle {
 			return {} as TextLayoutHandle;
 		},
 
@@ -59,7 +54,7 @@ function createMockLayouter(
 				return null;
 			}
 
-			const newGraphIdx = graphIdx + lineCharsPerLine;
+			const _newGraphIdx = graphIdx + lineCharsPerLine;
 
 			return {
 				text: "x".repeat(lineCharsPerLine),
@@ -71,16 +66,11 @@ function createMockLayouter(
 	};
 }
 
-function createMockLayouterFromLines(
-	mockLines: MockLine[],
-): TextLayouter {
+function createMockLayouterFromLines(mockLines: MockLine[]): TextLayouter {
 	let callIndex = 0;
 
 	return {
-		prepare(
-			_text: string,
-			_options: TextLayoutOptions,
-		): TextLayoutHandle {
+		prepare(_text: string, _options: TextLayoutOptions): TextLayoutHandle {
 			callIndex = 0;
 			return {} as TextLayoutHandle;
 		},
@@ -235,25 +225,23 @@ describe("layoutDocument", () => {
 		// 2 lines total, one per paragraph
 		// Each prepare() resets callIndex, so each paragraph gets 1 line
 		const mockLines: MockLine[] = [
-		{
-		text: "Para text",
-		width: 60,
-		start: { segmentIndex: 0, graphemeIndex: 0 },
-			end: { segmentIndex: 0, graphemeIndex: 9 },
-		},
+			{
+				text: "Para text",
+				width: 60,
+				start: { segmentIndex: 0, graphemeIndex: 0 },
+				end: { segmentIndex: 0, graphemeIndex: 9 },
+			},
 		];
 		const layouter = createMockLayouterFromLines(mockLines);
-		
+
 		const result = layoutDocument(doc, config, layouter);
-		
+
 		expect(result.totalPages).toBe(1);
 		expect(result.pages[0]?.lines).toHaveLength(2);
 	});
 
 	it("handles heading node", () => {
-		const doc = documentNode([
-			headingNode(1, [textNode("Title")]),
-		]);
+		const doc = documentNode([headingNode(1, [textNode("Title")])]);
 		const config = makeConfig();
 
 		const mockLines: MockLine[] = [
@@ -347,10 +335,7 @@ describe("layoutDocument", () => {
 		const outerBq: BlockquoteNode = {
 			id: nodeId(),
 			type: "blockquote",
-			children: [
-				paragraphNode([textNode("Outer quote")]),
-				innerBq,
-			],
+			children: [paragraphNode([textNode("Outer quote")]), innerBq],
 		};
 		const doc = documentNode([outerBq]);
 		const config = makeConfig();

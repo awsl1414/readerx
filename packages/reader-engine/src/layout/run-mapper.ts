@@ -1,4 +1,4 @@
-import type { LayoutCursor, TextLayoutLine } from "../contracts/text-layouter";
+import type { TextLayoutLine } from "../contracts/text-layouter";
 import type { InlineSegment } from "./inline-flatten";
 import type { InlineStyle } from "./types";
 
