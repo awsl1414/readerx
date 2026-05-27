@@ -16,14 +16,11 @@ function flattenInlines(
 	for (const node of inlines) {
 		switch (node.type) {
 			case "text": {
-				const seg: InlineSegment = {
+				result.push({
 					text: node.value,
 					sourceNodeId: node.id,
-				};
-				if (parentStyle !== undefined) {
-					(seg as { style: InlineStyle }).style = parentStyle;
-				}
-				result.push(seg);
+					...(parentStyle !== undefined ? { style: parentStyle } : {}),
+				});
 				break;
 			}
 			case "strong": {
@@ -62,14 +59,15 @@ function flattenInlines(
 			}
 			case "image-inline": {
 				const imgNode = node as ImageInlineNode;
-				const seg: InlineSegment = {
+				result.push({
 					text: imgNode.alt ?? "",
 					sourceNodeId: imgNode.id,
-				};
-				if (parentStyle !== undefined) {
-					(seg as { style: InlineStyle }).style = parentStyle;
-				}
-				result.push(seg);
+					...(parentStyle !== undefined ? { style: parentStyle } : {}),
+				});
+				break;
+			}
+			default: {
+				const _exhaustive: never = node;
 				break;
 			}
 		}

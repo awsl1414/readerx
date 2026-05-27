@@ -21,7 +21,7 @@ export class ContentProcessor {
 	private rules: ReplaceRule[] = [];
 
 	setRules(rules: ReplaceRule[]): void {
-		this.rules = rules.sort((a, b) => a.order - b.order);
+		this.rules = [...rules].sort((a, b) => a.order - b.order);
 	}
 
 	process(doc: Document): Document {
@@ -43,6 +43,10 @@ export class ContentProcessor {
 				return { ...block, id: nodeId() };
 			case "separator":
 				return { ...block, id: nodeId() };
+			default: {
+				const _exhaustive: never = block;
+				return _exhaustive;
+			}
 		}
 	}
 
@@ -88,6 +92,10 @@ export class ContentProcessor {
 				return this.processLink(inline, isTitle);
 			case "image-inline":
 				return { ...inline, id: nodeId() };
+			default: {
+				const _exhaustive: never = inline;
+				return _exhaustive;
+			}
 		}
 	}
 

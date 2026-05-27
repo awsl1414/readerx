@@ -1,20 +1,53 @@
 // Document AST
+
+export { decodeBody } from "./content/charset-decoder";
+export type { ExtractResult } from "./content/content-extractor";
+export { extractContent } from "./content/content-extractor";
+export type { FetchResult } from "./content/content-fetcher";
+export { fetchRaw } from "./content/content-fetcher";
+export type { PipelineConfig, PipelineDeps } from "./content/content-pipeline";
+export { fetchAndParse } from "./content/content-pipeline";
+// Content
+export { ContentProcessor } from "./content/content-processor";
+export {
+	parseHtmlToDocument,
+	parseTextToDocument,
+} from "./content/document-parser";
+export type { ReplaceRule } from "./content/types";
+// Contracts
 export type {
-	Document,
-	DocumentMeta,
+	HttpFetcher,
+	HttpFetcherOptions,
+	HttpFetcherResponse,
+} from "./contracts/http-fetcher";
+export type {
+	JsEvalContext,
+	JsEvalResult,
+	JsExecutor,
+} from "./contracts/js-executor";
+export type {
+	LayoutCursor,
+	TextLayouter,
+	TextLayoutHandle,
+	TextLayoutLine,
+	TextLayoutOptions,
+} from "./contracts/text-layouter";
+export type {
+	BaseNode,
 	BlockNode,
 	BlockquoteNode,
+	Document,
+	DocumentMeta,
+	EmphasisNode,
 	HeadingNode,
+	ImageInlineNode,
 	ImageNode,
 	InlineNode,
-	EmphasisNode,
-	ImageInlineNode,
 	LinkNode,
 	ParagraphNode,
 	SeparatorNode,
 	StrongNode,
 	TextNode,
-	BaseNode,
 } from "./document/nodes";
 export {
 	documentNode,
@@ -23,44 +56,18 @@ export {
 	paragraphNode,
 	textNode,
 } from "./document/nodes";
-
-// Cursors
-export type { DocumentCursor, PageCursor } from "./shared/cursors";
-
-// Contracts
-export type {
-	HttpFetcher,
-	HttpFetcherOptions,
-	HttpFetcherResponse,
-} from "./contracts/http-fetcher";
-export type {
-	JsExecutor,
-	JsEvalContext,
-	JsEvalResult,
-} from "./contracts/js-executor";
-export type {
-	LayoutCursor,
-	TextLayoutHandle,
-	TextLayoutLine,
-	TextLayouter,
-	TextLayoutOptions,
-} from "./contracts/text-layouter";
-
-// Content
-export { ContentProcessor } from "./content/content-processor";
-export type { ReplaceRule } from "./content/types";
+export type { InlineSegment } from "./layout/inline-flatten";
+export { flattenInlines } from "./layout/inline-flatten";
+export { layoutDocument } from "./layout/layout-engine";
+export type { PaginationState } from "./layout/pagination";
 export {
-	parseHtmlToDocument,
-	parseTextToDocument,
-} from "./content/document-parser";
-export { decodeBody } from "./content/charset-decoder";
-export { fetchRaw } from "./content/content-fetcher";
-export type { FetchResult } from "./content/content-fetcher";
-export { extractContent } from "./content/content-extractor";
-export type { ExtractResult } from "./content/content-extractor";
-export { fetchAndParse } from "./content/content-pipeline";
-export type { PipelineDeps, PipelineConfig } from "./content/content-pipeline";
-
+	addLine,
+	createPaginationState,
+	flushPage,
+} from "./layout/pagination";
+export { PretextLayouter } from "./layout/pretext-layouter";
+export type { RunMapperResult } from "./layout/run-mapper";
+export { mapLineToRuns } from "./layout/run-mapper";
 // Layout
 export type {
 	InlineStyle,
@@ -71,19 +78,6 @@ export type {
 	LayoutRun,
 	PageDimensions,
 } from "./layout/types";
-export { layoutDocument } from "./layout/layout-engine";
-export { PretextLayouter } from "./layout/pretext-layouter";
-export { flattenInlines } from "./layout/inline-flatten";
-export type { InlineSegment } from "./layout/inline-flatten";
-export { mapLineToRuns } from "./layout/run-mapper";
-export type { RunMapperResult } from "./layout/run-mapper";
-export {
-	createPaginationState,
-	addLine,
-	flushPage,
-} from "./layout/pagination";
-export type { PaginationState } from "./layout/pagination";
-
 // Renderer
 export type {
 	RenderLine,
@@ -92,3 +86,5 @@ export type {
 	RenderRun,
 } from "./renderer/render-model";
 export { toRenderModel } from "./renderer/render-model";
+// Cursors
+export type { DocumentCursor, PageCursor } from "./shared/cursors";

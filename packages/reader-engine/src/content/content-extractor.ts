@@ -10,7 +10,6 @@ type ExtractResult = {
 };
 
 const HTML_TAG_PATTERN = /<[a-zA-Z][^>]*>/;
-const MAX_CONTENT_PAGES = 50;
 
 /**
  * Extract content from the source loaded into the analyzer,

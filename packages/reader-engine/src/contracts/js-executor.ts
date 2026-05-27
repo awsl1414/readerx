@@ -1,5 +1,5 @@
 export type {
-	JsExecutor,
 	JsEvalContext,
 	JsEvalResult,
+	JsExecutor,
 } from "@readerx/rule-engine";

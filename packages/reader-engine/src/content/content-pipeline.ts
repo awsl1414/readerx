@@ -1,16 +1,16 @@
 import type { ContentRule, JsExecutor } from "@readerx/rule-engine";
+import { AnalyzeRule } from "@readerx/rule-engine";
 import type {
 	HttpFetcher,
 	HttpFetcherOptions,
 } from "../contracts/http-fetcher";
 import type { Document } from "../document/nodes";
-import type { ReplaceRule } from "./types";
-import { AnalyzeRule } from "@readerx/rule-engine";
-import { fetchRaw } from "./content-fetcher";
 import { decodeBody } from "./charset-decoder";
 import { extractContent } from "./content-extractor";
-import { parseHtmlToDocument, parseTextToDocument } from "./document-parser";
+import { fetchRaw } from "./content-fetcher";
 import { ContentProcessor } from "./content-processor";
+import { parseHtmlToDocument, parseTextToDocument } from "./document-parser";
+import type { ReplaceRule } from "./types";
 
 type PipelineDeps = {
 	readonly httpFetcher: HttpFetcher;

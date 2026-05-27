@@ -1,3 +1,11 @@
+export type { InlineSegment } from "./inline-flatten";
+export { flattenInlines } from "./inline-flatten";
+export { layoutDocument } from "./layout-engine";
+export type { PaginationState } from "./pagination";
+export { addLine, createPaginationState, flushPage } from "./pagination";
+export { PretextLayouter } from "./pretext-layouter";
+export type { RunMapperResult } from "./run-mapper";
+export { mapLineToRuns } from "./run-mapper";
 export type {
 	InlineStyle,
 	LayoutConfig,
@@ -7,16 +15,3 @@ export type {
 	LayoutRun,
 	PageDimensions,
 } from "./types";
-
-export type { InlineSegment } from "./inline-flatten";
-export { flattenInlines } from "./inline-flatten";
-
-export type { RunMapperResult } from "./run-mapper";
-export { mapLineToRuns } from "./run-mapper";
-
-export type { PaginationState } from "./pagination";
-export { addLine, createPaginationState, flushPage } from "./pagination";
-
-export { PretextLayouter } from "./pretext-layouter";
-
-export { layoutDocument } from "./layout-engine";

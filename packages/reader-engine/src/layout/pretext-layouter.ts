@@ -1,6 +1,6 @@
 import {
-	layoutNextLine as pretextLayoutNextLine,
 	prepareWithSegments,
+	layoutNextLine as pretextLayoutNextLine,
 } from "@chenglou/pretext";
 import type {
 	LayoutCursor,

@@ -1,6 +1,6 @@
 import type { LayoutCursor, TextLayoutLine } from "../contracts/text-layouter";
-import type { InlineStyle } from "./types";
 import type { InlineSegment } from "./inline-flatten";
+import type { InlineStyle } from "./types";
 
 type RunMapperResult = {
 	readonly text: string;
@@ -20,7 +20,6 @@ function mapLineToRuns(
 	const startGrapheme = line.start.graphemeIndex;
 	const endGrapheme = line.end.graphemeIndex;
 
-	// Collect covered segments with their substring info
 	type SegmentSlice = {
 		readonly text: string;
 		readonly graphemeCount: number;
@@ -43,6 +42,10 @@ function mapLineToRuns(
 			sliceEnd = endGrapheme;
 		}
 
+		// NOTE: graphemeIndex from pretext corresponds to code unit indices
+		// for ASCII and single-codepoint CJK characters. Multi-codepoint
+		// graphemes (emoji ZWJ sequences, flags) may be mis-split here.
+		// This is acceptable for v1 (novel content is predominantly CJK/ASCII).
 		const sliceText = segment.text.slice(sliceStart, sliceEnd);
 		if (sliceText.length === 0) continue;
 
@@ -55,7 +58,6 @@ function mapLineToRuns(
 
 	if (slices.length === 0) return runs;
 
-	// Calculate total grapheme count across all slices for proportional width distribution
 	let totalGraphemes = 0;
 	for (const s of slices) {
 		totalGraphemes += s.graphemeCount;
@@ -63,25 +65,20 @@ function mapLineToRuns(
 
 	let cumulativeX = 0;
 	for (const slice of slices) {
-		const segment =
-			slices.length > 0 ? segments[slice.segmentIndex] : undefined;
+		const segment = segments[slice.segmentIndex];
 		if (segment === undefined) continue;
 
-		// Proportional width based on grapheme count
 		const proportion =
 			totalGraphemes > 0 ? slice.graphemeCount / totalGraphemes : 0;
 		const runWidth = line.width * proportion;
 
-		const run: RunMapperResult = {
+		runs.push({
 			text: slice.text,
 			x: cumulativeX,
 			width: runWidth,
 			sourceNodeId: segment.sourceNodeId,
-		};
-		if (segment.style !== undefined) {
-			(run as { style: InlineStyle }).style = segment.style;
-		}
-		runs.push(run);
+			...(segment.style !== undefined ? { style: segment.style } : {}),
+		});
 
 		cumulativeX += runWidth;
 	}

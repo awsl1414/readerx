@@ -1,24 +1,25 @@
 import type {
+	TextLayouter,
+	TextLayoutLine,
+	TextLayoutOptions,
+} from "../contracts/text-layouter";
+import type {
 	BlockNode,
 	BlockquoteNode,
 	Document,
 	HeadingNode,
 	ParagraphNode,
 } from "../document/nodes";
-import type { TextLayouter, TextLayoutLine } from "../contracts/text-layouter";
+import type { InlineSegment } from "./inline-flatten";
+import { flattenInlines } from "./inline-flatten";
+import { addLine, createPaginationState, flushPage } from "./pagination";
+import { mapLineToRuns } from "./run-mapper";
 import type {
 	LayoutConfig,
 	LayoutLine,
 	LayoutResult,
 	PageDimensions,
 } from "./types";
-import { flattenInlines } from "./inline-flatten";
-import type { InlineSegment } from "./inline-flatten";
-import { mapLineToRuns } from "./run-mapper";
-import { addLine, createPaginationState, flushPage } from "./pagination";
-import type { TextLayoutOptions } from "../contracts/text-layouter";
-
-const CONTENT_WIDTH_FACTOR = 1;
 
 function layoutDocument(
 	doc: Document,
@@ -40,42 +41,25 @@ function layoutDocument(
 	const maxContentHeight = dimensions.contentHeight;
 
 	let state = createPaginationState();
-	let yOffset = 0;
-
-	function flushCurrentPage(): void {
-		if (state.currentPageLines.length > 0) {
-			state = flushPage(state);
-			yOffset = 0;
-		}
-	}
 
 	function addLayoutLine(line: LayoutLine): void {
-		const newHeight = yOffset + line.height;
-
-		if (newHeight > maxContentHeight && state.currentPageLines.length > 0) {
-			flushCurrentPage();
-		}
-
 		state = addLine(state, line, maxContentHeight);
-		yOffset = state.currentHeight;
 	}
 
 	function processInlines(inlines: readonly InlineSegment[]): void {
 		if (inlines.length === 0) return;
 
-		// Join all segment texts for preparation
-		const fullText = joinSegments(inlines);
+		const fullText = inlines.map((s) => s.text).join("");
+		if (fullText.length === 0) return;
 
 		const options: TextLayoutOptions = {
 			font: config.font,
+			...(config.letterSpacing !== undefined
+				? { letterSpacing: config.letterSpacing }
+				: {}),
 		};
-		if (config.letterSpacing !== undefined) {
-			(options as { letterSpacing: number }).letterSpacing =
-				config.letterSpacing;
-		}
 
 		const handle = layouter.prepare(fullText, options);
-
 		let cursor: {
 			readonly segmentIndex: number;
 			readonly graphemeIndex: number;
@@ -85,23 +69,23 @@ function layoutDocument(
 			const textLine: TextLayoutLine | null = layouter.layoutNextLine(
 				handle,
 				cursor,
-				maxContentWidth * CONTENT_WIDTH_FACTOR,
+				maxContentWidth,
 			);
-
 			if (textLine === null) break;
 
 			const runs = mapLineToRuns(textLine, inlines);
+			const currentLineCount = state.currentPageLines.length;
+			const yOffset = config.paddingTop + currentLineCount * config.lineHeight;
 
 			const layoutLine: LayoutLine = {
 				runs,
 				width: textLine.width,
 				height: config.lineHeight,
 				x: config.paddingLeft,
-				y: config.paddingTop + yOffset,
+				y: yOffset,
 			};
 
 			addLayoutLine(layoutLine);
-
 			cursor = {
 				segmentIndex: textLine.end.segmentIndex,
 				graphemeIndex: textLine.end.graphemeIndex,
@@ -116,7 +100,6 @@ function layoutDocument(
 				const inlineBlock = block as ParagraphNode | HeadingNode;
 				const segments = flattenInlines(inlineBlock.children);
 				if (segments.length === 0) break;
-
 				processInlines(segments);
 				break;
 			}
@@ -128,12 +111,17 @@ function layoutDocument(
 				break;
 			}
 			case "separator": {
-				// v1: skip separators, just add a line of spacing
+				// Add spacing as a zero-run line tracked in pagination state
 				if (state.currentPageLines.length > 0) {
-					yOffset += config.lineHeight;
-					if (yOffset > maxContentHeight) {
-						flushCurrentPage();
-					}
+					const currentLineCount = state.currentPageLines.length;
+					const spacingLine: LayoutLine = {
+						runs: [],
+						width: maxContentWidth,
+						height: config.lineHeight,
+						x: config.paddingLeft,
+						y: config.paddingTop + currentLineCount * config.lineHeight,
+					};
+					addLayoutLine(spacingLine);
 				}
 				break;
 			}
@@ -141,39 +129,30 @@ function layoutDocument(
 				// v1: skip images
 				break;
 			}
+			default: {
+				const _exhaustive: never = block;
+				break;
+			}
 		}
 	}
 
-	// Process all blocks in the document
 	for (const block of doc.children) {
 		processBlock(block);
 	}
 
-	// Final flush for remaining lines
 	state = flushPage(state);
 
-	// Re-index pages with correct dimensions
+	if (state.pages.length === 0) {
+		return { pages: [], totalPages: 0 };
+	}
+
 	const pages = state.pages.map((page, index) => ({
 		...page,
 		index,
-		dimensions: dimensions,
+		dimensions,
 	}));
 
-	return {
-		pages,
-		totalPages: pages.length,
-	};
-}
-
-function joinSegments(segments: readonly InlineSegment[]): string {
-	let result = "";
-	for (let i = 0; i < segments.length; i++) {
-		const segment = segments[i];
-		if (segment !== undefined) {
-			result += segment.text;
-		}
-	}
-	return result;
+	return { pages, totalPages: pages.length };
 }
 
 export { layoutDocument };

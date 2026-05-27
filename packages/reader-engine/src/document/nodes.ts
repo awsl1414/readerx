@@ -121,13 +121,12 @@ function documentNode(
 	blocks: readonly BlockNode[],
 	meta?: DocumentMeta,
 ): Document {
-	const base: Omit<Document, "meta"> & {
-		readonly meta?: DocumentMeta;
-	} = { id: nodeId(), type: "document", children: blocks };
-	if (meta !== undefined) {
-		(base as { meta?: DocumentMeta }).meta = meta;
-	}
-	return base as Document;
+	return {
+		id: nodeId(),
+		type: "document",
+		children: blocks,
+		...(meta !== undefined ? { meta } : {}),
+	};
 }
 
 export type {

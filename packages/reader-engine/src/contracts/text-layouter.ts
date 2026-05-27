@@ -31,8 +31,8 @@ type TextLayouter = {
 
 export type {
 	LayoutCursor,
+	TextLayouter,
 	TextLayoutHandle,
 	TextLayoutLine,
-	TextLayouter,
 	TextLayoutOptions,
 };
