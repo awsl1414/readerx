@@ -244,7 +244,7 @@ BookSource.ruleContent
 
 ## Step 6: Web 前端（apps/web）
 
-依赖所有 packages。Web 前端设计方针见 [`docs/web-design-philosophy.md`](./web-design-philosophy.md)。
+依赖所有 packages。Web 页面设计指导见 [`docs/web-design-guide.md`](./web-design-guide.md)。
 
 ### 架构决策
 

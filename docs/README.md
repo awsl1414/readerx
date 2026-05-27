@@ -10,7 +10,7 @@ ReaderX 项目文档索引。
 | [`development-guide.md`](./development-guide.md) | 开发实操 — 环境搭建、Web 架构模式（RSC 边界、ReaderSession、Worker Bridge）、工作流 | 开发者 |
 | [`roadmap.md`](./roadmap.md) | 开发排期 — 模块状态、Step 详细内容、里程碑 | 开发者 / 规划者 |
 | [`tech-standards.md`](./tech-standards.md) | 技术标准 — TypeScript / React / Next.js 等各技术栈的正确用法和注意事项 | 开发者 |
-| [`web-design-philosophy.md`](./web-design-philosophy.md) | Web UI 设计哲学 — 视觉系统、交互模式、阅读器设计 | 设计 / 前端 |
+| [`web-design-guide.md`](./web-design-guide.md) | Web 页面设计指导 — 视觉系统、交互模式、阅读器设计 | 设计 / 前端 |
 | [`rule-engine-changes.md`](./rule-engine-changes.md) | 规则引擎改进记录 — 相对 Legado 的改进、舍弃项和架构变更 | 开发者 |
 
 ## 子目录
@@ -41,5 +41,5 @@ ReaderX 项目文档索引。
 - 正确用法 → `tech-standards.md`（怎么做对）
 - 实操指南 → `development-guide.md`（怎么干活）
 - 排期规划 → `roadmap.md`（做什么/什么时候做）
-- 设计哲学 → `web-design-philosophy.md`（为什么这样设计）
+- 设计指南 → `web-design-guide.md`（页面怎么设计）
 - 修改代码后，检查相关文档是否需要同步更新
