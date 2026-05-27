@@ -172,6 +172,12 @@ features/{name}/
 
 ---
 
+## Tooling Constraints
+
+- **优先 MCP 工具** — 查库文档用 Context7（`resolve-library-id` → `query-docs`）而非 WebSearch；读网页用 `webReader`；分析图片用 `analyze_image`；文件批量操作用 `mcp__filesystem__*`
+- **优先 Plugin 技能** — 匹配场景时必须调用 superpowers 技能（brainstorming → writing-plans → subagent-driven-development），而非裸手实现
+- **优先记忆检索** — 回忆历史决策用 `claude-mem` 的 `search` → `timeline` → `get_observations` 三步流程，而非重读代码
+
 ## 工作流程约束
 
 每次任务结束前，必须检查并更新所有与本次任务相关的文件，保持高度一致性：
