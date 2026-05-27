@@ -1,5 +1,30 @@
 # docs/
 
+ReaderX 项目文档索引。
+
+## 文档职责
+
+| 文档 | 职责 | 读者 |
+|---|---|---|
+| [`CLAUDE.md`](../CLAUDE.md) | AI 编码约束、架构硬规则、禁止模式 | AI / 开发者 |
+| [`roadmap.md`](./roadmap.md) | 开发排期、模块状态、Step 详细内容 | 开发者 / 规划者 |
+| [`web-design-philosophy.md`](./web-design-philosophy.md) | Web UI 设计哲学、视觉系统、交互模式、阅读器设计 | 设计 / 前端 |
+| [`development-guide.md`](./development-guide.md) | 开发实操指南、环境搭建、Web 架构模式（RSC 边界、ReaderSession、Worker Bridge） | 开发者 |
+| [`tech-standards.md`](./tech-standards.md) | 技术标准（TypeScript 配置、工具链、Node.js 类型策略） | 开发者 |
+
+## 子目录
+
+- `analysis/` — Legado 原版架构分析、ReaderX 改进对比
+- `superpowers/plans/` — AI 辅助开发的实施计划
+
+## 原则
+
+- 每个文档有明确的单一职责，不重复其他文档的内容
+- 架构决策放在 `roadmap.md`（规划）或 `development-guide.md`（实操）
+- 设计哲学放在 `web-design-philosophy.md`
+- 硬性约束放在 `CLAUDE.md`
+- 修改代码后，检查相关文档是否需要同步更新
+
 本目录包含 ReaderX 项目的开发文档和 Legado 原版参考文档。
 
 ## ReaderX 文档

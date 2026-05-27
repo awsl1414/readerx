@@ -25,5 +25,10 @@
 	},
 	"peerDependencies": {
 		"@readerx/rule-engine": "workspace:*"
+	},
+	"peerDependenciesMeta": {
+		"@readerx/rule-engine": {
+			"optional": true
+		}
 	}
 }

@@ -385,9 +385,6 @@ importers:
 
   packages/rule-engine:
     dependencies:
-      '@readerx/quickjs-runtime':
-        specifier: workspace:*
-        version: link:../quickjs-runtime
       '@xmldom/xmldom':
         specifier: ^0.9.10
         version: 0.9.10

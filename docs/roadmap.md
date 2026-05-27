@@ -12,7 +12,7 @@
 | quickjs-runtime | QuickJS WASM 沙箱、宿主函数注入（evalRule/ajaxWithOption）、async safe settlement、QuickJsExecutor、comlink Worker、31 测试通过 | ✅ Step 4 完成 |
 | reader-engine | V3 完成（Document AST pipeline、ContentProcessor、layout engine、render model）、114 测试通过 | ✅ Step 5 完成 |
 | services/api | 路由结构 | 🔴 脚手架 |
-| apps/web | Layout、CSS 主题、shadcn button | 🔴 脚手架 |
+| apps/web | Layout、CSS 主题、i18n、导航、页面骨架、RSC/Client 边界已定义 | 🔴 Step 6 进行中 |
 | ai | — | ⬜ 待规划（独立包，可随时启动） |
 
 ## 依赖关系
@@ -233,27 +233,66 @@ BookSource.ruleContent
 
 依赖所有 packages。Web 前端设计方针见 [`docs/web-design-philosophy.md`](./web-design-philosophy.md)。
 
-### 6.1 基础 UI 框架
+### 架构决策
 
-- 全局布局：侧边栏导航 + 主内容区
-- 主题切换（亮/暗模式）
-- providers 层：QueryClientProvider、ThemeProvider、全局 Toast
-- shadcn/ui 组件：Sidebar、Dialog、Sheet、Toast、Tabs
+#### RSC 边界
 
-### 6.2 书源管理（features/source-manager/）
+ReaderX 是重客户端应用（IndexedDB、Web Worker、QuickJS）。Server Components 仅用于 shell 层：
 
-- 书源列表：搜索、分组、启用/禁用
-- 书源导入：URL 导入、文件导入、粘贴 JSON
-- 书源编辑：表单编辑各规则字段，实时校验（Zod）
-- 书源调试：输入规则 → 实时显示解析结果
+```text
+Server Component: layout.tsx, metadata, HTML shell
+    ↓
+Client Component: <ClientApp> — 整个交互运行时
+    ├── providers (QueryClient, Theme, i18n)
+    └── features/*
+```
 
-### 6.3 搜索（features/search/）
+禁止半 RSC 半客户端业务逻辑。Server Component 不接触任何 runtime。
 
-- 搜索界面：输入关键词，多书源并发搜索
-- 搜索结果：书籍列表（书名、作者、来源、简介、封面）
-- 搜索结果缓存（TanStack Query + persistence）
+#### ReaderSession 模式
 
-### 6.4 书架（features/bookshelf/）
+阅读器状态不使用全局 Zustand store，而是 session 对象。Session 拥有分页状态、游标、章节缓存、预取队列的完整生命周期。React 只是 Session 的 viewer。
+
+```ts
+const session = await readerRuntime.openBook(bookId)
+const page = session.getPage(cursor)
+session.dispose() // 清理 Worker 连接和缓存
+```
+
+避免：巨型 reader store、useEffect 触发重排、React 生命周期污染 runtime。
+
+#### RenderModel 所有权
+
+reader-engine 输出 RenderModel（Page/Line/Run），但"谁拥有渲染生命周期"需要明确：
+
+- 字号/行距/窗口尺寸变更 → layout invalidation → 重新分页
+- 分页计算不应在 useEffect 中触发（竞态、瀑布流）
+- 需要 Render Scheduler：接收变更事件，调度重排，输出新的分页结果
+
+#### Worker Bridge
+
+QuickJS Worker 通信封装为 async API。feature 不直接接触 comlink/Worker，通过统一的规则执行接口调用：
+
+```ts
+// feature 层调用
+const result = await ruleExecutor.execute(rule, content)
+// 内部走 Worker RPC，feature 无感知
+```
+
+### 6.1 阅读器原型（features/reader/）
+
+阅读器是技术风险最高的 feature，优先验证可行性。
+
+- RenderModel → React 渲染：将 reader-engine 的 Page/Line/Run 映射为 React 组件
+- 翻页手势：touch/pointer 事件，上下/左右/滚动三种模式
+- ReaderSession：session 级别的分页状态管理
+- 布局调度：viewport/font 变更时的 layout invalidation，不使用 useEffect
+- 目录跳转 + 上下章切换
+- 进度保存与恢复
+
+**验证标准**：用测试 fixture 内容（不依赖真实书源），渲染出可翻页的阅读界面。
+
+### 6.2 书架（features/bookshelf/）
 
 - 书架展示：网格/列表视图切换
 - 添加书籍（从搜索结果）
@@ -261,13 +300,25 @@ BookSource.ruleContent
 - 书籍分组管理
 - 本地数据持久化
 
-### 6.5 阅读器（features/reader/）
+### 6.3 搜索（features/search/）
 
-- 全屏沉浸式阅读界面，点击/滑动翻页
-- 阅读设置：字号、行距、主题
-- 目录跳转
-- 进度自动保存与恢复
-- 上下章切换
+- 搜索界面：输入关键词，多书源并发搜索
+- 搜索结果：书籍列表（书名、作者、来源、简介、封面）
+- 搜索结果缓存（TanStack Query + persistence）
+
+### 6.4 书源管理（features/source-manager/）
+
+- 书源列表：搜索、分组、启用/禁用
+- 书源导入：URL 导入、文件导入、粘贴 JSON
+- 书源编辑：表单编辑各规则字段，实时校验（Zod）
+- 书源调试：输入规则 → 实时显示解析结果
+
+### 6.5 基础 UI 完善
+
+- shadcn/ui 组件补全：Dialog、Sheet、Toast、Tabs
+- 全局 Toast / 错误处理
+- 命令面板（⌘K）
+- 响应式布局细化
 
 ---
 
@@ -302,7 +353,7 @@ AI 功能作为可选增强层，不影响核心阅读流程。所有 AI 功能�
 
 独立包，作为 AI 能力的统一抽象层。云端 AI 和本地部署 AI（如 Ollama）优先，暂不支持端侧推理。
 
-```
+```text
 packages/ai/
 ├── src/
 │   ├── index.ts                  # 统一导出
@@ -322,7 +373,7 @@ packages/ai/
 
 **依赖方向**：
 
-```
+```text
 infrastructure  ←  packages/ai  ←  apps/web (features)
                        ↑
               rule-engine (peer dep, 可选)

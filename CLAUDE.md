@@ -47,7 +47,7 @@ pnpm --filter web dev         # 仅启动 web
 
 1. **按边界分包** — 每个包是完整领域，类型/逻辑/校验内聚，禁止按文件类型拆包
 2. **Feature 和 Engine 分离** — Engine 是纯逻辑（packages/），Feature 是 UI 层（apps/web/features/），禁止交叉
-3. **Runtime 独立** — quickjs-runtime 无内部依赖，禁止引入其他包
+3. **Runtime 独立** — quickjs-runtime 仅 peer dep 引用 rule-engine 类型（import type only），禁止引入其他包
 4. **shared 克制** — 禁止创建独立 shared 包；apps/web/lib/ 只放 infra helper（cn.ts, env.ts, fetch.ts）
 5. **Store 随 Feature** — Zustand store 在 feature 内部，禁止全局 stores/
 6. **Worker 随 Runtime** — Worker 入口在 runtime 包内，禁止放在 apps/web
@@ -60,7 +60,7 @@ pnpm --filter web dev         # 仅启动 web
 ```text
 infrastructure  ←  rule-engine  ←  reader-engine
                         ↑
-                quickjs-runtime (peer dep)
+                quickjs-runtime (peer dep，import type only)
 
 rule-engine  ←  services/api
       ↑
@@ -93,7 +93,9 @@ rule-engine  ←  services/api
 
 ## React Constraints
 
+- **RSC 边界** — Server Components 仅用于 shell（layout、metadata、HTML 结构），禁止接触 runtime（IndexedDB/Worker/QuickJS/Dexie）。所有交互运行时在 Client Component 中
 - **禁止 `useEffect` 获取数据** — 数据必须在 Server Component / TanStack Query / Server Action 中获取
+- **禁止 `useEffect` 触发布局重排** — 阅读器的 layout invalidation 由 Render Scheduler 驱动，不在 useEffect 中触发
 - **禁止在 render 中产生副作用**
 - Client Components 必须下沉到叶子节点
 - 优先 Server Actions 处理 mutation
@@ -107,6 +109,7 @@ rule-engine  ←  services/api
 - **Zustand 仅用于 client UI state** — 禁止用 Zustand 缓存 API 数据
 - **TanStack Query 用于 server state**
 - **禁止创建全局大 store** — store 按 feature 拆分
+- **阅读器使用 ReaderSession** — 阅读器分页/游标/缓存由 session 对象管理，禁止使用全局 reader store。详见 `docs/development-guide.md`
 - 禁止 selector 返回新对象导致重渲染 — 必须用 `useShallow`
 - Query Key 必须稳定 — 使用原始值数组 `["user", id]`，禁止对象
 
@@ -151,12 +154,13 @@ features/{name}/
 
 提交代码前必须检查：
 
-- [ ] 是否破坏 RSC 边界？（Server/Client Component 边界）
+- [ ] 是否破坏 RSC 边界？（Server = shell only，Client = runtime）
 - [ ] 是否引入 client bundle 膨胀？
 - [ ] 是否新增循环依赖？
 - [ ] 是否新增 deep import？
 - [ ] 是否新增 `any`？
 - [ ] 是否新增 `useEffect` fetch？
+- [ ] 阅读器是否使用了全局 store？（应使用 ReaderSession）
 - [ ] 是否违反 feature boundary？
 - [ ] 是否兼容 strict TypeScript？
 - [ ] 包依赖方向是否正确？

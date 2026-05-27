@@ -470,12 +470,16 @@ apps/web/
 
 | 设计决策 | 技术实现 | 理由 |
 |---|---|---|
+| RSC 边界 | Server = shell/metadata only；Client = `<ClientApp>` 包裹整个运行时 | 重客户端应用（IndexedDB/Worker/QuickJS），RSC 无法参与 |
 | 页面导航 | Next.js App Router，标准 URL 路由 | 简单、可调试、浏览器后退正常 |
 | 毛玻璃顶栏 | `backdrop-filter: blur()` + oklch alpha | 视觉分层 |
 | Surface 层级 | CSS custom properties | 全局 token |
 | 动效 | CSS transition + opacity | 简单、高性能、无 hydration 风险 |
 | 主题切换 | next-themes（cookie + `.dark`） | SSR 兼容 |
-| 阅读器主题 | Zustand → CSS class | 独立于全局主题 |
+| 阅读器主题 | ReaderSession → CSS class | Session 管理，独立于全局主题和 Zustand |
+| 阅读器状态 | ReaderSession 对象（非全局 store） | 分页/游标/缓存由 session 生命周期管理 |
+| 阅读器渲染 | RenderModel → React 组件 + Render Scheduler | 布局失效由调度器驱动，不在 useEffect 中触发 |
+| Worker 通信 | async bridge API（feature 不直接接触 Worker） | 解耦 UI 和 Worker RPC |
 | 多语言 | next-intl（cookie 检测） | 无 URL 前缀 |
 | 命令面板 | cmdk | 成熟方案 |
 | 组件库 | shadcn/ui + Radix UI + Tailwind CSS v4 | 无样式锁定 |
@@ -487,6 +491,7 @@ apps/web/
 - ~~Parallel Routes~~ — 非标准导航行为
 - ~~`@starting-style`~~ — 浏览器支持不完整
 - ~~Shared element transition~~ — morph 效果对阅读产品不必要
+- ~~全局 reader Zustand store~~ — session 模式更合适，避免巨型 store
 
 ## 16. 阅读器
 
@@ -500,6 +505,24 @@ apps/web/
 - 字号、行距、主题用户可调。
 - 进度自动保存，退出后恢复到精确位置。
 - 上下章切换：控制层底部按钮。
+
+### 架构
+
+阅读器不使用全局 Zustand store，而是 ReaderSession 模式：
+
+```text
+ReaderSession
+├── pagination state（分页结果缓存）
+├── cursor（当前位置）
+├── chapter cache（已加载章节）
+├── prefetch queue（预取队列）
+└── settings snapshot（字号/行距/主题快照）
+```
+
+- session 由 React 组件持有，组件卸载时 dispose
+- 字号/行距变更 → session 内部触发重排 → 输出新的分页结果
+- React 只负责渲染当前 viewport 可见的 pages
+- 禁止 useEffect 触发重排：布局计算由 session 内部的 Render Scheduler 驱动
 
 ### 进入和退出
 

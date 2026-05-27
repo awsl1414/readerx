@@ -125,23 +125,73 @@ apps/web/
 
 Root layout 是 async Server Component，直接渲染 Client Component providers：
 
-```
+```text
 RootLayout (RSC)
 └── NextIntlClientProvider    ← next-intl，传递 messages
     └── ThemeProvider          ← next-themes，class 模式，system 感知
         └── QueryProvider      ← TanStack Query，useState 单例
             └── AppShell       ← 导航 + topbar + 内容区
-                └── {page}     ← 各页面 RSC
+                └── {page}     ← 页面内容
 ```
 
 - 不使用 ComposeProviders 或 Provider 文件夹
 - `QueryProvider` 用 `useState(() => new QueryClient())` 创建客户端单例
 - `ThemeProvider` 使用 `attribute="class"` + `suppressHydrationWarning` 避免 hydration 闪烁
 
+### RSC 边界
+
+Server Components 仅用于 shell 层（layout、metadata、HTML 结构）。所有交互运行时（IndexedDB、Web Worker、QuickJS）必须在 Client Component 中。
+
+```text
+Server Component 职责：          Client Component 职责：
+- layout.tsx (HTML 结构)        - providers.tsx (QueryClient, Theme)
+- metadata (title, description)  - features/* (所有交互)
+- shell HTML (无业务逻辑)        - Worker bridge (QuickJS 通信)
+                                - IndexedDB 访问
+```
+
+**禁止**：Server Component 接触 runtime（IndexedDB / Worker / QuickJS / Dexie）。
+
+### ReaderSession 模式
+
+阅读器状态使用 session 对象，不使用全局 Zustand store。Session 拥有分页状态、游标、章节缓存、预取队列的完整生命周期。
+
+```text
+features/reader/
+├── components/         # React 渲染组件（Page, Line, Run）
+├── hooks/              # useReaderSession, usePage
+├── session.ts          # ReaderSession 类
+├── render-scheduler.ts # 布局失效调度器
+└── types/              # 类型定义
+```
+
+Session 生命周期：
+1. 进入阅读器 → `session = openSession(bookId)` → 加载章节 → 排版 → 渲染
+2. 翻页 → `session.getPage(cursor)` → 直接取缓存或加载下一章
+3. 设置变更（字号/行距）→ `session.invalidateLayout()` → Render Scheduler 调度重排
+4. 退出阅读器 → `session.dispose()` → 清理 Worker 连接和缓存
+
+**禁止**：useEffect 触发布局重排。布局计算由 session 内部的 Render Scheduler 驱动。
+
+### Worker Bridge
+
+QuickJS Worker 通信封装为 async API。feature 不直接接触 comlink 或 Worker。
+
+```ts
+// feature 层调用
+const result = await ruleExecutor.execute(rule, content)
+// 内部走 Worker RPC，feature 无感知
+```
+
+Worker bridge 位于 features 层或 lib/ 中的统一模块，负责：
+- Worker 初始化和连接管理
+- comlink RPC 封装为 Promise 接口
+- 错误处理和超时
+
 ### 主题系统
 
 - **UI 主题**：light / dark / system，由 next-themes 管理，`.dark` class 切换
-- **阅读器主题**：5 套 CSS class（`reader-theme-warm-white` / `beige` / `green` / `sepia` / `black`），通过 Zustand store 切换，独立于 UI 主题
+- **阅读器主题**：5 套 CSS class（`reader-theme-warm-white` / `beige` / `green` / `sepia` / `black`），由 ReaderSession 管理，独立于 UI 主题
 - 所有颜色使用 oklch 色彩空间
 
 ### 国际化
