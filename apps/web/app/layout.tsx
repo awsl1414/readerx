@@ -4,7 +4,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { ThemeProvider } from "next-themes";
 import { AppShell } from "@/components/layout/app-shell";
-import { QueryProvider } from "@/components/providers";
+import { Providers } from "@/components/providers";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -38,9 +38,9 @@ export default async function RootLayout({
 						enableSystem
 						disableTransitionOnChange
 					>
-						<QueryProvider>
+						<Providers>
 							<AppShell>{children}</AppShell>
-						</QueryProvider>
+						</Providers>
 					</ThemeProvider>
 				</NextIntlClientProvider>
 			</body>
