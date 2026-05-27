@@ -33,39 +33,33 @@
 
 ```
 readerx/
-├── apps/
-│   └── web/                       # Next.js 前端应用
-│       ├── app/                   #   App Router 页面
-│       ├── components/            #   通用 UI 组件 (shadcn/ui)
-│       ├── features/              #   业务功能模块
-│       │   ├── reader/            #     阅读器
-│       │   ├── bookshelf/         #     书架
-│       │   ├── search/            #     搜索
-│       │   └── source-manager/    #     书源管理
-│       ├── providers/             #   React Context providers
-│       └── lib/                   #   工具函数
+├── apps/web/                       # Next.js 前端应用（App Router + Feature 模块）
+│   ├── app/                        #   路由页面
+│   ├── components/                 #   通用 UI 组件（shadcn/ui + 布局）
+│   ├── features/                   #   业务功能模块（reader / bookshelf / search / source-manager）
+│   ├── i18n/                       #   国际化配置
+│   ├── messages/                   #   翻译文件（zh / en）
+│   └── lib/                        #   工具函数（cn.ts）
 ├── packages/
-│   ├── rule-engine/               # 规则解析引擎
-│   ├── reader-engine/             # 阅读引擎 (分页 / 渲染 / 净化)
-│   ├── quickjs-runtime/           # QuickJS 沙箱运行时
-│   ├── persistence/               # 数据持久层 (IndexedDB + OPFS)
-│   └── infrastructure/            # 基础设施 (HTTP / 日志 / 配置)
-├── services/
-│   └── api/                       # Hono 后端 API
-└── docs/                          # Legado 原版架构参考文档
+│   ├── rule-engine/                # 规则解析引擎
+│   ├── reader-engine/              # 阅读引擎（分页 / 渲染 / 净化）
+│   ├── quickjs-runtime/            # QuickJS 沙箱运行时
+│   ├── persistence/                # 数据持久层（IndexedDB + OPFS）
+│   └── infrastructure/            # 基础设施（HTTP / 日志 / 配置）
+├── services/api/                   # Hono 后端 API
+└── docs/                           # 开发文档 + Legado 原版参考
 ```
 
 ### 包依赖关系
 
 ```
 infrastructure  ←  rule-engine  ←  reader-engine
-                        ↑               ↑
-                quickjs-runtime    persistence
-                   (peer dep)
+                        ↑
+                quickjs-runtime (peer dep)
 
 rule-engine  ←  services/api
       ↑
-  apps/web ──→ reader-engine · persistence · infrastructure · quickjs-runtime
+  apps/web → reader-engine · persistence · infrastructure · quickjs-runtime
 ```
 
 ### 架构原则
@@ -75,45 +69,6 @@ rule-engine  ←  services/api
 - **Runtime 独立** — quickjs-runtime 无内部依赖
 - **Store 随 Feature** — Zustand store 在 feature 内部，不设全局 store
 - **shared 克制** — 无独立 shared 包，跨域通过包依赖解决
-
-## 快速开始
-
-### 环境要求
-
-- [Node](https://nodejs.org) >= 22
-- [pnpm](https://pnpm.io) >= 11
-- PostgreSQL (后端服务可选)
-
-### 安装
-
-```bash
-git clone https://github.com/<your-org>/readerx.git
-cd readerx
-pnpm install
-```
-
-### 开发
-
-```bash
-pnpm dev                # 启动所有包的开发模式
-pnpm --filter web dev   # 仅启动前端 (http://localhost:3000)
-```
-
-### 构建
-
-```bash
-pnpm build
-```
-
-### 其他命令
-
-```bash
-pnpm lint               # Lint 所有包
-pnpm typecheck          # 类型检查所有包
-pnpm test               # 运行测试
-pnpm test:watch         # 监听模式运行测试
-pnpm format             # 格式化代码
-```
 
 ## 规则引擎
 
@@ -138,18 +93,16 @@ pnpm format             # 格式化代码
 
 客户端数据模型参考 [`docs/database-schema.md`](./docs/database-schema.md)。
 
-## 代码规范
-
-- TypeScript strict mode + `noUncheckedIndexedAccess`
-- Tab 缩进，双引号
-- Biome 负责 lint 和 format（不使用 ESLint / Prettier）
-- 路径别名：`@/*` → `apps/web/*`
-
 ## 文档
 
-- [开发路线图](./docs/roadmap.md) — 6 阶段开发计划与里程碑
-- [技术标准与注意事项](./docs/tech-standards.md) — 各技术栈使用规范
-- [文档索引](./docs/README.md) — 完整的文档目录（含 Legado 原版参考文档）
+| 文档 | 说明 |
+|---|---|
+| [开发指南](./docs/development-guide.md) | 环境搭建、常用命令、项目架构、开发工作流 |
+| [开发路线图](./docs/roadmap.md) | 7 阶段开发计划、模块进度、验证里程碑 |
+| [Web 设计方针](./docs/web-design-philosophy.md) | Web 前端设计原则 — 所有 UI 决策的参照基准 |
+| [技术标准与注意事项](./docs/tech-standards.md) | TypeScript / React / Next.js 等各技术栈的正确用法 |
+| [规则引擎改进记录](./docs/rule-engine-changes.md) | 相对 Legado 的改进、舍弃项和架构变更 |
+| [文档索引](./docs/README.md) | 完整文档目录（含 Legado 原版参考文档） |
 
 ## 致谢
 

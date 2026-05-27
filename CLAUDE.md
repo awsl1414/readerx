@@ -14,8 +14,7 @@ readerx/
 │   ├── app/                    # Next.js App Router
 │   ├── components/             # 通用 UI 组件（含 shadcn ui/）
 │   ├── features/               # 功能模块（每个自含 components/hooks/store.ts/actions.ts）
-│   ├── providers/              # React Context providers
-│   └── lib/                    # 仅 infra helpers（cn.ts, env.ts, fetch.ts）
+│   └── lib/                    # 仅 infra helpers（cn.ts）
 ├── packages/
 │   ├── rule-engine/            # 规则引擎
 │   ├── reader-engine/          # 阅读引擎（内容获取 / 净化 / 分页 — 纯逻辑，渲染在 apps/web）
