@@ -14,6 +14,7 @@ ReaderX 项目文档索引。
 
 ## 子目录
 
+- `web/` — Web 前端各模块架构指南（Worker Bridge、阅读器、搜索等）
 - `analysis/` — Legado 原版架构分析、ReaderX 改进对比
 - `superpowers/plans/` — AI 辅助开发的实施计划
 
