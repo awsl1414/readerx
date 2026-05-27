@@ -6,14 +6,27 @@
 
 | 模块 | 已完成 | 状态 |
 |---|---|---|
-| infrastructure | HTTP 客户端、Logger、Config | ✅ 完成 |
+| infrastructure | HTTP 客户端、Logger、Config、21 测试通过 | ✅ Step 完成 |
 | rule-engine | CSS/XPath/JSONPath 解析器、操作符拆分、正则替换、模式检测、URL 分析器管线、完整 Zod Schema、JS 规则支持（JsExecutor 依赖倒置）、281 测试通过 | ✅ Step 1+2+1.5 完成 |
 | persistence | IndexedDB(Dexie) + OPFS + 9 Repositories、57 测试通过 | ✅ Step 3 完成 |
-| quickjs-runtime | QuickJS WASM 沙箱、宿主函数注入（evalRule/ajaxWithOption）、async safe settlement、QuickJsExecutor、comlink Worker、31 测试通过 | ✅ Step 4 完成 |
+| quickjs-runtime | QuickJS WASM 沙箱、宿主函数注入（evalRule/ajaxWithOption）、async safe settlement、QuickJsExecutor、comlink Worker、peer dep rule-engine（import type only）、31 测试通过 | ✅ Step 4 完成 |
 | reader-engine | V3 完成（Document AST pipeline、ContentProcessor、layout engine、render model）、114 测试通过 | ✅ Step 5 完成 |
+| apps/web | Shell（Layout/i18n/主题/导航）、架构决策已定（RSC 边界、ReaderSession、Worker Bridge、RenderModel 所有权）、25 个子任务已拆分、架构指南已编写（worker-bridge.md / reader.md） | 🔴 Step 6 进行中 |
 | services/api | 路由结构 | 🔴 脚手架 |
-| apps/web | Layout、CSS 主题、i18n、导航、页面骨架、RSC/Client 边界已定义 | 🔴 Step 6 进行中 |
 | ai | — | ⬜ 待规划（独立包，可随时启动） |
+
+### 整体进度
+
+| 里程碑 | 标准 | 状态 |
+|---|---|---|
+| **M1: 规则引擎可用** | 输入 HTML + CSS 规则 → 正确提取文本 | ✅ |
+| **M2: 书源导入** | 导入 Legado 书源 JSON → 校验通过 → 存入 IndexedDB | ✅ |
+| **M3: JS 规则可用** | 含 `@js:` 规则的书源能正确执行 | ✅ |
+| **M4: 搜索跑通** | 输入关键词 → 调用书源搜索 URL → 解析结果 → 展示列表 | ⬜ Step 6.3 |
+| **M5: 阅读跑通** | 点击搜索结果 → 获取目录 → 获取正文 → 分页渲染 → 翻页阅读 | ⬜ Step 6.1 |
+| **M6: 完整体验** | 书源管理 + 搜索 + 书架 + 阅读器全链路可用 | ⬜ Step 6 |
+| **M7: 云端同步** | 阅读进度和书架可跨设备同步 | ⬜ Step 7 |
+| **M8: AI 增强可用** | 书源规则自动生成 + 正文兜底提取 + 阅读辅助 | ⬜ AI |
 
 ## 依赖关系
 
@@ -558,16 +571,3 @@ infrastructure  ←  packages/ai  ←  apps/web (features)
 | **MA5: 智能搜索可用** | 自然语言搜索 + 结果去重可用 | AI Step D |
 
 ---
-
-## 验证里程碑
-
-| 里程碑 | 标准 | 涉及步骤 |
-|---|---|---|
-| **M1: 规则引擎可用** | 输入 HTML + CSS 规则 → 正确提取文本 | Step 1 |
-| **M2: 书源导入** | 导入 Legado 书源 JSON → 校验通过 → 存入 IndexedDB | Step 1-3 |
-| **M3: JS 规则可用** | 含 `@js:` 规则的书源能正确执行 | Step 1 + 4 + 1.5 |
-| **M4: 搜索跑通** | 输入关键词 → 调用书源搜索 URL → 解析结果 → 展示列表 | Step 1-4 + 6.3 |
-| **M5: 阅读跑通** | 点击搜索结果 → 获取目录 → 获取正文 → 分页渲染 → 翻页阅读 | Step 1-6 |
-| **M6: 完整体验** | 书源管理 + 搜索 + 书架 + 阅读器全链路可用 | Step 1-6 |
-| **M7: 云端同步** | 阅读进度和书架可跨设备同步 | Step 1-7 |
-| **M8: AI 增强可用** | 书源规则自动生成 + 正文兜底提取 + 阅读辅助 | Step 1-6 + AI A-D |
