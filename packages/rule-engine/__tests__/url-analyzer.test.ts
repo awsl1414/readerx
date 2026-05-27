@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
 	AnalyzeUrl,
 	analyzeUrl,
+	analyzeUrlAsync,
 	replaceVariables,
 	resolvePage,
 	resolveRelativeUrl,
@@ -371,5 +372,85 @@ describe("AnalyzeUrl class (backward compat)", () => {
 		const analyzer = new AnalyzeUrl();
 		const result = analyzer.analyze("https://example.com/api");
 		expect(result.url).toBe("https://example.com/api");
+	});
+});
+
+describe("analyzeUrlAsync", () => {
+	it("resolves URL without JS the same as sync", async () => {
+		const result = await analyzeUrlAsync("https://example.com/search?q={{key}}", {
+			variables: { key: "test" },
+		});
+		expect(result.url).toBe("https://example.com/search?q=test");
+		expect(result.method).toBe("GET");
+	});
+
+	it("evaluates @js: in URL via jsExecutor", async () => {
+		const mockExecutor = {
+			eval: async (_code: string, _ctx: unknown) => ({
+				success: true,
+				value: "https://example.com/dynamic-page",
+			}),
+		};
+		const result = await analyzeUrlAsync(
+			"@js:var url = 'https://example.com/dynamic-page';",
+			{ jsExecutor: mockExecutor },
+		);
+		expect(result.url).toBe("https://example.com/dynamic-page");
+	});
+
+	it("evaluates webJs from option via jsExecutor", async () => {
+		const mockExecutor = {
+			eval: async (_code: string, _ctx: unknown) => ({
+				success: true,
+				value: "https://example.com/js-result",
+			}),
+		};
+		const result = await analyzeUrlAsync(
+			'https://example.com/api,{"webJs":"document.title"}',
+			{ jsExecutor: mockExecutor },
+		);
+		expect(result.url).toBe("https://example.com/js-result");
+	});
+
+	it("keeps original URL when JS evaluation fails", async () => {
+		const mockExecutor = {
+			eval: async (_code: string, _ctx: unknown) => ({
+				success: false,
+				value: null,
+				error: "JS error",
+			}),
+		};
+		const result = await analyzeUrlAsync(
+			"@js:throw new Error('fail')",
+			{ jsExecutor: mockExecutor },
+		);
+		// When JS eval fails, resolveJsInUrl returns null and URL is unchanged
+		expect(result.url).toBe("@js:throw new Error('fail')");
+	});
+});
+
+describe("AnalyzeUrl.analyzeAsync", () => {
+	it("delegates to analyzeUrlAsync", async () => {
+		const analyzer = new AnalyzeUrl();
+		const result = await analyzer.analyzeAsync(
+			"https://example.com/search?q={{key}}",
+			{ variables: { key: "hello" } },
+		);
+		expect(result.url).toBe("https://example.com/search?q=hello");
+	});
+
+	it("supports async JS evaluation via jsExecutor", async () => {
+		const mockExecutor = {
+			eval: async (_code: string, _ctx: unknown) => ({
+				success: true,
+				value: "https://example.com/computed",
+			}),
+		};
+		const analyzer = new AnalyzeUrl();
+		const result = await analyzer.analyzeAsync(
+			"@js:return 'https://example.com/computed';",
+			{ jsExecutor: mockExecutor },
+		);
+		expect(result.url).toBe("https://example.com/computed");
 	});
 });

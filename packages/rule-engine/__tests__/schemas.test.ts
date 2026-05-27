@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+	bookInfoRuleSchema,
 	bookSourceSchema,
 	contentRuleSchema,
 	exploreRuleSchema,
@@ -310,5 +311,56 @@ describe("isValidBookSourceType", () => {
 		expect(isValidBookSourceType(-1)).toBe(false);
 		expect(isValidBookSourceType(4)).toBe(false);
 		expect(isValidBookSourceType(99)).toBe(false);
+	});
+});
+
+describe("bookInfoRuleSchema", () => {
+	it("accepts empty object (all fields optional)", () => {
+		const result = bookInfoRuleSchema.safeParse({});
+		expect(result.success).toBe(true);
+	});
+
+	it("accepts partial fields", () => {
+		const result = bookInfoRuleSchema.safeParse({
+			name: ".book-name",
+			author: ".book-author",
+			coverUrl: "img@src",
+		});
+		expect(result.success).toBe(true);
+	});
+
+	it("accepts full valid rule with all fields", () => {
+		const result = bookInfoRuleSchema.safeParse({
+			init: ".init",
+			name: ".book-name",
+			author: ".book-author",
+			intro: ".intro",
+			kind: ".kind",
+			lastChapter: ".last-chapter",
+			updateTime: ".update-time",
+			coverUrl: "img@src",
+			tocUrl: "a@href",
+			wordCount: ".word-count",
+			canReName: ".can-rename",
+			downloadUrls: ".download-urls",
+		});
+		expect(result.success).toBe(true);
+		if (result.success) {
+			expect(result.data.name).toBe(".book-name");
+			expect(result.data.author).toBe(".book-author");
+			expect(result.data.coverUrl).toBe("img@src");
+			expect(result.data.tocUrl).toBe("a@href");
+		}
+	});
+
+	it("allows extra fields via passthrough", () => {
+		const result = bookInfoRuleSchema.safeParse({
+			name: ".book-name",
+			customField: "custom-value",
+		});
+		expect(result.success).toBe(true);
+		if (result.success) {
+			expect(result.data.customField).toBe("custom-value");
+		}
 	});
 });

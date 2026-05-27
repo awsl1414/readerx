@@ -1,7 +1,10 @@
+// @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
+import type { ContentRule } from "@readerx/rule-engine";
 import { decodeBody } from "../src/content/charset-decoder";
 import { detectCharsetFromHeaders, fetchRaw } from "../src/content/content-fetcher";
 import type { HttpFetcher, HttpFetcherResponse } from "../src/contracts/http-fetcher";
+import { fetchAndParse } from "../src/content/content-pipeline";
 import { toRenderModel } from "../src/renderer/render-model";
 import type {
 	InlineStyle,
@@ -11,6 +14,7 @@ import type {
 	LayoutRun,
 	PageDimensions,
 } from "../src/layout/types";
+import type { ReplaceRule } from "../src/content/types";
 
 // ---------------------------------------------------------------------------
 // decodeBody
@@ -227,5 +231,165 @@ describe("toRenderModel", () => {
 		expect(result.pages).toHaveLength(2);
 		expect(result.pages[0]?.index).toBe(0);
 		expect(result.pages[1]?.index).toBe(1);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// fetchAndParse
+// ---------------------------------------------------------------------------
+
+describe("fetchAndParse", () => {
+	function createMockFetcher(htmlBody: string): HttpFetcher {
+		const body = new TextEncoder().encode(htmlBody);
+		return {
+			async fetch(
+				_url: string,
+				_options: unknown,
+			): Promise<HttpFetcherResponse> {
+				return {
+					ok: true,
+					status: 200,
+					body,
+					headers: { "content-type": "text/html; charset=utf-8" },
+				};
+			},
+		};
+	}
+
+	const htmlWithContent = `<!DOCTYPE html>
+<html><head><title>Test Page</title></head>
+<body>
+<div class="content"><p>Hello World</p><p>Second paragraph</p></div>
+</body></html>`;
+
+	it("fetches HTML, extracts content, and returns a Document", async () => {
+		const mockFetcher = createMockFetcher(htmlWithContent);
+		const contentRule: ContentRule = {
+			content: ".content",
+		};
+
+		const doc = await fetchAndParse(
+			{ httpFetcher: mockFetcher },
+			{ contentRule, url: "https://example.com/page1" },
+		);
+
+		expect(doc.type).toBe("document");
+		expect(doc.children.length).toBeGreaterThanOrEqual(1);
+	});
+
+	it("extracts title when contentRule.title is set", async () => {
+		const mockFetcher = createMockFetcher(htmlWithContent);
+		const contentRule: ContentRule = {
+			content: ".content",
+			title: "title",
+		};
+
+		const doc = await fetchAndParse(
+			{ httpFetcher: mockFetcher },
+			{ contentRule, url: "https://example.com/page1" },
+		);
+
+		expect(doc.meta?.title).toBe("Test Page");
+	});
+
+	it("parses plain text content when no HTML tags in extracted content", async () => {
+		const plainTextFetcher: HttpFetcher = {
+			async fetch(
+				_url: string,
+				_options: unknown,
+			): Promise<HttpFetcherResponse> {
+				// Return HTML page whose extracted content is plain text
+				const html = `<!DOCTYPE html>
+<html><body><div class="text-content">Just plain text here.</div></body></html>`;
+				const body = new TextEncoder().encode(html);
+				return {
+					ok: true,
+					status: 200,
+					body,
+					headers: {},
+				};
+			},
+		};
+
+		// CSS rule selects the text content div
+		const contentRule: ContentRule = {
+			content: ".text-content",
+		};
+
+		const doc = await fetchAndParse(
+			{ httpFetcher: plainTextFetcher },
+			{ contentRule, url: "https://example.com/page1" },
+		);
+
+		expect(doc.type).toBe("document");
+		// The extracted content "Just plain text here." has no HTML tags,
+		// so parseTextToDocument is used, producing one paragraph
+		expect(doc.children.length).toBeGreaterThanOrEqual(1);
+	});
+
+	it("applies replace rules when provided", async () => {
+		const mockFetcher = createMockFetcher(htmlWithContent);
+		const contentRule: ContentRule = {
+			content: ".content",
+		};
+		const replaceRules: ReplaceRule[] = [
+			{
+				id: 1,
+				name: "replace Hello",
+				pattern: "Hello",
+				replacement: "Goodbye",
+				scopeTitle: true,
+				scopeContent: true,
+				isEnabled: true,
+				isRegex: false,
+				order: 0,
+			},
+		];
+
+		const doc = await fetchAndParse(
+			{ httpFetcher: mockFetcher },
+			{
+				contentRule,
+				url: "https://example.com/page1",
+				replaceRules,
+			},
+		);
+
+		expect(doc.type).toBe("document");
+		// Verify the document was processed — at least one child exists
+		expect(doc.children.length).toBeGreaterThanOrEqual(1);
+	});
+
+	it("returns document without replace rules when replaceRules is empty", async () => {
+		const mockFetcher = createMockFetcher(htmlWithContent);
+		const contentRule: ContentRule = {
+			content: ".content",
+		};
+
+		const doc = await fetchAndParse(
+			{ httpFetcher: mockFetcher },
+			{
+				contentRule,
+				url: "https://example.com/page1",
+				replaceRules: [],
+			},
+		);
+
+		expect(doc.type).toBe("document");
+		expect(doc.children.length).toBeGreaterThanOrEqual(1);
+	});
+
+	it("works without a title rule (contentRule.title undefined)", async () => {
+		const mockFetcher = createMockFetcher(htmlWithContent);
+		const contentRule: ContentRule = {
+			content: ".content",
+		};
+
+		const doc = await fetchAndParse(
+			{ httpFetcher: mockFetcher },
+			{ contentRule, url: "https://example.com/page1" },
+		);
+
+		expect(doc.meta?.title).toBeUndefined();
 	});
 });

@@ -414,3 +414,43 @@ describe("CSS invalid input handling", () => {
 		}
 	});
 });
+
+describe("CSS @outerHtml attribute extraction", () => {
+	it("extracts full outerHTML via @outerHtml", () => {
+		const html = '<div class="item"><span>Hello</span></div>';
+		const result = getString("class.item@outerHtml", html);
+		expect(result.ok).toBe(true);
+		if (result.ok) {
+			expect(result.value).toContain('<div class="item">');
+			expect(result.value).toContain("<span>Hello</span>");
+			expect(result.value).toContain("</div>");
+		}
+	});
+
+	it("extracts outerHTML for multiple elements", () => {
+		const html = [
+			'<div class="item">First</div>',
+			'<div class="item">Second</div>',
+		].join("\n");
+		const result = getString("class.item@outerHtml", html);
+		expect(result.ok).toBe(true);
+		if (result.ok) {
+			expect(result.values).toHaveLength(2);
+			expect(result.values[0]).toContain("First");
+			expect(result.values[1]).toContain("Second");
+		}
+	});
+
+	it("extracts outerHTML with index filter", () => {
+		const html = [
+			'<div class="item">First</div>',
+			'<div class="item">Second</div>',
+		].join("\n");
+		const result = getString("class.item@outerHtml.-1", html);
+		expect(result.ok).toBe(true);
+		if (result.ok) {
+			expect(result.values).toHaveLength(1);
+			expect(result.values[0]).toContain("Second");
+		}
+	});
+});

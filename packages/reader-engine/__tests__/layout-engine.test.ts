@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+	type BlockquoteNode,
 	type Document,
+	type ImageNode,
+	type SeparatorNode,
 	documentNode,
 	headingNode,
+	nodeId,
 	paragraphNode,
 	textNode,
 } from "../src/document/nodes";
@@ -299,5 +303,189 @@ describe("layoutDocument", () => {
 		expect(dims?.paddingBottom).toBe(10);
 		expect(dims?.paddingLeft).toBe(20);
 		expect(dims?.paddingRight).toBe(20);
+	});
+
+	// --- Blockquote layout ---
+
+	it("layouts blockquote with nested paragraphs", () => {
+		const bq: BlockquoteNode = {
+			id: nodeId(),
+			type: "blockquote",
+			children: [
+				paragraphNode([textNode("Quote line 1")]),
+				paragraphNode([textNode("Quote line 2")]),
+			],
+		};
+		const doc = documentNode([bq]);
+		const config = makeConfig();
+
+		// Each paragraph calls prepare() which resets callIndex,
+		// so provide only 1 line — each paragraph consumes 1 line = 2 total.
+		const mockLines: MockLine[] = [
+			{
+				text: "Quote line",
+				width: 80,
+				start: { segmentIndex: 0, graphemeIndex: 0 },
+				end: { segmentIndex: 0, graphemeIndex: 10 },
+			},
+		];
+		const layouter = createMockLayouterFromLines(mockLines);
+
+		const result = layoutDocument(doc, config, layouter);
+
+		expect(result.totalPages).toBe(1);
+		// Two lines from the two paragraphs inside the blockquote
+		expect(result.pages[0]?.lines).toHaveLength(2);
+	});
+
+	it("layouts nested blockquotes recursively", () => {
+		const innerBq: BlockquoteNode = {
+			id: nodeId(),
+			type: "blockquote",
+			children: [paragraphNode([textNode("Inner quote")])],
+		};
+		const outerBq: BlockquoteNode = {
+			id: nodeId(),
+			type: "blockquote",
+			children: [
+				paragraphNode([textNode("Outer quote")]),
+				innerBq,
+			],
+		};
+		const doc = documentNode([outerBq]);
+		const config = makeConfig();
+
+		// 2 paragraphs total (1 in outer + 1 in inner), each gets 1 line
+		const mockLines: MockLine[] = [
+			{
+				text: "Quote",
+				width: 80,
+				start: { segmentIndex: 0, graphemeIndex: 0 },
+				end: { segmentIndex: 0, graphemeIndex: 5 },
+			},
+		];
+		const layouter = createMockLayouterFromLines(mockLines);
+
+		const result = layoutDocument(doc, config, layouter);
+
+		expect(result.totalPages).toBe(1);
+		expect(result.pages[0]?.lines).toHaveLength(2);
+	});
+
+	it("layouts blockquote with empty children produces no lines", () => {
+		const bq: BlockquoteNode = {
+			id: nodeId(),
+			type: "blockquote",
+			children: [],
+		};
+		const doc = documentNode([bq]);
+		const config = makeConfig();
+		const layouter = createMockLayouterFromLines([]);
+
+		const result = layoutDocument(doc, config, layouter);
+
+		// Empty document after processing — no pages
+		expect(result.totalPages).toBe(0);
+	});
+
+	// --- Separator layout ---
+
+	it("layouts separator as a spacing line", () => {
+		const sep: SeparatorNode = { id: nodeId(), type: "separator" };
+		const doc = documentNode([
+			paragraphNode([textNode("Before")]),
+			sep,
+			paragraphNode([textNode("After")]),
+		]);
+		const config = makeConfig();
+
+		// Each paragraph calls prepare() which resets callIndex,
+		// so provide only 1 line per paragraph invocation = 1 text line each.
+		const mockLines: MockLine[] = [
+			{
+				text: "Text",
+				width: 50,
+				start: { segmentIndex: 0, graphemeIndex: 0 },
+				end: { segmentIndex: 0, graphemeIndex: 4 },
+			},
+		];
+		const layouter = createMockLayouterFromLines(mockLines);
+
+		const result = layoutDocument(doc, config, layouter);
+
+		expect(result.totalPages).toBe(1);
+		// 2 text lines + 1 separator spacing line = 3
+		expect(result.pages[0]?.lines).toHaveLength(3);
+
+		// The separator line should have no runs (spacing-only)
+		const separatorLine = result.pages[0]?.lines[1];
+		expect(separatorLine).toBeDefined();
+		if (separatorLine !== undefined) {
+			expect(separatorLine.runs).toHaveLength(0);
+		}
+	});
+
+	it("does not add separator spacing when at start of page", () => {
+		// Separator is the first (and only) block — no existing lines,
+		// so no spacing line is added.
+		const sep: SeparatorNode = { id: nodeId(), type: "separator" };
+		const doc = documentNode([sep]);
+		const config = makeConfig();
+		const layouter = createMockLayouterFromLines([]);
+
+		const result = layoutDocument(doc, config, layouter);
+
+		// No content lines → empty result
+		expect(result.totalPages).toBe(0);
+	});
+
+	// --- Image layout (v1: skipped) ---
+
+	it("skips image nodes in v1 (no lines produced)", () => {
+		const image: ImageNode = {
+			id: nodeId(),
+			type: "image",
+			src: "https://example.com/img.png",
+			alt: "A picture",
+		};
+		const doc = documentNode([
+			paragraphNode([textNode("Text before")]),
+			image,
+			paragraphNode([textNode("Text after")]),
+		]);
+		const config = makeConfig();
+
+		// Each paragraph calls prepare() which resets callIndex,
+		// so provide only 1 line per invocation = 1 text line each.
+		const mockLines: MockLine[] = [
+			{
+				text: "Text",
+				width: 60,
+				start: { segmentIndex: 0, graphemeIndex: 0 },
+				end: { segmentIndex: 0, graphemeIndex: 4 },
+			},
+		];
+		const layouter = createMockLayouterFromLines(mockLines);
+
+		const result = layoutDocument(doc, config, layouter);
+
+		expect(result.totalPages).toBe(1);
+		// Only 2 lines — image is skipped
+		expect(result.pages[0]?.lines).toHaveLength(2);
+	});
+
+	it("handles document with only an image (skipped) producing empty result", () => {
+		const image: ImageNode = {
+			id: nodeId(),
+			type: "image",
+			src: "https://example.com/img.png",
+		};
+		const doc = documentNode([image]);
+		const config = makeConfig();
+		const layouter = createMockLayouterFromLines([]);
+
+		const result = layoutDocument(doc, config, layouter);
+
+		expect(result.totalPages).toBe(0);
 	});
 });

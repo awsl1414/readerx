@@ -27,7 +27,7 @@ describe("AnalyzeRule JS rules", () => {
 		analyzer.setContent("<div>hello</div>");
 		const result = await analyzer.getString("@js:result.toUpperCase()");
 		expect(result.ok).toBe(false);
-		expect(result.error).toContain("JsExecutor");
+		if (!result.ok) expect(result.error).toContain("JsExecutor");
 	});
 
 	it("executes JS rule via executor", async () => {
@@ -37,7 +37,7 @@ describe("AnalyzeRule JS rules", () => {
 		analyzer.setContent("<div>hello</div>");
 		const result = await analyzer.getString("@js:result.toUpperCase()");
 		expect(result.ok).toBe(true);
-		expect(result.value).toBe("JS_RESULT");
+		if (result.ok) expect(result.value).toBe("JS_RESULT");
 	});
 
 	it("executes inline <js> block", async () => {
@@ -47,7 +47,7 @@ describe("AnalyzeRule JS rules", () => {
 		analyzer.setContent("<div>text</div>");
 		const result = await analyzer.getString("<js>result.toUpperCase()</js>");
 		expect(result.ok).toBe(true);
-		expect(result.value).toBe("INLINE_RESULT");
+		if (result.ok) expect(result.value).toBe("INLINE_RESULT");
 	});
 
 	it("getStringSync returns error for JS rules", () => {
@@ -55,7 +55,7 @@ describe("AnalyzeRule JS rules", () => {
 		analyzer.setContent("<div>hello</div>");
 		const result = analyzer.getStringSync("@js:test");
 		expect(result.ok).toBe(false);
-		expect(result.error).toContain("JS");
+		if (!result.ok) expect(result.error).toContain("JS");
 	});
 
 	it("getStringSync works for non-JS rules", () => {
@@ -63,7 +63,7 @@ describe("AnalyzeRule JS rules", () => {
 		analyzer.setContent("<div>hello</div>");
 		const result = analyzer.getStringSync("div");
 		expect(result.ok).toBe(true);
-		expect(result.value).toBe("hello");
+		if (result.ok) expect(result.value).toBe("hello");
 	});
 
 	it("passes context to executor", async () => {
@@ -94,8 +94,10 @@ describe("AnalyzeRule JS rules", () => {
 		analyzer.setContent("<div>text</div>");
 		const result = await analyzer.getString("@js:null");
 		expect(result.ok).toBe(true);
-		expect(result.value).toBe("");
-		expect(result.values).toEqual([]);
+		if (result.ok) {
+			expect(result.value).toBe("");
+			expect(result.values).toEqual([]);
+		}
 	});
 
 	it("handles array JS return value", async () => {
@@ -105,8 +107,10 @@ describe("AnalyzeRule JS rules", () => {
 		analyzer.setContent("<div>text</div>");
 		const result = await analyzer.getString("@js:result.split(',')");
 		expect(result.ok).toBe(true);
-		expect(result.value).toBe("a\nb\nc");
-		expect(result.values).toEqual(["a", "b", "c"]);
+		if (result.ok) {
+			expect(result.value).toBe("a\nb\nc");
+			expect(result.values).toEqual(["a", "b", "c"]);
+		}
 	});
 
 	it("handles JS execution error", async () => {
@@ -118,7 +122,7 @@ describe("AnalyzeRule JS rules", () => {
 		analyzer.setContent("<div>text</div>");
 		const result = await analyzer.getString("@js:throw new Error('boom')");
 		expect(result.ok).toBe(false);
-		expect(result.error).toContain("JS boom");
+		if (!result.ok) expect(result.error).toContain("JS boom");
 	});
 
 	it("chains CSS && JS via operator", async () => {
@@ -157,7 +161,7 @@ describe("AnalyzeRule JS rules", () => {
 		expect(result.ok).toBe(true);
 		expect(receivedCtx?.result).toBe("hello");
 		// && operator concatenates CSS result + JS result
-		expect(result.value).toBe("hello\nHELLO");
+		if (result.ok) expect(result.value).toBe("hello\nHELLO");
 	});
 
 	it("does not allow evalContext to override src", async () => {
