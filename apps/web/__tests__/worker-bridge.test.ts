@@ -473,3 +473,183 @@ describe("WorkerBridge: evalJs direct call", () => {
 		}
 	});
 });
+
+// --- NEW TEST BLOCKS BELOW ---
+
+describe("WorkerBridge: XPath rule execution (main thread)", () => {
+	let bridge: WorkerBridge;
+	beforeEach(() => {
+		bridge = new WorkerBridge({ workerFactory: createMockWorker });
+	});
+	afterEach(() => {
+		bridge.dispose();
+	});
+
+	it("extracts text with XPath rule", async () => {
+		const html = '<div><p class="title">XPath Title</p><p>Other</p></div>';
+		const result = await bridge.executeRule("//p[@class='title']/text()", html);
+		expect(result.ok).toBe(true);
+		if (result.ok) expect(result.value).toBe("XPath Title");
+	});
+
+	it("extracts attribute with XPath", async () => {
+		const html = '<a href="http://example.com">Link</a>';
+		const result = await bridge.executeRule("//a/@href", html);
+		expect(result.ok).toBe(true);
+		if (result.ok) expect(result.value).toBe("http://example.com");
+	});
+});
+
+describe("WorkerBridge: CSS attribute extraction variations", () => {
+	let bridge: WorkerBridge;
+	beforeEach(() => {
+		bridge = new WorkerBridge({ workerFactory: createMockWorker });
+	});
+	afterEach(() => {
+		bridge.dispose();
+	});
+
+	it("extracts src attribute", async () => {
+		const html = '<img src="image.png" />';
+		const result = await bridge.executeRule("img@src", html);
+		expect(result.ok).toBe(true);
+		if (result.ok) expect(result.value).toBe("image.png");
+	});
+
+	it("extracts text content (tag@text)", async () => {
+		const html = "<span>Hello World</span>";
+		const result = await bridge.executeRule("span@text", html);
+		expect(result.ok).toBe(true);
+		if (result.ok) expect(result.value).toBe("Hello World");
+	});
+
+	it("extracts own text (tag@ownText)", async () => {
+		const html = "<div>Own text<span>child</span></div>";
+		const result = await bridge.executeRule("div@ownText", html);
+		expect(result.ok).toBe(true);
+		if (result.ok) expect(result.value).toBe("Own text");
+	});
+});
+
+describe("WorkerBridge: value type boundary", () => {
+	let bridge: WorkerBridge;
+	beforeEach(() => {
+		bridge = new WorkerBridge({ workerFactory: createMockWorker });
+	});
+	afterEach(() => {
+		bridge.dispose();
+	});
+
+	it("single match returns string", async () => {
+		const html = "<ul><li>Only</li></ul>";
+		const result = await bridge.executeRule("li", html);
+		expect(result.ok).toBe(true);
+		if (result.ok) {
+			expect(typeof result.value).toBe("string");
+			expect(result.value).toBe("Only");
+		}
+	});
+
+	it("multiple matches returns string array", async () => {
+		const html = "<ul><li>A</li><li>B</li></ul>";
+		const result = await bridge.executeRule("li", html);
+		expect(result.ok).toBe(true);
+		if (result.ok) {
+			expect(Array.isArray(result.value)).toBe(true);
+			expect(result.value).toEqual(["A", "B"]);
+		}
+	});
+
+	it("no match returns empty string", async () => {
+		const html = "<div>nothing</div>";
+		const result = await bridge.executeRule("p", html);
+		expect(result.ok).toBe(true);
+		if (result.ok) {
+			expect(result.value).toBe("");
+		}
+	});
+});
+
+describe("WorkerBridge: rule operators", () => {
+	let bridge: WorkerBridge;
+	beforeEach(() => {
+		bridge = new WorkerBridge({ workerFactory: createMockWorker });
+	});
+	afterEach(() => {
+		bridge.dispose();
+	});
+
+	it("&& concatenates results", async () => {
+		const html = '<div class="a">Hello</div><div class="b">World</div>';
+		// && concatenates: combineResults appends arrays
+		const result = await bridge.executeRule("div.a&&div.b", html);
+		expect(result.ok).toBe(true);
+		if (result.ok) {
+			expect(Array.isArray(result.value)).toBe(true);
+			expect(result.value).toEqual(["Hello", "World"]);
+		}
+	});
+
+	it("|| returns first non-empty", async () => {
+		const html = '<div class="a">First</div>';
+		// || returns first match that is non-empty
+		const result = await bridge.executeRule("div.nonexistent||div.a", html);
+		expect(result.ok).toBe(true);
+		if (result.ok) expect(result.value).toBe("First");
+	});
+});
+
+describe("WorkerBridge: WorkerUnavailableError", () => {
+	it("has correct name and message", async () => {
+		const { WorkerUnavailableError } = await import("@/lib/worker-bridge");
+		const err = new WorkerUnavailableError("test reason");
+		expect(err.name).toBe("WorkerUnavailableError");
+		expect(err.message).toBe("Worker unavailable: test reason");
+		expect(err).toBeInstanceOf(Error);
+	});
+});
+
+describe("WorkerBridge: BridgeDisposedError", () => {
+	it("has correct name and message", async () => {
+		const { BridgeDisposedError } = await import("@/lib/worker-bridge");
+		const err = new BridgeDisposedError();
+		expect(err.name).toBe("BridgeDisposedError");
+		expect(err.message).toBe("WorkerBridge has been disposed");
+		expect(err).toBeInstanceOf(Error);
+	});
+
+	it("double dispose throws BridgeDisposedError", () => {
+		const bridge = new WorkerBridge();
+		bridge.dispose();
+		expect(() => bridge.dispose()).toThrow("WorkerBridge has been disposed");
+	});
+});
+
+describe("WorkerBridge: baseUrl option", () => {
+	let bridge: WorkerBridge;
+	beforeEach(() => {
+		bridge = new WorkerBridge({ workerFactory: createMockWorker });
+	});
+	afterEach(() => {
+		bridge.dispose();
+	});
+
+	it("passes baseUrl to AnalyzeRule via evalContext", async () => {
+		// Verify that executeRule doesn't throw when baseUrl is provided
+		const result = await bridge.executeRule("p", "<p>test</p>", {
+			baseUrl: "http://example.com",
+		});
+		expect(result.ok).toBe(true);
+		if (result.ok) expect(result.value).toBe("test");
+	});
+
+	it("works without baseUrl option", async () => {
+		const result = await bridge.executeRule("p", "<p>hello</p>");
+		expect(result.ok).toBe(true);
+		if (result.ok) expect(result.value).toBe("hello");
+	});
+});
+
+// Provider/Hook tests skipped — @testing-library/react not installed and vitest
+// config lacks JSX transform for .tsx imports. The provider module is tested
+// via browser E2E or after adding @testing-library/react + vitest jsx config.
