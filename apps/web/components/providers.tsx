@@ -18,9 +18,7 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
 export function Providers({ children }: { children: React.ReactNode }) {
 	return (
 		<QueryProvider>
-			<WorkerBridgeProvider>
-				{children}
-			</WorkerBridgeProvider>
+			<WorkerBridgeProvider>{children}</WorkerBridgeProvider>
 		</QueryProvider>
 	);
 }

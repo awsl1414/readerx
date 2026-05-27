@@ -1,6 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import type { RuleError, RuleResult } from "@/lib/worker-bridge";
 import { WorkerBridge } from "@/lib/worker-bridge";
-import type { RuleError, RuleOptions, RuleResult } from "@/lib/worker-bridge";
 
 /**
  * Minimal mock Worker that satisfies Comlink's wire protocol.

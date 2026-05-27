@@ -1,8 +1,12 @@
-import type { JsEvalContext, JsEvalResult, JsExecutor } from "@readerx/rule-engine";
 import type { HostFunctionOptions } from "@readerx/quickjs-runtime";
-import type { WorkerApi } from "@readerx/quickjs-runtime/worker";
-import { AnalyzeRule } from "@readerx/rule-engine";
 import { createHostFunctions } from "@readerx/quickjs-runtime";
+import type { WorkerApi } from "@readerx/quickjs-runtime/worker";
+import type {
+	JsEvalContext,
+	JsEvalResult,
+	JsExecutor,
+} from "@readerx/rule-engine";
+import { AnalyzeRule } from "@readerx/rule-engine";
 import * as Comlink from "comlink";
 
 // --- Public types ---
@@ -89,7 +93,10 @@ class WorkerBridge {
 				const resp = await fetch(url);
 				return resp.text();
 			},
-			fetchWithOptions: async (url: string, options: Record<string, unknown>) => {
+			fetchWithOptions: async (
+				url: string,
+				options: Record<string, unknown>,
+			) => {
 				const resp = await fetch(url, options as RequestInit);
 				return resp.text();
 			},
@@ -223,7 +230,10 @@ class WorkerBridge {
 			return { ok: false, error: { type: "runtime", message: result.error } };
 		} catch (error: unknown) {
 			if (error instanceof DOMException && error.name === "TimeoutError") {
-				return { ok: false, error: { type: "timeout", message: error.message } };
+				return {
+					ok: false,
+					error: { type: "timeout", message: error.message },
+				};
 			}
 			if (error instanceof DOMException && error.name === "AbortError") {
 				throw error;

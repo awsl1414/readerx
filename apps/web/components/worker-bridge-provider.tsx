@@ -1,7 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import type { WorkerBridge } from "@/lib/worker-bridge";
 import { WorkerBridge as WorkerBridgeClass } from "@/lib/worker-bridge";
 
@@ -12,11 +12,7 @@ function WorkerBridgeProvider({ children }: { children: ReactNode }) {
 
 	useEffect(() => () => bridge.dispose(), [bridge]);
 
-	return (
-		<WorkerBridgeContext value={bridge}>
-			{children}
-		</WorkerBridgeContext>
-	);
+	return <WorkerBridgeContext value={bridge}>{children}</WorkerBridgeContext>;
 }
 
 function useWorkerBridge(): WorkerBridge {
@@ -29,4 +25,4 @@ function useWorkerBridge(): WorkerBridge {
 	return bridge;
 }
 
-export { WorkerBridgeProvider, useWorkerBridge };
+export { useWorkerBridge, WorkerBridgeProvider };

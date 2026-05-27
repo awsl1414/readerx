@@ -11,7 +11,7 @@
 | persistence | IndexedDB(Dexie) + OPFS + 9 Repositories、57 测试通过 | ✅ Step 3 完成 |
 | quickjs-runtime | QuickJS WASM 沙箱、宿主函数注入（evalRule/ajaxWithOption）、async safe settlement、QuickJsExecutor、comlink Worker、peer dep rule-engine（import type only）、31 测试通过 | ✅ Step 4 完成 |
 | reader-engine | V3 完成（Document AST pipeline、ContentProcessor、layout engine、render model）、114 测试通过 | ✅ Step 5 完成 |
-| apps/web | Shell（Layout/i18n/主题/导航）、架构决策已定（RSC 边界、ReaderSession、Worker Bridge、RenderModel 所有权）、25 个子任务已拆分、架构指南已编写（worker-bridge.md / reader.md） | 🔴 Step 6 进行中 |
+| apps/web | Shell + Worker Bridge（comlink 懒初始化、AnalyzeRule 集成、串行队列、AbortSignal、crash 恢复、Provider + hook、12 测试通过）、架构决策已定（RSC 边界、ReaderSession、RenderModel 所有权） | 🟡 Step 6.0 完成 |
 | services/api | 路由结构 | 🔴 脚手架 |
 | ai | — | ⬜ 待规划（独立包，可随时启动） |
 
