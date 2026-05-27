@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, Home, Search, Settings } from "lucide-react";
+import { BookOpen, Home, Library, Search, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -8,7 +8,7 @@ import { cn } from "@/lib/cn";
 
 const items = [
 	{ href: "/", label: "home", icon: Home },
-	{ href: "/library", label: "library", icon: BookOpen },
+	{ href: "/library", label: "library", icon: Library },
 	{ href: "/search", label: "search", icon: Search },
 	{ href: "/settings", label: "settings", icon: Settings },
 ] as const;

@@ -5,7 +5,8 @@ function parseAcceptLanguage(header: string): string {
 	const preferred = header.split(",").map((part) => {
 		const segments = part.trim().split(";q=");
 		const lang = segments[0]?.trim() ?? "";
-		const priority = segments[1] ? Number.parseFloat(segments[1]) : 1;
+		const raw = segments[1] ? Number.parseFloat(segments[1]) : 1;
+		const priority = Number.isNaN(raw) ? 1 : raw;
 		return { lang, priority };
 	});
 	preferred.sort((a, b) => b.priority - a.priority);

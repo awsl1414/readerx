@@ -29,10 +29,10 @@ apps/web/
 │   ├── layout/
 │   │   ├── app-shell.tsx       # Shell: sidebar + topbar + mobile-nav + main
 │   │   └── nav-items.tsx       # Nav items (shared data + rendering)
+│   ├── providers.tsx           # QueryProvider (client boundary for QueryClient)
 │   └── ui/button.tsx           # (existing)
 ├── i18n/
-│   ├── request.ts              # Cookie → Accept-Language fallback
-│   └── routing.ts              # No URL prefix config
+│   └── request.ts              # Cookie → Accept-Language fallback
 ├── messages/
 │   ├── zh.json
 │   └── en.json
@@ -77,26 +77,11 @@ git -C /Users/logan/Desktop/workspaces/front/readerx add apps/web/package.json a
 ## Task 2: i18n
 
 **Files:**
-- Create: `apps/web/i18n/routing.ts`
 - Create: `apps/web/i18n/request.ts`
 - Create: `apps/web/messages/zh.json`
 - Create: `apps/web/messages/en.json`
 
-- [ ] **Step 1: Routing config — no URL prefix**
-
-File: `apps/web/i18n/routing.ts`
-
-```ts
-import { defineRouting } from "next-intl/routing";
-
-export const routing = defineRouting({
-	locales: ["zh", "en"],
-	defaultLocale: "zh",
-	localeDetection: false,
-});
-```
-
-- [ ] **Step 2: Request config — cookie first, Accept-Language fallback**
+- [x] **Step 1: Request config — cookie first, Accept-Language fallback**
 
 File: `apps/web/i18n/request.ts`
 
@@ -138,7 +123,7 @@ export default getRequestConfig(async () => {
 
 Priority: cookie → Accept-Language → `"en"` (not `"zh"` — international users deserve English default if no cookie set; Chinese users will have `zh` in Accept-Language).
 
-- [ ] **Step 3: Translation files**
+- [x] **Step 2: Translation files**
 
 File: `apps/web/messages/zh.json`
 
@@ -220,13 +205,13 @@ File: `apps/web/messages/en.json`
 }
 ```
 
-- [ ] **Step 4: Verify typecheck**
+- [x] **Step 3: Verify typecheck**
 
 ```bash
 cd /Users/logan/Desktop/workspaces/front/readerx && pnpm --filter web typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git -C /Users/logan/Desktop/workspaces/front/readerx add apps/web/i18n/ apps/web/messages/ && git -C /Users/logan/Desktop/workspaces/front/readerx commit -m "feat(web): i18n — next-intl, zh/en, cookie + accept-language fallback"
@@ -238,9 +223,10 @@ git -C /Users/logan/Desktop/workspaces/front/readerx add apps/web/i18n/ apps/web
 
 **Files:**
 - Modify: `apps/web/app/layout.tsx`
+- Create: `apps/web/components/providers.tsx`
 - Modify: `apps/web/app/globals.css` (add reader theme classes only)
 
-- [ ] **Step 1: Add reader theme classes to globals.css**
+- [x] **Step 1: Add reader theme classes to globals.css**
 
 Append before `@layer base` in `apps/web/app/globals.css`:
 
@@ -253,31 +239,57 @@ Append before `@layer base` in `apps/web/app/globals.css`:
 .reader-theme-black { --reader-bg: oklch(0.12 0 0); --reader-text: oklch(0.65 0 0); --reader-text-secondary: oklch(0.50 0 0); }
 ```
 
-No surface tokens yet — use the existing shadcn tokens which already work.
+- [x] **Step 2: Create QueryProvider (client component)**
 
-- [ ] **Step 2: Rewrite root layout**
+`QueryClient` is a class instance and cannot be serialized from Server to Client Component.
+Uses `useState` initializer for client-side singleton — the recommended pattern for App Router.
+
+File: `apps/web/components/providers.tsx`
+
+```tsx
+"use client";
+
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useState } from "react";
+
+export function QueryProvider({ children }: { children: React.ReactNode }) {
+	const [client] = useState(
+		() => new QueryClient({
+			defaultOptions: { queries: { staleTime: 5 * 60 * 1000, retry: 1 } },
+		}),
+	);
+	return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+}
+```
+
+- [x] **Step 3: Rewrite root layout**
 
 File: `apps/web/app/layout.tsx`
 
 ```tsx
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { ThemeProvider } from "next-themes";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { getQueryClient } from "@/lib/query-client";
+import { ThemeProvider } from "next-themes";
+import { AppShell } from "@/components/layout/app-shell";
+import { QueryProvider } from "@/components/providers";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+const geistMono = Geist_Mono({
+	variable: "--font-geist-mono",
+	subsets: ["latin"],
+});
 
 export const metadata: Metadata = {
 	title: "ReaderX",
 	description: "私人阅读空间",
 };
 
-export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({
+	children,
+}: Readonly<{ children: React.ReactNode }>) {
 	const locale = await getLocale();
 	const messages = await getMessages();
 
@@ -286,9 +298,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
 			<body className="min-h-dvh">
 				<NextIntlClientProvider messages={messages}>
 					<ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-						<QueryClientProvider client={getQueryClient()}>
-							{children}
-						</QueryClientProvider>
+						<QueryProvider>
+							<AppShell>{children}</AppShell>
+						</QueryProvider>
 					</ThemeProvider>
 				</NextIntlClientProvider>
 			</body>
@@ -297,60 +309,12 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
 }
 ```
 
-Providers are inline — no ComposeProviders, no wrapper files. `ThemeProvider` from `next-themes` directly. `QueryClientProvider` directly. Two providers total. Root layout is async Server Component that fetches locale/messages.
+Root layout is async Server Component. ThemeProvider and NextIntlClientProvider accept `children` — Server Component rendering Client Components with nested children is the standard Next.js pattern.
 
-- [ ] **Step 3: Create query client helper**
-
-File: `apps/web/lib/query-client.ts`
-
-```ts
-import { QueryClient } from "@tanstack/react-query";
-
-let client: QueryClient | undefined;
-
-export function getQueryClient() {
-	if (typeof window === "undefined") {
-		return new QueryClient({
-			defaultOptions: { queries: { staleTime: 5 * 60 * 1000, retry: 1 } },
-		});
-	}
-	if (!client) {
-		client = new QueryClient({
-			defaultOptions: { queries: { staleTime: 5 * 60 * 1000, retry: 1 } },
-		});
-	}
-	return client;
-}
-```
-
-Server: new instance each request (no shared mutable state). Client: singleton. This is the TanStack Query recommended pattern for App Router.
-
-Wait — this file is imported by a Server Component (layout.tsx), but `QueryClientProvider` is a client component. The import of `getQueryClient()` in a Server Component context is fine because the function itself doesn't use hooks — it just creates an instance. But `QueryClientProvider` needs `"use client"`.
-
-Actually, the root layout is a Server Component, and it's rendering `<QueryClientProvider>` which is from `@tanstack/react-query`. This is a client component import. In Next.js App Router, a Server Component CAN render Client Components. But the `getQueryClient()` call happens in the Server Component context.
-
-There's a subtlety: `QueryClientProvider` wraps `{children}` which is a React Server Component payload. This works in Next.js 16 with React 19.
-
-But there's a problem: `typeof window === "undefined"` check in `getQueryClient()` will be `true` during SSR. So on server, it creates a new QueryClient each time. On client, it creates a singleton. This is the correct pattern.
-
-However, the root layout needs `"use client"` if it uses client-side hooks... but it doesn't use hooks directly. It renders Client Components (`ThemeProvider`, `QueryClientProvider`) which is fine for Server Components.
-
-Actually wait — there's a problem. `ThemeProvider` from `next-themes` is a Client Component. `QueryClientProvider` from `@tanstack/react-query` is also a Client Component. A Server Component can pass children to Client Components, but it can't directly use them as wrappers unless they accept `children`.
-
-Both `ThemeProvider` and `QueryClientProvider` accept `children` prop. So this pattern works: Server Component renders Client Components with `{children}` nested.
-
-This is correct and is the recommended pattern in Next.js docs.
-
-- [ ] **Step 4: Verify typecheck**
+- [x] **Step 4: Commit**
 
 ```bash
-cd /Users/logan/Desktop/workspaces/front/readerx && pnpm --filter web typecheck
-```
-
-- [ ] **Step 5: Commit**
-
-```bash
-git -C /Users/logan/Desktop/workspaces/front/readerx add apps/web/app/layout.tsx apps/web/app/globals.css apps/web/lib/query-client.ts && git -C /Users/logan/Desktop/workspaces/front/readerx commit -m "feat(web): root layout — inline providers, i18n, theme, query client"
+git add apps/web/app/layout.tsx apps/web/app/globals.css apps/web/components/providers.tsx && git commit -m "feat(web): root layout — inline providers, i18n, theme, query client"
 ```
 
 ---
@@ -674,4 +638,4 @@ No TBD/TODO/Wait/Correction patterns. No reasoning noise.
 
 ### 4. File count comparison
 
-v1: 16 new files. v2: 10 new files (37% reduction).
+v1: 16 new files. v2: 10 new files (37% reduction). Actual: 11 files (added `providers.tsx`, removed `routing.ts`, removed `lib/query-client.ts`).
