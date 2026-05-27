@@ -198,12 +198,13 @@ function createControllableWorker() {
 		} else if (msg?.type === "APPLY") {
 			const path = msg.path as string[];
 			// Comlink sends argumentList, not args
-			const argumentList = (msg.argumentList as Array<{ type: string; value: unknown }>)?.map(
-				(item) => {
-					if (item.type === "RAW") return item.value;
-					return item;
-				},
-			) ?? [];
+			const argumentList =
+				(msg.argumentList as Array<{ type: string; value: unknown }>)?.map(
+					(item) => {
+						if (item.type === "RAW") return item.value;
+						return item;
+					},
+				) ?? [];
 			if (path[0] === "eval" && evalHandler) {
 				const result = (async () => {
 					if (evalDelay > 0) {
@@ -266,7 +267,10 @@ function createControllableWorker() {
 			if (!listeners.has(type)) listeners.set(type, new Set());
 			listeners.get(type)?.add(handler);
 		},
-		removeEventListener(type: string, handler: (ev: MessageEvent) => void): void {
+		removeEventListener(
+			type: string,
+			handler: (ev: MessageEvent) => void,
+		): void {
 			listeners.get(type)?.delete(handler);
 		},
 		terminate(): void {
@@ -414,10 +418,10 @@ describe("WorkerBridge: crash recovery", () => {
 
 		let factoryCallCount = 0;
 		const workers = [worker1, worker2];
-		const workerFactory = () => {
+		const workerFactory = (): Worker => {
 			const w = workers[factoryCallCount];
 			factoryCallCount++;
-			return w;
+			return w as Worker;
 		};
 
 		const bridge = new WorkerBridge({ workerFactory });
