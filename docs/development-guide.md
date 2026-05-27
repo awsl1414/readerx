@@ -188,6 +188,8 @@ Worker bridge 位于 features 层或 lib/ 中的统一模块，负责：
 - comlink RPC 封装为 Promise 接口
 - 错误处理和超时
 
+> **Turbopack 注意**：`packages/rule-engine` 中需要双环境的模块采用平台文件分离模式。Node 专有代码放在 `*.ts` 文件（如 `xpath-eval.ts`、`dom-parse.ts`），浏览器代码放在 `*.browser.ts` 文件，通过 `package.json` 的 `browser` 字段让 Turbopack 自动路由。禁止在客户端 bundle 可达的文件中引用 Node 内置模块。
+
 ### 主题系统
 
 - **UI 主题**：light / dark / system，由 next-themes 管理，`.dark` class 切换

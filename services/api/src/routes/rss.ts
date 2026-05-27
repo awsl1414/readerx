@@ -1,4 +1,4 @@
 /**
  * RSS API 路由
- * 参考 docs/web-api.md RSS 源接口
+ * 参考 docs/legado/web-api.md RSS 源接口
  */

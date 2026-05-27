@@ -59,7 +59,7 @@ AI 包仅 peer dep 引用 rule-engine，无其他内部依赖
 
 - 实现 `&&`（AND 拼接）、`||`（OR 首个非空）、`%%`（ZIP 交错合并）、`##`（正则替换链）
 - 输入一条规则字符串，输出拆分后的子规则列表及其运算符
-- 参考 `docs/book-source-rule-engine.md` 中的运算符优先级和嵌套规则
+- 参考 `docs/legado/book-source-rule-engine.md` 中的运算符优先级和嵌套规则
 - **验证**: 单元测试覆盖所有运算符组合，包括嵌套场景（如 `class.a##regex1&&class.b##regex2`）
 
 ### 1.2 CSS 选择器解析器（css.ts）
@@ -70,7 +70,7 @@ Legado 书源最常用的解析模式。
 - 支持 `@attr` 属性提取（`a@href`、`img@src`）
 - 支持 `tag.class` 简写、`!` 排除、`-1` 最后一个等 Legado 扩展语法
 - DOM 解析：浏览器用 `DOMParser`，Node 用 `linkedom`
-- 参考 `docs/book-source-rule-engine.md` CSS 规则段落
+- 参考 `docs/legado/book-source-rule-engine.md` CSS 规则段落
 - **验证**: 用 Legado 社区实际书源规则作为测试用例
 
 ### 1.3 JSONPath 解析器（jsonpath.ts）
@@ -120,7 +120,7 @@ Step 1 完成后继续完善 rule-engine。
 ### 3.1 IndexedDB 数据库（indexeddb.ts）
 
 - 使用 Dexie 定义数据库表：Book、BookChapter、BookGroup、Bookmark、SearchKeyword、Cache
-- 表结构和索引参考 `docs/database-schema.md`
+- 表结构和索引参考 `docs/legado/database-schema.md`
 - 实现 CRUD 操作：增删改查，按条件过滤和排序
 - 实现书源导入/导出（JSON 格式）
 
@@ -248,49 +248,12 @@ BookSource.ruleContent
 
 ### 架构决策
 
-#### RSC 边界
+> 各模式的详细说明和代码示例见 [`development-guide.md`](./development-guide.md)。
 
-ReaderX 是重客户端应用（IndexedDB、Web Worker、QuickJS）。Server Components 仅用于 shell 层：
-
-```text
-Server Component: layout.tsx, metadata, HTML shell
-    ↓
-Client Component: <ClientApp> — 整个交互运行时
-    ├── providers (QueryClient, Theme, i18n)
-    └── features/*
-```
-
-禁止半 RSC 半客户端业务逻辑。Server Component 不接触任何 runtime。
-
-#### ReaderSession 模式
-
-阅读器状态不使用全局 Zustand store，而是 session 对象。Session 拥有分页状态、游标、章节缓存、预取队列的完整生命周期。React 只是 Session 的 viewer。
-
-```ts
-const session = await readerRuntime.openBook(bookId)
-const page = session.getPage(cursor)
-session.dispose() // 清理 Worker 连接和缓存
-```
-
-避免：巨型 reader store、useEffect 触发重排、React 生命周期污染 runtime。
-
-#### RenderModel 所有权
-
-reader-engine 输出 RenderModel（Page/Line/Run），但"谁拥有渲染生命周期"需要明确：
-
-- 字号/行距/窗口尺寸变更 → layout invalidation → 重新分页
-- 分页计算不应在 useEffect 中触发（竞态、瀑布流）
-- 需要 Render Scheduler：接收变更事件，调度重排，输出新的分页结果
-
-#### Worker Bridge
-
-QuickJS Worker 通信封装为 async API。feature 不直接接触 comlink/Worker，通过统一的规则执行接口调用：
-
-```ts
-// feature 层调用
-const result = await ruleExecutor.execute(rule, content)
-// 内部走 Worker RPC，feature 无感知
-```
+- **RSC 边界** — Server Components 仅用于 shell（layout、metadata），所有 runtime（IndexedDB/Worker/QuickJS）在 Client Component 中
+- **ReaderSession 模式** — 阅读器状态由 session 对象管理，不使用全局 Zustand store
+- **RenderModel 所有权** — Render Scheduler 驱动 layout invalidation，禁止 useEffect 触发重排
+- **Worker Bridge** — QuickJS Worker 通信封装为 async API，feature 不直接接触 comlink/Worker
 
 ### 6.0 Worker Bridge 基础设施
 

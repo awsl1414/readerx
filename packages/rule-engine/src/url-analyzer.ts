@@ -1,6 +1,6 @@
 /**
  * AnalyzeUrl — URL 规则解析
- * 参考 docs/book-source-rule-engine.md URL 解析器部分
+ * 参考 docs/legado/book-source-rule-engine.md URL 解析器部分
  *
  * URL 规则语法：
  * 基础URL,@js:JS处理,{{变量}},<page>页码

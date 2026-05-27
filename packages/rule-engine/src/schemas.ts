@@ -3,7 +3,7 @@ import type { BookSource } from "./types";
 
 /**
  * Zod Schema 体系 — 书源配置校验
- * 参考 docs/book-source-fields.md
+ * 参考 docs/legado/book-source-fields.md
  * 所有 schema 使用 .passthrough() 允许社区书源的额外字段
  */
 

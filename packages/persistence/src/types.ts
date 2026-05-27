@@ -1,6 +1,6 @@
 /**
  * 客户端持久层 — 存储类型定义
- * 参考 docs/database-schema.md、docs/analysis/step3-persistence-analysis.md
+ * 参考 docs/legado/database-schema.md、docs/analysis/step3-persistence-analysis.md
  */
 
 // ─── BookSource ────────────────────────────────────────────

@@ -91,18 +91,18 @@ rule-engine  ←  services/api
 | 客户端 | IndexedDB (Dexie) + OPFS | 书架、书源、阅读进度、缓存文件 |
 | 服务端 | PostgreSQL + Drizzle ORM | 用户数据、同步状态 |
 
-客户端数据模型参考 [`docs/database-schema.md`](./docs/database-schema.md)。
+客户端数据模型参考 [`docs/legado/database-schema.md`](./docs/legado/database-schema.md)。
 
 ## 文档
 
 | 文档 | 说明 |
 |---|---|
-| [开发指南](./docs/development-guide.md) | 环境搭建、常用命令、项目架构、开发工作流 |
+| [开发指南](./docs/development-guide.md) | 环境搭建、Web 架构模式（RSC 边界、ReaderSession、Worker Bridge）、工作流 |
 | [开发路线图](./docs/roadmap.md) | 7 阶段开发计划、模块进度、验证里程碑 |
+| [技术标准](./docs/tech-standards.md) | TypeScript / React / Next.js 等各技术栈的正确用法 |
 | [Web 设计方针](./docs/web-design-philosophy.md) | Web 前端设计原则 — 所有 UI 决策的参照基准 |
-| [技术标准与注意事项](./docs/tech-standards.md) | TypeScript / React / Next.js 等各技术栈的正确用法 |
 | [规则引擎改进记录](./docs/rule-engine-changes.md) | 相对 Legado 的改进、舍弃项和架构变更 |
-| [文档索引](./docs/README.md) | 完整文档目录（含 Legado 原版参考文档） |
+| [完整文档索引](./docs/README.md) | 文档职责表 + Legado 原版参考文档 |
 
 ## 致谢
 

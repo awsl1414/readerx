@@ -54,6 +54,7 @@ pnpm --filter web dev         # 仅启动 web
 7. **RSC-first** — Server Components 是默认的，Client Components 仅在需要 hooks / 浏览器 API / 交互时使用
 8. **ESM-only** — 禁止 CommonJS（`require` / `module.exports`）
 9. **Edge-compatible** — packages/ 中的代码必须兼容 Edge Runtime，禁止使用 Node 专有 API（除非有 `"types": ["node"]` 的包）
+10. **平台文件分离** — packages/ 中需要双环境（Node + 浏览器）的模块，必须将 Node 专有代码放入独立文件（如 `*.node.ts`），浏览器代码放入对应文件（如 `*.browser.ts`），通过 `package.json` `browser` 字段让 bundler 自动路由。禁止在客户端 bundle 可达的文件中引用 `node:module`、`node:fs` 等 Node 内置模块。示例：`xpath-eval.ts`（Node）→ `xpath-eval.browser.ts`（浏览器）
 
 ## 包依赖方向（禁止违反）
 

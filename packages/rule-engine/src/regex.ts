@@ -1,6 +1,6 @@
 /**
  * 正则替换
- * 参考 docs/book-source-rule-engine.md 正则替换部分
+ * 参考 docs/legado/book-source-rule-engine.md 正则替换部分
  *
  * 处理规则中的 ## 正则替换链
  * 格式：规则##正则##替换文本##正则2##替换2

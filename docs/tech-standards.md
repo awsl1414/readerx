@@ -93,7 +93,7 @@ if (!item) return
 | packages/infrastructure | ✅ 是 | `config.ts` 使用 `process.env` |
 | services/api | ✅ 是 | Hono 服务端运行在 Node |
 | packages/persistence | ❌ 否 | 纯浏览器 API（IndexedDB、OPFS） |
-| packages/rule-engine | ✅ 是 | Node-only fallback 用 `createRequire` 加载 CJS 模块（linkedom、xpath） |
+| packages/rule-engine | ✅ 是 | Node 实现文件（`xpath-eval.ts`、`dom-parse.ts`）用 `createRequire` 加载 CJS 模块 |
 | packages/reader-engine | ❌ 否 | 纯计算，零 DOM 依赖 |
 | packages/quickjs-runtime | ✅ 是 | peer dep 引用 rule-engine 源码时需要 `node:module` 类型 |
 
@@ -109,22 +109,38 @@ if (!item) return
 
 **Barrel Export** — 允许 `export * from "./types"` 式的按领域聚合，禁止巨型 index.ts、跨领域 re-export、全局 barrel（降低 tree-shaking 效率、增加循环依赖概率）。
 
-### ESM 兼容的同步模块加载
+### 平台文件分离（Node / 浏览器双环境）
 
-项目 `erasableSyntaxOnly` 配置禁止裸 `require()` 调用。当 Node-only 代码路径需要同步加载 CJS 模块时（如测试环境的 DOM 解析库），使用 `node:module` 的 `createRequire`：
+当 packages/ 中的模块需要同时支持 Node（测试/SSR）和浏览器时，采用**文件分离**模式，禁止在客户端 bundle 可达的文件中引用 Node 内置模块。
 
-```ts
-import { createRequire } from "node:module";
-const nodeRequire = createRequire(import.meta.url);
-
-// 延迟加载 Node-only 依赖
-const lib = nodeRequire("some-cjs-package") as typeof import("some-cjs-package");
+**文件结构：**
+```
+src/
+  xpath-eval.ts           # Node 实现（import node:module, xpath, xmldom）
+  xpath-eval.browser.ts   # 浏览器实现（使用原生 DOMParser / document.evaluate）
+  xpath.ts                # 公共 API — import from "./xpath-eval"
 ```
 
-使用条件：
-- 仅在浏览器 API 不可用时执行的 Node fallback 路径中使用
+**package.json 路由：**
+```json
+{
+  "browser": {
+    "./src/xpath-eval.ts": "./src/xpath-eval.browser.ts"
+  }
+}
+```
+
+Turbopack 客户端构建时自动替换为 `.browser.ts` 版本；Node/Vitest 使用原始文件。公共 API 层（`xpath.ts`）只包含接口和共享逻辑，不直接引用任何 Node 模块。
+
+**适用场景：**
+- DOM 解析（`linkedom` / `@xmldom/xmldom` ↔ 原生 `DOMParser`）
+- XPath 求值（`xpath` 库 ↔ 原生 `document.evaluate`）
+- 任何需要 CJS 模块加载的 Node fallback
+
+**使用条件：**
+- Node 实现文件可以顶层 `import { createRequire } from "node:module"`
+- 公共 API 文件禁止任何 Node 模块引用
 - 包必须有 `"types": ["node"]` 和 `@types/node` devDependency
-- 浏览器路径通过 `typeof DOMParser !== "undefined"` 等检测跳过，由 bundler tree-shake 移除
 
 ### Promise 错误处理模式
 

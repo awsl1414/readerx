@@ -6,6 +6,10 @@
 	"exports": {
 		".": "./src/index.ts"
 	},
+	"browser": {
+		"./src/xpath-eval.ts": "./src/xpath-eval.browser.ts",
+		"./src/dom-parse.ts": "./src/dom-parse.browser.ts"
+	},
 	"scripts": {
 		"typecheck": "tsc --noEmit",
 		"lint": "biome check",

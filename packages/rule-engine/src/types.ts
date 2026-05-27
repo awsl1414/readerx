@@ -5,7 +5,7 @@ export type BookSourceType = 0 | 1 | 2 | 3;
 
 /**
  * 书源配置 — 定义如何从网站搜索、获取、解析书籍内容
- * 参考 docs/book-source-fields.md
+ * 参考 docs/legado/book-source-fields.md
  */
 export interface BookSource {
 	/** 书源唯一标识 URL */
