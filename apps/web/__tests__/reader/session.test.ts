@@ -202,4 +202,82 @@ describe("ReaderSession", () => {
 		expect(config).toHaveProperty("contentRule");
 		expect(config).toHaveProperty("url", "http://ex.com/ch1");
 	});
+
+	it("jumpToChapter navigates to correct chapter", async () => {
+		await session.jumpToChapter(1);
+		expect(session.currentChapter).toBe(1);
+		expect(session.currentPage).toBe(0);
+	});
+
+	it("jumpToChapter with invalid index does nothing", async () => {
+		const originalChapter = session.currentChapter;
+		await session.jumpToChapter(-1);
+		expect(session.currentChapter).toBe(originalChapter);
+		await session.jumpToChapter(99);
+		expect(session.currentChapter).toBe(originalChapter);
+	});
+
+	it("LRU eviction removes farthest chapter", async () => {
+		// Re-open with a book that has 7 chapters so we can populate 6 cache entries.
+		vi.mocked(mockDeps.bookRepo.get).mockResolvedValueOnce({
+			bookUrl: "book-lru",
+			name: "LRU Book",
+			durChapterIndex: 0,
+			durChapterPos: 0,
+			totalChapterNum: 7,
+			origin: "src1",
+		});
+		const chapters = Array.from({ length: 7 }, (_, i) => ({
+			bookUrl: "book-lru",
+			url: `ch${i}`,
+			index: i,
+			title: `Chapter ${i}`,
+			isVolume: false,
+			resourceUrl: `http://ex.com/ch${i}`,
+		}));
+		vi.mocked(mockDeps.chapterRepo.getByBook).mockResolvedValueOnce(chapters);
+		const lruSession = await ReaderSession.open("book-lru", mockDeps as never);
+
+		// Navigate to chapters 1-5 to populate 6 cache entries (0-5).
+		for (let i = 1; i <= 5; i++) {
+			await lruSession.jumpToChapter(i);
+		}
+
+		// After loading chapter 5, cache has been evicted to 5 entries.
+		// The farthest from chapter 5 is chapter 0, so it should be evicted.
+		// Verify by checking that navigating back to chapter 0 triggers a new load.
+		const getByIndexCallsBefore = mockDeps.chapterRepo.getByIndex.mock.calls.length;
+		await lruSession.jumpToChapter(0);
+		// chapter 0 was evicted, so getByIndex should be called again for it
+		expect(mockDeps.chapterRepo.getByIndex.mock.calls.length).toBeGreaterThan(
+			getByIndexCallsBefore,
+		);
+
+		lruSession.dispose();
+	});
+
+	it("dispose after chapter navigation saves correct position", async () => {
+		await session.jumpToChapter(2);
+		// Navigate to page 3 (pageCount is 2, so max page index is 1)
+		session.nextPage(); // page 1
+		session.nextPage(); // stays at 1 (max page)
+		session.nextPage(); // stays at 1 (max page)
+		session.dispose();
+		expect(mockDeps.bookRepo.updateProgress).toHaveBeenCalledWith(
+			"book1",
+			2, // chapter index
+			1, // page position (capped at pageCount - 1 = 1)
+		);
+	});
+
+	it("prefetch calls loadChapter for adjacent chapters", async () => {
+		// After open, chapter 0 is loaded. Adjacent chapters are -1 (invalid) and 1.
+		// So chapterRepo.getByIndex should have been called for chapter 1.
+		const calls = mockDeps.chapterRepo.getByIndex.mock.calls;
+		const adjacentCall = calls.find((call: unknown[]) => {
+			const idx = call[1];
+			return idx !== undefined && idx === 1;
+		});
+		expect(adjacentCall).toBeDefined();
+	});
 });
