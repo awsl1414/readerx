@@ -274,4 +274,49 @@ describe("ReaderSession", () => {
 		});
 		expect(adjacentCall).toBeDefined();
 	});
+
+	it("throws when source has no content rule", async () => {
+		vi.mocked(mockDeps.sourceRepo.get).mockResolvedValueOnce(undefined as never);
+		await expect(ReaderSession.open("book-norule", mockDeps as never)).rejects.toThrow(
+			"No content rule found for source",
+		);
+	});
+
+	it("throws when source is missing ruleContent", async () => {
+		vi.mocked(mockDeps.sourceRepo.get).mockResolvedValueOnce({
+			bookSourceUrl: "src1",
+		} as never);
+		await expect(ReaderSession.open("book-norule", mockDeps as never)).rejects.toThrow(
+			"No content rule found for source",
+		);
+	});
+
+	it("prefetch does not clobber active render result", async () => {
+		// Open loads chapter 0. The prefetch for chapter 1 is in-flight.
+		// Ensure _renderResult still reflects chapter 0 after prefetch completes.
+		const pageCountBefore = session.pageCount;
+		// Wait for any pending prefetches to settle
+		await vi.waitFor(() => {
+			expect(mockDeps.chapterRepo.getByIndex).toHaveBeenCalled();
+		});
+		expect(session.pageCount).toBe(pageCountBefore);
+		expect(session.currentChapter).toBe(0);
+	});
+
+	it("dispose catches progress save failure", async () => {
+		const error = new Error("write failed");
+		vi.mocked(mockDeps.bookRepo.updateProgress).mockRejectedValueOnce(error);
+		const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+		session.dispose();
+
+		// Wait for the rejected promise to be caught
+		await vi.waitFor(() => {
+			expect(warnSpy).toHaveBeenCalledWith(
+				"Failed to save reading progress:",
+				error,
+			);
+		});
+		warnSpy.mockRestore();
+	});
 });

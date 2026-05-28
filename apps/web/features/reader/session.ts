@@ -34,14 +34,26 @@ class ReaderSession {
 	private _bookUrl = "";
 	private _origin = "";
 	private _disposed = false;
+	private _isPrefetching = false;
 
 	private constructor(deps: SessionDeps) {
 		this.deps = deps;
 		this._atmosphere = ATMOSPHERE_PRESETS.novel;
 		this.scheduler = new RenderScheduler((result) => {
-			this._renderResult = result;
-			this.notify();
+			if (!this._isPrefetching) {
+				this._renderResult = result;
+				this.notify();
+			}
 		});
+	}
+
+	/** Read the current viewport directly from the browser at call time.
+	 *  Falls back to the deps-provided viewport during SSR or non-browser environments. */
+	private getViewport(): { width: number; height: number } {
+		if (typeof window !== "undefined") {
+			return { width: window.innerWidth, height: window.innerHeight };
+		}
+		return this.deps.viewport;
 	}
 
 	static async open(bookId: string, deps: SessionDeps): Promise<ReaderSession> {
@@ -125,7 +137,7 @@ class ReaderSession {
 			this.scheduler.invalidate(
 				cached.document,
 				this._atmosphere,
-				this.deps.viewport,
+				this.getViewport(),
 			);
 		}
 	}
@@ -140,11 +152,11 @@ class ReaderSession {
 	dispose(): void {
 		if (this._disposed) return;
 		this._disposed = true;
-		this.deps.bookRepo.updateProgress(
-			this._bookUrl,
-			this._currentChapter,
-			this._currentPage,
-		);
+		this.deps.bookRepo
+			.updateProgress(this._bookUrl, this._currentChapter, this._currentPage)
+			.catch((err: unknown) => {
+				console.warn("Failed to save reading progress:", err);
+			});
 		this.listeners.clear();
 		this.chapterCache.clear();
 	}
@@ -166,9 +178,10 @@ class ReaderSession {
 		if (!chapter) throw new Error(`Chapter not found: ${index}`);
 
 		const source = await this.deps.sourceRepo.get(this._origin);
-		const contentRule = source?.ruleContent
-			? { content: source.ruleContent }
-			: { content: "" };
+		if (!source?.ruleContent) {
+			throw new Error(`No content rule found for source: ${this._origin}`);
+		}
+		const contentRule = { content: source.ruleContent };
 
 		const pipelineDeps: PipelineDeps = {
 			httpFetcher: this.deps.httpFetcher,
@@ -182,22 +195,22 @@ class ReaderSession {
 		const pipelineResult = await fetchAndParse(pipelineDeps, pipelineConfig);
 		const doc = new ContentProcessor().process(pipelineResult);
 
-		// Save the active render state before invalidation (prefetch must not clobber it)
-		const savedResult = this._renderResult;
-		this.scheduler.invalidate(doc, this._atmosphere, this.deps.viewport);
-		// Since scheduler is synchronous, result is available immediately
-		if (this._renderResult) {
-			this.chapterCache.set(index, {
-				document: doc,
-				renderResult: this._renderResult,
-			});
-		}
+		this._isPrefetching = !activate;
+		const newResult = this.scheduler.invalidate(
+			doc,
+			this._atmosphere,
+			this.getViewport(),
+		);
+		this._isPrefetching = false;
 
 		if (activate) {
 			this._currentChapter = index;
-		} else {
-			// Restore the active chapter's render result
-			this._renderResult = savedResult;
+			// _renderResult was already set by the onResult callback inside
+			// scheduler.invalidate — no manual restore needed
+		}
+
+		if (newResult) {
+			this.chapterCache.set(index, { document: doc, renderResult: newResult });
 		}
 
 		// Evict distant chapters (LRU: keep closest)

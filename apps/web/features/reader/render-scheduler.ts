@@ -23,14 +23,15 @@ class RenderScheduler {
 		document: Document,
 		atmosphere: ReadingAtmosphere,
 		viewport: Viewport,
-	): void {
-		if (!this.layouter) return;
+	): RenderResult | null {
+		if (!this.layouter) return null;
 		const expectedVersion = ++this.version;
 		const config = toLayoutConfig(atmosphere, viewport);
 		const result = layoutDocument(document, config, this.layouter);
-		if (this.version !== expectedVersion) return;
+		if (this.version !== expectedVersion) return null;
 		const renderResult = toRenderModel(result);
 		this.onResult(renderResult);
+		return renderResult;
 	}
 }
 

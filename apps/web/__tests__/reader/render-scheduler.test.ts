@@ -43,6 +43,28 @@ describe("RenderScheduler", () => {
 		expect(onResult).toHaveBeenCalledOnce();
 	});
 
+	it("returns render result from invalidate", () => {
+		const onResult = vi.fn();
+		const scheduler = new RenderScheduler(onResult, mockLayouter);
+		const atm = ATMOSPHERE_PRESETS.novel as ReadingAtmosphere;
+
+		const result = scheduler.invalidate({} as never, atm, { width: 1024, height: 768 });
+
+		expect(result).not.toBeNull();
+		expect(result?.totalPages).toBe(1);
+	});
+
+	it("returns null when no layouter is set", () => {
+		const onResult = vi.fn();
+		const scheduler = new RenderScheduler(onResult);
+		const atm = ATMOSPHERE_PRESETS.novel as ReadingAtmosphere;
+
+		const result = scheduler.invalidate({} as never, atm, { width: 1024, height: 768 });
+
+		expect(result).toBeNull();
+		expect(onResult).not.toHaveBeenCalled();
+	});
+
 	it("discards stale results when invalidated again", () => {
 		const onResult = vi.fn();
 		const scheduler = new RenderScheduler(onResult, mockLayouter);
