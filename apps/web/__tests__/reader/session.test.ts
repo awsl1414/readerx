@@ -55,12 +55,6 @@ const mockHttpFetcher = {
 };
 
 const mockDeps = {
-	bridge: {
-		executeRule: vi.fn(async () => ({
-			ok: true,
-			value: "&lt;p&gt;test&lt;/p&gt;",
-		})),
-	},
 	bookRepo: {
 		get: vi.fn(async () => ({
 			bookUrl: "book1",
