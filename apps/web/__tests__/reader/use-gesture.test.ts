@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import type { PointerEvent as ReactPointerEvent } from "react";
+import type { PointerEvent as ReactPointerEvent, WheelEvent as ReactWheelEvent } from "react";
 import { useGesture } from "@/features/reader/hooks/use-gesture";
 
 function makePointerEvent(
@@ -12,6 +12,10 @@ function makePointerEvent(
 		clientX,
 		clientY,
 	} as ReactPointerEvent<HTMLDivElement>;
+}
+
+function makeWheelEvent(deltaY: number): ReactWheelEvent<HTMLDivElement> {
+	return { deltaY } as ReactWheelEvent<HTMLDivElement>;
 }
 
 describe("useGesture", () => {
@@ -87,5 +91,103 @@ describe("useGesture", () => {
 
 		expect(onNext).not.toHaveBeenCalled();
 		expect(onPrev).not.toHaveBeenCalled();
+	});
+
+	describe("scroll debounce", () => {
+		it("does not trigger on small scroll increments", () => {
+			const onNext = vi.fn();
+			const onPrev = vi.fn();
+			const { result } = renderHook(() =>
+				useGesture({ mode: "scroll", onNext, onPrev }),
+			);
+
+			for (let i = 0; i < 10; i++) {
+				act(() => {
+					result.current.onWheel(makeWheelEvent(5));
+				});
+			}
+
+			expect(onNext).not.toHaveBeenCalled();
+			expect(onPrev).not.toHaveBeenCalled();
+		});
+
+		it("triggers onNext after accumulated downward scroll exceeds threshold", () => {
+			const onNext = vi.fn();
+			const onPrev = vi.fn();
+			const { result } = renderHook(() =>
+				useGesture({ mode: "scroll", onNext, onPrev }),
+			);
+
+			act(() => {
+				result.current.onWheel(makeWheelEvent(60));
+			});
+			expect(onNext).not.toHaveBeenCalled();
+
+			act(() => {
+				result.current.onWheel(makeWheelEvent(60));
+			});
+			expect(onNext).toHaveBeenCalledOnce();
+			expect(onPrev).not.toHaveBeenCalled();
+		});
+
+		it("triggers onPrev after accumulated upward scroll exceeds threshold", () => {
+			const onNext = vi.fn();
+			const onPrev = vi.fn();
+			const { result } = renderHook(() =>
+				useGesture({ mode: "scroll", onNext, onPrev }),
+			);
+
+			act(() => {
+				result.current.onWheel(makeWheelEvent(-60));
+			});
+			expect(onPrev).not.toHaveBeenCalled();
+
+			act(() => {
+				result.current.onWheel(makeWheelEvent(-60));
+			});
+			expect(onPrev).toHaveBeenCalledOnce();
+			expect(onNext).not.toHaveBeenCalled();
+		});
+
+		it("resets accumulator after triggering", () => {
+			const onNext = vi.fn();
+			const onPrev = vi.fn();
+			const { result } = renderHook(() =>
+				useGesture({ mode: "scroll", onNext, onPrev }),
+			);
+
+			// First trigger
+			act(() => {
+				result.current.onWheel(makeWheelEvent(150));
+			});
+			expect(onNext).toHaveBeenCalledOnce();
+
+			// Accumulator reset — small scroll should not trigger again
+			act(() => {
+				result.current.onWheel(makeWheelEvent(50));
+			});
+			expect(onNext).toHaveBeenCalledOnce();
+
+			// Second trigger after enough accumulation
+			act(() => {
+				result.current.onWheel(makeWheelEvent(60));
+			});
+			expect(onNext).toHaveBeenCalledTimes(2);
+		});
+
+		it("ignores wheel events when not in scroll mode", () => {
+			const onNext = vi.fn();
+			const onPrev = vi.fn();
+			const { result } = renderHook(() =>
+				useGesture({ mode: "horizontal", onNext, onPrev }),
+			);
+
+			act(() => {
+				result.current.onWheel(makeWheelEvent(200));
+			});
+
+			expect(onNext).not.toHaveBeenCalled();
+			expect(onPrev).not.toHaveBeenCalled();
+		});
 	});
 });

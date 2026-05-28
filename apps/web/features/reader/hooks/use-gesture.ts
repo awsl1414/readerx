@@ -2,6 +2,9 @@ import { useRef, useCallback } from "react";
 import type { PointerEvent as ReactPointerEvent, WheelEvent as ReactWheelEvent } from "react";
 import type { GestureMode } from "../types";
 
+/** Accumulated deltaY required before triggering a page change via scroll. */
+const SCROLL_DELTA_THRESHOLD = 100;
+
 type UseGestureOptions = {
 	readonly mode: GestureMode;
 	readonly onNext: () => void;
@@ -10,6 +13,7 @@ type UseGestureOptions = {
 };
 
 type GestureHandlers = {
+	/** @example `(e) => { e.currentTarget.setPointerCapture(e.pointerId); handlers.onPointerDown(e); }` */
 	readonly onPointerDown: (e: ReactPointerEvent<HTMLDivElement>) => void;
 	readonly onPointerMove: (e: ReactPointerEvent<HTMLDivElement>) => void;
 	readonly onPointerUp: () => void;
@@ -24,6 +28,11 @@ function useGesture({
 }: UseGestureOptions): GestureHandlers {
 	const startRef = useRef<{ x: number; y: number } | null>(null);
 	const lastRef = useRef<{ x: number; y: number } | null>(null);
+	const wheelAccumRef = useRef(0);
+
+	// TODO: Production should wrap onPointerDown to call
+	//   e.currentTarget.setPointerCapture(e.pointerId)
+	// so that onPointerUp fires even if the pointer leaves the element mid-swipe.
 
 	const onPointerDown = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
 		startRef.current = { x: e.clientX, y: e.clientY };
@@ -55,8 +64,16 @@ function useGesture({
 	const onWheel = useCallback(
 		(e: ReactWheelEvent<HTMLDivElement>) => {
 			if (mode !== "scroll") return;
-			if (e.deltaY > 0) onNext();
-			else if (e.deltaY < 0) onPrev();
+
+			wheelAccumRef.current += e.deltaY;
+
+			if (wheelAccumRef.current > SCROLL_DELTA_THRESHOLD) {
+				wheelAccumRef.current = 0;
+				onNext();
+			} else if (wheelAccumRef.current < -SCROLL_DELTA_THRESHOLD) {
+				wheelAccumRef.current = 0;
+				onPrev();
+			}
 		},
 		[mode, onNext, onPrev],
 	);
