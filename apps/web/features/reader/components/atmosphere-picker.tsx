@@ -6,9 +6,9 @@ type AtmospherePickerProps = {
 };
 
 const PRESETS: readonly { key: AtmospherePreset; icon: string; label: string }[] = [
-	{ key: "novel", icon: "📖", label: "小说" },
-	{ key: "focus", icon: "🎯", label: "专注" },
-	{ key: "dense", icon: "📄", label: "密集" },
+	{ key: "novel", icon: "Aa", label: "小说" },
+	{ key: "focus", icon: "T", label: "专注" },
+	{ key: "dense", icon: "≡", label: "密集" },
 ];
 
 function AtmospherePicker({ current, onSelect }: AtmospherePickerProps) {

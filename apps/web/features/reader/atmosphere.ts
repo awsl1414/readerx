@@ -6,7 +6,7 @@ import type {
 	ReadingAtmosphere,
 } from "./types";
 
-const ATMOSPHERE_PRESETS: Record<AtmospherePreset, ReadingAtmosphere> = {
+const ATMOSPHERE_PRESETS = Object.freeze({
 	novel: {
 		preset: "novel",
 		fontSize: 17,
@@ -34,7 +34,7 @@ const ATMOSPHERE_PRESETS: Record<AtmospherePreset, ReadingAtmosphere> = {
 		theme: "green",
 		font: "Georgia, 'Noto Serif SC', 'Songti SC', serif",
 	},
-};
+} as const satisfies Record<AtmospherePreset, ReadingAtmosphere>);
 
 const READER_THEME_COLORS: Record<ReaderTheme, ReaderThemeColors> = {
 	"warm-white": {

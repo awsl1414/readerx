@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 type IntentOverlayProps = {
 	readonly visible: boolean;
 	readonly chapterTitle: string;
@@ -9,7 +11,7 @@ type IntentOverlayProps = {
 	readonly onProgressClick: () => void;
 };
 
-const capsule: React.CSSProperties = {
+const capsule: CSSProperties = {
 	position: "absolute",
 	background: "oklch(0.15 0.01 260 / 0.8)",
 	backdropFilter: "blur(12px)",

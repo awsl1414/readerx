@@ -28,7 +28,10 @@ function ReaderPage() {
 			sourceRepo: {
 				get: async () => undefined,
 			},
-			viewport: { width: window.innerWidth, height: window.innerHeight },
+			viewport:
+				typeof window === "undefined"
+					? { width: 1024, height: 768 }
+					: { width: window.innerWidth, height: window.innerHeight },
 		}),
 		[],
 	);
