@@ -21,6 +21,11 @@ function useReaderSession(deps: SessionDeps): UseReaderSessionReturn {
 		const s = await ReaderSession.open(bookId, depsRef.current);
 		sessionRef.current = s;
 		setSession(s);
+		// Register listener BEFORE deriving initial state to avoid
+		// losing updates from async operations (e.g. prefetchAdjacent)
+		// that may call notify() between open() returning and the
+		// listener being attached.
+		s.onStateChange((newState) => setState(newState));
 		setState({
 			currentPage: s.currentPage,
 			pageCount: s.pageCount,
@@ -29,7 +34,6 @@ function useReaderSession(deps: SessionDeps): UseReaderSessionReturn {
 			atmosphere: s.atmosphere,
 			isLoading: s.isLoading,
 		});
-		s.onStateChange((newState) => setState(newState));
 	}, []);
 
 	const close = useCallback(() => {

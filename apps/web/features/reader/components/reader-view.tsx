@@ -33,10 +33,13 @@ function ReaderView({ bookId, deps, onBack, gestureMode = "horizontal" }: Reader
 	}, [bookId, open]);
 
 	const showControls = useCallback(() => {
+		// If controls are already visible (timer running), don't reset the
+		// timer — rapid tapping should not extend visibility indefinitely.
+		if (hideTimerRef.current) return;
 		setControlsVisible(true);
 		setAtmosphereOpen(false);
-		if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
 		hideTimerRef.current = setTimeout(() => {
+			hideTimerRef.current = null;
 			setControlsVisible(false);
 			setAtmosphereOpen(false);
 		}, OVERLAY_DURATION);
