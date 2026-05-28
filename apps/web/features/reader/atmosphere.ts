@@ -36,7 +36,7 @@ const ATMOSPHERE_PRESETS = Object.freeze({
 	},
 } as const satisfies Record<AtmospherePreset, ReadingAtmosphere>);
 
-const READER_THEME_COLORS: Record<ReaderTheme, ReaderThemeColors> = {
+const READER_THEME_COLORS = Object.freeze({
 	"warm-white": {
 		bg: "oklch(0.98 0.005 80)",
 		text: "oklch(0.30 0.01 60)",
@@ -62,7 +62,7 @@ const READER_THEME_COLORS: Record<ReaderTheme, ReaderThemeColors> = {
 		text: "oklch(0.28 0.02 60)",
 		textSecondary: "oklch(0.50 0.02 60)",
 	},
-};
+} as const satisfies Record<ReaderTheme, ReaderThemeColors>);
 
 function toLayoutConfig(
 	atm: ReadingAtmosphere,

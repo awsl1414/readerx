@@ -97,6 +97,9 @@ class WorkerBridge {
 				url: string,
 				options: Record<string, unknown>,
 			) => {
+				// Options originate from sandboxed JS code via QuickJS, so we trust the
+				// sandbox to produce valid fetch options. The cast is an acceptable trade-off
+				// to avoid reconstructing RequestInit field-by-field.
 				const resp = await fetch(url, options as RequestInit);
 				return resp.text();
 			},

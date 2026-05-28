@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { ReaderView } from "@/features/reader";
 import type { SessionDeps } from "@/features/reader/types";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useWorkerBridge } from "@/components/worker-bridge-provider";
 import { browserHttpFetcher } from "@/lib/browser-http-fetcher";
 import {
@@ -17,6 +17,20 @@ function ReaderPage() {
 	const params = useParams<{ bookId: string }>();
 	const router = useRouter();
 	const bridge = useWorkerBridge();
+
+	const [viewport, setViewport] = useState(() =>
+		typeof window === "undefined"
+			? { width: 1024, height: 768 }
+			: { width: window.innerWidth, height: window.innerHeight },
+	);
+
+	useEffect(() => {
+		const handleResize = () => {
+			setViewport({ width: window.innerWidth, height: window.innerHeight });
+		};
+		window.addEventListener("resize", handleResize);
+		return () => window.removeEventListener("resize", handleResize);
+	}, []);
 
 	const deps = useMemo<SessionDeps>(() => {
 		const bookRepo = new BookRepository(db.books);
@@ -67,12 +81,9 @@ function ReaderPage() {
 						return result;
 					}),
 			},
-			viewport:
-				typeof window === "undefined"
-					? { width: 1024, height: 768 }
-					: { width: window.innerWidth, height: window.innerHeight },
+			viewport,
 		};
-	}, [bridge]);
+	}, [bridge, viewport]);
 
 	return (
 		<ReaderView
