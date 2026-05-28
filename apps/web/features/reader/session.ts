@@ -3,7 +3,7 @@ import type {
 	RenderPage,
 	RenderResult,
 } from "@readerx/reader-engine";
-import { ContentProcessor, fetchAndParse } from "@readerx/reader-engine";
+import { ContentProcessor, PretextLayouter, fetchAndParse } from "@readerx/reader-engine";
 import { ATMOSPHERE_PRESETS } from "./atmosphere";
 import { RenderScheduler } from "./render-scheduler";
 import type {
@@ -41,6 +41,7 @@ class ReaderSession {
 
 	static async open(bookId: string, deps: SessionDeps): Promise<ReaderSession> {
 		const session = new ReaderSession(deps);
+		session.scheduler.setLayouter(new PretextLayouter());
 		const book = await deps.bookRepo.get(bookId);
 		if (!book) throw new Error(`Book not found: ${bookId}`);
 		session._bookUrl = bookId;
@@ -161,11 +162,11 @@ class ReaderSession {
 		const source = await this.deps.sourceRepo.get("");
 		const rule = source?.ruleContent ?? "";
 
-		const pipelineResult = await fetchAndParse({
-			rule,
-			url: chapter.resourceUrl,
-		} as never);
-		const doc = ContentProcessor.process(
+		const pipelineResult = await fetchAndParse(
+			{ httpFetcher: undefined, jsExecutor: undefined } as never,
+			{ rule, url: chapter.resourceUrl } as never,
+		);
+		const doc = new ContentProcessor().process(
 			pipelineResult as Document,
 		) as Document;
 

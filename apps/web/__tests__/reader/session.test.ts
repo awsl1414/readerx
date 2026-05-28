@@ -41,8 +41,9 @@ vi.mock("@readerx/reader-engine", () => ({
 		totalPages: layout.pages.length,
 	})),
 	fetchAndParse: vi.fn(async () => mockDocument),
-	ContentProcessor: { process: vi.fn((doc: unknown) => doc) },
-}));
+	ContentProcessor: vi.fn(function(this: { process: unknown }) { this.process = vi.fn((doc: unknown) => doc); }),
+	PretextLayouter: vi.fn(function() { return {}; }),
+	}));
 
 const mockDeps = {
 	bridge: {
@@ -143,7 +144,9 @@ describe("ReaderSession", () => {
 		session.onStateChange(listener);
 		session.nextPage();
 		expect(listener).toHaveBeenCalledOnce();
-		const state = listener.mock.calls[0][0] as ReaderState;
+		const call = listener.mock.calls[0];
+		expect(call).toBeDefined();
+		const state = call?.[0] as ReaderState;
 		expect(state.currentPage).toBe(1);
 	});
 

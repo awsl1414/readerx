@@ -27,12 +27,15 @@ vi.mock("@readerx/reader-engine", () => ({
 		pages: layout.pages,
 		totalPages: layout.pages.length,
 	})),
+	PretextLayouter: vi.fn(function() { return {}; }),
 }));
+
+const mockLayouter = {} as never;
 
 describe("RenderScheduler", () => {
 	it("calls onResult with render result", () => {
 		const onResult = vi.fn();
-		const scheduler = new RenderScheduler(onResult);
+		const scheduler = new RenderScheduler(onResult, mockLayouter);
 		const atm = ATMOSPHERE_PRESETS.novel as ReadingAtmosphere;
 
 		scheduler.invalidate({} as never, atm, { width: 1024, height: 768 });
@@ -42,7 +45,7 @@ describe("RenderScheduler", () => {
 
 	it("discards stale results when invalidated again", () => {
 		const onResult = vi.fn();
-		const scheduler = new RenderScheduler(onResult);
+		const scheduler = new RenderScheduler(onResult, mockLayouter);
 		const atm = ATMOSPHERE_PRESETS.novel as ReadingAtmosphere;
 
 		// First invalidation
