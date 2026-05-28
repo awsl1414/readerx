@@ -18,6 +18,12 @@ function useReaderSession(deps: SessionDeps): UseReaderSessionReturn {
 	depsRef.current = deps;
 
 	const open = useCallback(async (bookId: string) => {
+		// Dispose previous session if exists to prevent leaks on re-open
+		sessionRef.current?.dispose();
+		sessionRef.current = null;
+		setSession(null);
+		setState(null);
+
 		const s = await ReaderSession.open(bookId, depsRef.current);
 		sessionRef.current = s;
 		setSession(s);

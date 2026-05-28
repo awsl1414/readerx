@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import type { GestureMode } from "../types";
-import type { SessionDeps } from "../types";
+import type { AtmospherePreset, GestureMode, SessionDeps } from "../types";
 import { PageRenderer } from "./page-renderer";
 import { IntentOverlay } from "./intent-overlay";
 import { ChapterEnd } from "./chapter-end";
@@ -27,6 +26,9 @@ function ReaderView({ bookId, deps, onBack, gestureMode = "horizontal" }: Reader
 	const [tocOpen, setTocOpen] = useState(false);
 	const [atmosphereOpen, setAtmosphereOpen] = useState(false);
 	const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const currentChapterRef = useRef(0);
+	const hasPrevChapterRef = useRef(false);
+	const hasNextChapterRef = useRef(false);
 
 	useEffect(() => {
 		open(bookId);
@@ -61,6 +63,39 @@ function ReaderView({ bookId, deps, onBack, gestureMode = "horizontal" }: Reader
 		session?.prevPage();
 	}, [session]);
 
+	const handleNextChapter = useCallback(() => {
+		if (hasNextChapterRef.current && session) {
+			session.jumpToChapter(currentChapterRef.current + 1);
+		}
+	}, [session]);
+
+	const handlePrevChapter = useCallback(() => {
+		if (hasPrevChapterRef.current && session) {
+			session.jumpToChapter(currentChapterRef.current - 1);
+		}
+	}, [session]);
+
+	const handleProgressClick = useCallback(() => {
+		setAtmosphereOpen((prev) => !prev);
+	}, []);
+
+	const handleAtmosphereSelect = useCallback((preset: AtmospherePreset) => {
+		setAtmosphere(preset);
+		setAtmosphereOpen(false);
+	}, [setAtmosphere]);
+
+	const handleTocSelect = useCallback((index: number) => {
+		if (session) {
+			session.jumpToChapter(index);
+			setTocOpen(false);
+		}
+	}, [session]);
+
+	const handleBack = useCallback(() => {
+		close();
+		onBack();
+	}, [close, onBack]);
+
 	const gesture = useGesture({
 		mode: gestureMode,
 		onNext: handleNextPage,
@@ -85,6 +120,11 @@ function ReaderView({ bookId, deps, onBack, gestureMode = "horizontal" }: Reader
 	const hasPrevChapter = state.currentChapter > 0;
 	const hasNextChapter = state.currentChapter < state.chapters.length - 1;
 
+	// Keep refs in sync for stable callbacks defined above the early return
+	currentChapterRef.current = state.currentChapter;
+	hasPrevChapterRef.current = hasPrevChapter;
+	hasNextChapterRef.current = hasNextChapter;
+
 	return (
 		<div
 			style={{
@@ -94,13 +134,13 @@ function ReaderView({ bookId, deps, onBack, gestureMode = "horizontal" }: Reader
 				color: colors.text,
 				overflow: "hidden",
 			}}
-			onPointerDown={gesture.onPointerDown}
-			onPointerMove={gesture.onPointerMove}
-			onPointerUp={gesture.onPointerUp}
-			onWheel={gesture.onWheel}
 		>
 			<div
 				onClick={handleContentClick}
+				onPointerDown={gesture.onPointerDown}
+				onPointerMove={gesture.onPointerMove}
+				onPointerUp={gesture.onPointerUp}
+				onWheel={gesture.onWheel}
 				style={{
 					display: "flex",
 					transition: "transform 0.3s ease",
@@ -118,7 +158,7 @@ function ReaderView({ bookId, deps, onBack, gestureMode = "horizontal" }: Reader
 							<ChapterEnd
 								chapterTitle={chapterTitle}
 								hasNextChapter={hasNextChapter}
-								onNextChapter={() => session.jumpToChapter(state.currentChapter + 1)}
+								onNextChapter={handleNextChapter}
 							/>
 						</>
 					)}
@@ -138,10 +178,7 @@ function ReaderView({ bookId, deps, onBack, gestureMode = "horizontal" }: Reader
 						chapters={state.chapters}
 						currentChapter={state.currentChapter}
 						isMobile={deps.viewport.width < 768}
-						onSelect={(index) => {
-							session.jumpToChapter(index);
-							setTocOpen(false);
-						}}
+						onSelect={handleTocSelect}
 					/>
 				</div>
 			)}
@@ -150,11 +187,11 @@ function ReaderView({ bookId, deps, onBack, gestureMode = "horizontal" }: Reader
 				visible={controlsVisible}
 				chapterTitle={chapterTitle}
 				progressPercent={state.pageCount > 0 ? Math.round((state.currentPage / state.pageCount) * 100) : 0}
-				onBack={() => { close(); onBack(); }}
+				onBack={handleBack}
 				onToc={() => setTocOpen(true)}
-				onPrevChapter={() => { if (hasPrevChapter) session.jumpToChapter(state.currentChapter - 1); }}
-				onNextChapter={() => { if (hasNextChapter) session.jumpToChapter(state.currentChapter + 1); }}
-				onProgressClick={() => setAtmosphereOpen(!atmosphereOpen)}
+				onPrevChapter={handlePrevChapter}
+				onNextChapter={handleNextChapter}
+				onProgressClick={handleProgressClick}
 			/>
 
 			{controlsVisible && atmosphereOpen && (
@@ -166,10 +203,7 @@ function ReaderView({ bookId, deps, onBack, gestureMode = "horizontal" }: Reader
 				}}>
 					<AtmospherePicker
 						current={state.atmosphere.preset}
-						onSelect={(preset) => {
-							setAtmosphere(preset);
-							setAtmosphereOpen(false);
-						}}
+						onSelect={handleAtmosphereSelect}
 					/>
 				</div>
 			)}
