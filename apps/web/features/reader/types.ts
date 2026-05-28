@@ -48,13 +48,6 @@ type ReaderState = {
 type GestureMode = "horizontal" | "vertical" | "scroll";
 
 type SessionDeps = {
-	readonly bridge: {
-		executeRule(
-			rule: string,
-			content: string,
-			options?: { baseUrl?: string },
-		): Promise<{ ok: boolean; value?: string; error?: unknown }>;
-	};
 	readonly httpFetcher: HttpFetcher;
 	readonly jsExecutor?: JsExecutor;
 	readonly bookRepo: {

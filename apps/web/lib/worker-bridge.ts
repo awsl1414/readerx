@@ -269,6 +269,10 @@ class WorkerBridge {
 		);
 	}
 
+	createJsExecutor(): JsExecutor {
+		return this.#createJsExecutor();
+	}
+
 	dispose(): void {
 		if (this.#disposed) throw new BridgeDisposedError();
 		this.#disposed = true;
