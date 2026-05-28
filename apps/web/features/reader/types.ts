@@ -42,6 +42,47 @@ type ReaderState = {
 
 type GestureMode = "horizontal" | "vertical" | "scroll";
 
+type SessionDeps = {
+	readonly bridge: {
+		executeRule(
+			rule: string,
+			content: string,
+			options?: { baseUrl?: string },
+		): Promise<{ ok: boolean; value?: string; error?: unknown }>;
+	};
+	readonly bookRepo: {
+		get(bookUrl: string): Promise<
+			| {
+					bookUrl: string;
+					name: string;
+					durChapterIndex: number;
+					durChapterPos: number;
+					totalChapterNum: number;
+					origin: string;
+			  }
+			| undefined
+		>;
+		updateProgress(
+			bookUrl: string,
+			durChapterIndex: number,
+			durChapterPos: number,
+		): Promise<void>;
+	};
+	readonly chapterRepo: {
+		getByBook(bookUrl: string): Promise<readonly ChapterInfo[]>;
+		getByIndex(
+			bookUrl: string,
+			index: number,
+		): Promise<{ resourceUrl: string; title: string } | undefined>;
+	};
+	readonly sourceRepo: {
+		get(
+			sourceUrl: string,
+		): Promise<{ bookSourceUrl: string; ruleContent?: string } | undefined>;
+	};
+	readonly viewport: { width: number; height: number };
+};
+
 export type {
 	AtmospherePreset,
 	CachedChapter,
@@ -51,4 +92,5 @@ export type {
 	ReaderTheme,
 	ReaderThemeColors,
 	ReadingAtmosphere,
+	SessionDeps,
 };
