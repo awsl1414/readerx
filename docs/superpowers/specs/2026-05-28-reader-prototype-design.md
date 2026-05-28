@@ -343,6 +343,27 @@ class RenderScheduler {
 
 注意：`layoutDocument` 是同步纯函数，无需 AbortController。版本号机制防止快速连续触发时使用过期结果。
 
+### 性能优化
+
+- **debounce**：氛围切换和 resize 均 debounce 200ms，避免快速连续触发
+- **React.memo**：PageRenderer 包裹 React.memo，仅 page ref 变化时重渲染
+- **大章节防护**：若 RenderPage.lines 超过 500 行，控制台 warn 提示
+
+## 响应式布局
+
+| 视口 | 布局 | 交互差异 |
+|------|------|----------|
+| Mobile (< 768px) | 全屏沉浸，padding 20px | touch 手势为主，底部极简 |
+| Desktop (≥ 768px) | 内容居中 max-width 约束，padding 40px | pointer + keyboard 支持 |
+
+桌面端额外支持：键盘左右箭头翻页、Esc 关闭目录/退出阅读器。
+
+## 章节缓存策略
+
+- LRU 策略：最多保留 5 个章节的 RenderResult（当前章 ±2）
+- 超出时释放最远章节的 renderResult（保留 Document AST，释放分页结果）
+- 预取完成后的章节立即排版并缓存，翻到时零等待
+
 ## 排版参数计算
 
 `toLayoutConfig(atmosphere, viewport)` 将氛围预设 + viewport 转换为 reader-engine 的 LayoutConfig：
