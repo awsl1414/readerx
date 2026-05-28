@@ -1,4 +1,5 @@
 import { useRef, useCallback } from "react";
+import type { PointerEvent as ReactPointerEvent, WheelEvent as ReactWheelEvent } from "react";
 import type { GestureMode } from "../types";
 
 type UseGestureOptions = {
@@ -9,10 +10,10 @@ type UseGestureOptions = {
 };
 
 type GestureHandlers = {
-	readonly onPointerDown: (e: PointerEvent) => void;
-	readonly onPointerMove: (e: PointerEvent) => void;
+	readonly onPointerDown: (e: ReactPointerEvent<HTMLDivElement>) => void;
+	readonly onPointerMove: (e: ReactPointerEvent<HTMLDivElement>) => void;
 	readonly onPointerUp: () => void;
-	readonly onWheel: (e: WheelEvent) => void;
+	readonly onWheel: (e: ReactWheelEvent<HTMLDivElement>) => void;
 };
 
 function useGesture({
@@ -24,12 +25,12 @@ function useGesture({
 	const startRef = useRef<{ x: number; y: number } | null>(null);
 	const lastRef = useRef<{ x: number; y: number } | null>(null);
 
-	const onPointerDown = useCallback((e: PointerEvent) => {
+	const onPointerDown = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
 		startRef.current = { x: e.clientX, y: e.clientY };
 		lastRef.current = { x: e.clientX, y: e.clientY };
 	}, []);
 
-	const onPointerMove = useCallback((e: PointerEvent) => {
+	const onPointerMove = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
 		lastRef.current = { x: e.clientX, y: e.clientY };
 	}, []);
 
@@ -52,7 +53,7 @@ function useGesture({
 	}, [mode, threshold, onNext, onPrev]);
 
 	const onWheel = useCallback(
-		(e: WheelEvent) => {
+		(e: ReactWheelEvent<HTMLDivElement>) => {
 			if (mode !== "scroll") return;
 			if (e.deltaY > 0) onNext();
 			else if (e.deltaY < 0) onPrev();

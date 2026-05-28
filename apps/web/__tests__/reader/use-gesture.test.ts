@@ -1,7 +1,18 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 import { useGesture } from "@/features/reader/hooks/use-gesture";
+
+function makePointerEvent(
+	clientX: number,
+	clientY: number,
+): ReactPointerEvent<HTMLDivElement> {
+	return {
+		clientX,
+		clientY,
+	} as ReactPointerEvent<HTMLDivElement>;
+}
 
 describe("useGesture", () => {
 	it("returns handlers for horizontal mode", () => {
@@ -23,10 +34,10 @@ describe("useGesture", () => {
 		);
 
 		act(() => {
-			result.current.onPointerDown({ clientX: 300, clientY: 400 } as PointerEvent);
+			result.current.onPointerDown(makePointerEvent(300, 400));
 		});
 		act(() => {
-			result.current.onPointerMove({ clientX: 100, clientY: 400 } as PointerEvent);
+			result.current.onPointerMove(makePointerEvent(100, 400));
 		});
 		act(() => {
 			result.current.onPointerUp();
@@ -44,10 +55,10 @@ describe("useGesture", () => {
 		);
 
 		act(() => {
-			result.current.onPointerDown({ clientX: 100, clientY: 400 } as PointerEvent);
+			result.current.onPointerDown(makePointerEvent(100, 400));
 		});
 		act(() => {
-			result.current.onPointerMove({ clientX: 300, clientY: 400 } as PointerEvent);
+			result.current.onPointerMove(makePointerEvent(300, 400));
 		});
 		act(() => {
 			result.current.onPointerUp();
@@ -65,10 +76,10 @@ describe("useGesture", () => {
 		);
 
 		act(() => {
-			result.current.onPointerDown({ clientX: 200, clientY: 400 } as PointerEvent);
+			result.current.onPointerDown(makePointerEvent(200, 400));
 		});
 		act(() => {
-			result.current.onPointerMove({ clientX: 220, clientY: 400 } as PointerEvent);
+			result.current.onPointerMove(makePointerEvent(220, 400));
 		});
 		act(() => {
 			result.current.onPointerUp();
