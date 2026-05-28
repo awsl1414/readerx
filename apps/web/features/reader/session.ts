@@ -1,5 +1,7 @@
 import type {
 	Document,
+	PipelineDeps,
+	PipelineConfig,
 	RenderPage,
 	RenderResult,
 } from "@readerx/reader-engine";
@@ -16,6 +18,8 @@ import type {
 } from "./types";
 
 class ReaderSession {
+	private static readonly MAX_CACHE_SIZE = 5;
+
 	private readonly deps: SessionDeps;
 	private readonly scheduler: RenderScheduler;
 	private readonly chapterCache = new Map<number, CachedChapter>();
@@ -28,11 +32,12 @@ class ReaderSession {
 	private _chapters: readonly ChapterInfo[] = [];
 	private _renderResult: RenderResult | null = null;
 	private _bookUrl = "";
+	private _origin = "";
 	private _disposed = false;
 
 	private constructor(deps: SessionDeps) {
 		this.deps = deps;
-		this._atmosphere = ATMOSPHERE_PRESETS.novel as ReadingAtmosphere;
+		this._atmosphere = ATMOSPHERE_PRESETS.novel;
 		this.scheduler = new RenderScheduler((result) => {
 			this._renderResult = result;
 			this.notify();
@@ -45,6 +50,7 @@ class ReaderSession {
 		const book = await deps.bookRepo.get(bookId);
 		if (!book) throw new Error(`Book not found: ${bookId}`);
 		session._bookUrl = bookId;
+		session._origin = book.origin;
 
 		const chapters = await deps.chapterRepo.getByBook(bookId);
 		session._chapters = chapters.map((c) => ({
@@ -113,7 +119,7 @@ class ReaderSession {
 	}
 
 	setAtmosphere(preset: AtmospherePreset): void {
-		this._atmosphere = ATMOSPHERE_PRESETS[preset] as ReadingAtmosphere;
+		this._atmosphere = ATMOSPHERE_PRESETS[preset];
 		const cached = this.chapterCache.get(this._currentChapter);
 		if (cached) {
 			this.scheduler.invalidate(
@@ -159,16 +165,22 @@ class ReaderSession {
 		);
 		if (!chapter) throw new Error(`Chapter not found: ${index}`);
 
-		const source = await this.deps.sourceRepo.get("");
-		const rule = source?.ruleContent ?? "";
+		const source = await this.deps.sourceRepo.get(this._origin);
+		const contentRule = source?.ruleContent
+			? { content: source.ruleContent }
+			: { content: "" };
 
-		const pipelineResult = await fetchAndParse(
-			{ httpFetcher: undefined, jsExecutor: undefined } as never,
-			{ rule, url: chapter.resourceUrl } as never,
-		);
-		const doc = new ContentProcessor().process(
-			pipelineResult as Document,
-		) as Document;
+		const pipelineDeps: PipelineDeps = {
+			httpFetcher: this.deps.httpFetcher,
+			...(this.deps.jsExecutor ? { jsExecutor: this.deps.jsExecutor } : {}),
+		};
+		const pipelineConfig: PipelineConfig = {
+			contentRule,
+			url: chapter.resourceUrl,
+		};
+
+		const pipelineResult = await fetchAndParse(pipelineDeps, pipelineConfig);
+		const doc = new ContentProcessor().process(pipelineResult);
 
 		// Save the active render state before invalidation (prefetch must not clobber it)
 		const savedResult = this._renderResult;
@@ -200,7 +212,9 @@ class ReaderSession {
 			if (this.prefetchQueue.has(idx)) continue;
 			this.prefetchQueue.add(idx);
 			this.loadChapter(idx, false)
-				.catch(() => {})
+				.catch((err: unknown) => {
+					console.warn(`Prefetch chapter ${idx} failed:`, err);
+				})
 				.finally(() => {
 					this.prefetchQueue.delete(idx);
 				});
@@ -208,12 +222,12 @@ class ReaderSession {
 	}
 
 	private evictDistantChapters(): void {
-		if (this.chapterCache.size <= 5) return;
+		if (this.chapterCache.size <= ReaderSession.MAX_CACHE_SIZE) return;
 		const keys = [...this.chapterCache.keys()].sort(
 			(a, b) =>
 				Math.abs(a - this._currentChapter) - Math.abs(b - this._currentChapter),
 		);
-		while (this.chapterCache.size > 5) {
+		while (this.chapterCache.size > ReaderSession.MAX_CACHE_SIZE) {
 			const farthest = keys.pop();
 			if (farthest !== undefined) this.chapterCache.delete(farthest);
 		}

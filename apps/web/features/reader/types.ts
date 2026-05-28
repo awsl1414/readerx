@@ -1,4 +1,9 @@
-import type { Document, RenderResult } from "@readerx/reader-engine";
+import type {
+	Document,
+	HttpFetcher,
+	JsExecutor,
+	RenderResult,
+} from "@readerx/reader-engine";
 
 type AtmospherePreset = "novel" | "focus" | "dense";
 
@@ -50,6 +55,8 @@ type SessionDeps = {
 			options?: { baseUrl?: string },
 		): Promise<{ ok: boolean; value?: string; error?: unknown }>;
 	};
+	readonly httpFetcher: HttpFetcher;
+	readonly jsExecutor?: JsExecutor;
 	readonly bookRepo: {
 		get(bookUrl: string): Promise<
 			| {

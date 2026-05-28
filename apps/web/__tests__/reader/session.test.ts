@@ -45,6 +45,15 @@ vi.mock("@readerx/reader-engine", () => ({
 	PretextLayouter: vi.fn(function() { return {}; }),
 	}));
 
+const mockHttpFetcher = {
+	fetch: vi.fn(async () => ({
+		ok: true,
+		status: 200,
+		body: new TextEncoder().encode("<p>test</p>"),
+		headers: { "content-type": "text/html" },
+	})),
+};
+
 const mockDeps = {
 	bridge: {
 		executeRule: vi.fn(async () => ({
@@ -99,6 +108,7 @@ const mockDeps = {
 		})),
 	},
 	viewport: { width: 1024, height: 768 },
+	httpFetcher: mockHttpFetcher,
 	sourceRepo: {
 		get: vi.fn(async () => ({
 			bookSourceUrl: "src1",
@@ -171,5 +181,25 @@ describe("ReaderSession", () => {
 			0, // chapterIndex
 			1, // page position
 		);
+	});
+
+	it("fetches source using book origin, not empty string", () => {
+		expect(mockDeps.sourceRepo.get).toHaveBeenCalledWith("src1");
+	});
+
+	it("calls fetchAndParse with proper pipeline deps and config", async () => {
+		const { fetchAndParse } = await import("@readerx/reader-engine");
+		// fetchAndParse is called once for chapter 0 during open,
+		// plus adjacent prefetches for chapters 1 and -1 (out of range)
+		const calls = vi.mocked(fetchAndParse).mock.calls;
+		expect(calls.length).toBeGreaterThanOrEqual(1);
+		const firstCall = calls[0];
+		expect(firstCall).toBeDefined();
+		const [deps, config] = firstCall ?? [];
+		// PipelineDeps should have httpFetcher wired from session deps
+		expect(deps).toHaveProperty("httpFetcher", mockHttpFetcher);
+		// PipelineConfig should have contentRule and url
+		expect(config).toHaveProperty("contentRule");
+		expect(config).toHaveProperty("url", "http://ex.com/ch1");
 	});
 });

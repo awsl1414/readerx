@@ -17,6 +17,14 @@ function ReaderPage() {
 					error: "not implemented",
 				}),
 			},
+			httpFetcher: {
+				fetch: async () => ({
+					ok: false,
+					status: 0,
+					body: new Uint8Array(),
+					headers: {},
+				}),
+			},
 			bookRepo: {
 				get: async () => undefined,
 				updateProgress: async () => {},
