@@ -22,5 +22,5 @@ export type {
 // export { useSourceDebug } from "./hooks/use-source-debug";
 // export { useSourceCapabilities } from "./hooks/use-source-capabilities";
 // Core
-// export { analyzeCapabilities } from "./lib/capability-analyzer";
+export { analyzeCapabilities } from "./lib/capability-analyzer";
 // export { runPipeline } from "./lib/pipeline-runner";
