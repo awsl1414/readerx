@@ -16,7 +16,8 @@ type SourceDebuggerProps = {
 
 type DebuggerTab = "pipeline" | "console";
 
-function SourceDebugger({ source }: SourceDebuggerProps) {
+function SourceDebugger({ source: _source }: SourceDebuggerProps) {
+	// source prop reserved for future pipeline execution context
 	const { stages, logs, isRunning, runPipeline, abort, reset } =
 		useSourceDebug();
 	const setDebuggerOpen = useSourceManagerStore((s) => s.setDebuggerOpen);
