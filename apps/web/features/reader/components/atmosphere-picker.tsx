@@ -5,7 +5,11 @@ type AtmospherePickerProps = {
 	readonly onSelect: (preset: AtmospherePreset) => void;
 };
 
-const PRESETS: readonly { key: AtmospherePreset; icon: string; label: string }[] = [
+const PRESETS: readonly {
+	key: AtmospherePreset;
+	icon: string;
+	label: string;
+}[] = [
 	{ key: "novel", icon: "Aa", label: "小说" },
 	{ key: "focus", icon: "T", label: "专注" },
 	{ key: "dense", icon: "≡", label: "密集" },
@@ -13,12 +17,14 @@ const PRESETS: readonly { key: AtmospherePreset; icon: string; label: string }[]
 
 function AtmospherePicker({ current, onSelect }: AtmospherePickerProps) {
 	return (
-		<div style={{
-			display: "flex",
-			gap: 12,
-			justifyContent: "center",
-			fontSize: 16,
-		}}>
+		<div
+			style={{
+				display: "flex",
+				gap: 12,
+				justifyContent: "center",
+				fontSize: 16,
+			}}
+		>
 			{PRESETS.map((p) => (
 				<button
 					key={p.key}
@@ -43,5 +49,5 @@ function AtmospherePicker({ current, onSelect }: AtmospherePickerProps) {
 	);
 }
 
-export { AtmospherePicker };
 export type { AtmospherePickerProps };
+export { AtmospherePicker };

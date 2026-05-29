@@ -1,7 +1,11 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi } from "vitest";
-import { renderHook, act } from "@testing-library/react";
-import type { PointerEvent as ReactPointerEvent, WheelEvent as ReactWheelEvent } from "react";
+
+import { act, renderHook } from "@testing-library/react";
+import type {
+	PointerEvent as ReactPointerEvent,
+	WheelEvent as ReactWheelEvent,
+} from "react";
+import { describe, expect, it, vi } from "vitest";
 import { useGesture } from "@/features/reader/hooks/use-gesture";
 
 function makePointerEvent(
@@ -91,6 +95,109 @@ describe("useGesture", () => {
 
 		expect(onNext).not.toHaveBeenCalled();
 		expect(onPrev).not.toHaveBeenCalled();
+	});
+
+	describe("vertical mode", () => {
+		it("triggers onNext on upward (bottom-to-top) swipe", () => {
+			const onNext = vi.fn();
+			const onPrev = vi.fn();
+			const { result } = renderHook(() =>
+				useGesture({ mode: "vertical", onNext, onPrev }),
+			);
+
+			act(() => {
+				result.current.onPointerDown(makePointerEvent(400, 300));
+			});
+			act(() => {
+				result.current.onPointerMove(makePointerEvent(400, 100));
+			});
+			act(() => {
+				result.current.onPointerUp();
+			});
+
+			expect(onNext).toHaveBeenCalledOnce();
+			expect(onPrev).not.toHaveBeenCalled();
+		});
+
+		it("triggers onPrev on downward (top-to-bottom) swipe", () => {
+			const onNext = vi.fn();
+			const onPrev = vi.fn();
+			const { result } = renderHook(() =>
+				useGesture({ mode: "vertical", onNext, onPrev }),
+			);
+
+			act(() => {
+				result.current.onPointerDown(makePointerEvent(400, 100));
+			});
+			act(() => {
+				result.current.onPointerMove(makePointerEvent(400, 300));
+			});
+			act(() => {
+				result.current.onPointerUp();
+			});
+
+			expect(onPrev).toHaveBeenCalledOnce();
+			expect(onNext).not.toHaveBeenCalled();
+		});
+
+		it("does not trigger on small vertical swipes below threshold", () => {
+			const onNext = vi.fn();
+			const onPrev = vi.fn();
+			const { result } = renderHook(() =>
+				useGesture({ mode: "vertical", onNext, onPrev }),
+			);
+
+			act(() => {
+				result.current.onPointerDown(makePointerEvent(400, 200));
+			});
+			act(() => {
+				result.current.onPointerMove(makePointerEvent(400, 220));
+			});
+			act(() => {
+				result.current.onPointerUp();
+			});
+
+			expect(onNext).not.toHaveBeenCalled();
+			expect(onPrev).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("edge cases", () => {
+		it("onPointerUp without prior onPointerDown does nothing", () => {
+			const onNext = vi.fn();
+			const onPrev = vi.fn();
+			const { result } = renderHook(() =>
+				useGesture({ mode: "horizontal", onNext, onPrev }),
+			);
+
+			act(() => {
+				result.current.onPointerUp();
+			});
+
+			expect(onNext).not.toHaveBeenCalled();
+			expect(onPrev).not.toHaveBeenCalled();
+		});
+
+		it("ignores pointer events in scroll mode for page navigation", () => {
+			const onNext = vi.fn();
+			const onPrev = vi.fn();
+			const { result } = renderHook(() =>
+				useGesture({ mode: "scroll", onNext, onPrev }),
+			);
+
+			act(() => {
+				result.current.onPointerDown(makePointerEvent(300, 400));
+			});
+			act(() => {
+				result.current.onPointerMove(makePointerEvent(100, 400));
+			});
+			act(() => {
+				result.current.onPointerUp();
+			});
+
+			expect(onNext).not.toHaveBeenCalled();
+			expect(onPrev).not.toHaveBeenCalled();
+		});
 	});
 
 	describe("scroll debounce", () => {

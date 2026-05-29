@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
+
+import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { renderHook, act } from "@testing-library/react";
 
 // Mock reader-engine with a document fixture (same pattern as session.test.ts)
 const mockDocument = { type: "document" } as never;
@@ -41,8 +42,13 @@ vi.mock("@readerx/reader-engine", () => ({
 		totalPages: layout.pages.length,
 	})),
 	fetchAndParse: vi.fn(async () => mockDocument),
-	ContentProcessor: vi.fn(function(this: { process: unknown }) { this.process = vi.fn((doc: unknown) => doc); }),
-	PretextLayouter: vi.fn(function() { return {}; }),
+	ContentProcessor: vi.fn(function (this: { process: unknown }) {
+		this.process = vi.fn((doc: unknown) => doc);
+	}),
+	// biome-ignore lint/complexity/useArrowFunction: mock is called with `new`, requires function syntax
+	PretextLayouter: vi.fn(function () {
+		return {};
+	}),
 }));
 
 const mockDeps = {
@@ -98,7 +104,7 @@ const mockDeps = {
 			resourceUrl: "http://ex.com/ch1",
 		})),
 	},
-	viewport: { width: 1024, height: 768 },
+	isMobile: false,
 	httpFetcher: {
 		fetch: vi.fn(async () => ({
 			ok: true,

@@ -1,11 +1,14 @@
 import type {
-	Document,
-	PipelineDeps,
 	PipelineConfig,
+	PipelineDeps,
 	RenderPage,
 	RenderResult,
 } from "@readerx/reader-engine";
-import { ContentProcessor, PretextLayouter, fetchAndParse } from "@readerx/reader-engine";
+import {
+	ContentProcessor,
+	fetchAndParse,
+	PretextLayouter,
+} from "@readerx/reader-engine";
 import { ATMOSPHERE_PRESETS } from "./atmosphere";
 import { RenderScheduler } from "./render-scheduler";
 import type {
@@ -48,12 +51,12 @@ class ReaderSession {
 	}
 
 	/** Read the current viewport directly from the browser at call time.
-	 *  Falls back to the deps-provided viewport during SSR or non-browser environments. */
+	 *  Falls back to a sensible default during SSR or non-browser environments. */
 	private getViewport(): { width: number; height: number } {
 		if (typeof window !== "undefined") {
 			return { width: window.innerWidth, height: window.innerHeight };
 		}
-		return this.deps.viewport;
+		return { width: 1024, height: 768 };
 	}
 
 	static async open(bookId: string, deps: SessionDeps): Promise<ReaderSession> {

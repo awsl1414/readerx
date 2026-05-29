@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
+
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { AtmospherePicker } from "@/features/reader/components/atmosphere-picker";
-import type { AtmospherePreset } from "@/features/reader/types";
 
 describe("AtmospherePicker", () => {
 	afterEach(() => {

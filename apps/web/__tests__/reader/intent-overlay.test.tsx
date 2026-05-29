@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { IntentOverlay } from "@/features/reader/components/intent-overlay";
 
 afterEach(cleanup);

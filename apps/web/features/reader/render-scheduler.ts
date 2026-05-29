@@ -1,4 +1,8 @@
-import type { Document, RenderResult, TextLayouter } from "@readerx/reader-engine";
+import type {
+	Document,
+	RenderResult,
+	TextLayouter,
+} from "@readerx/reader-engine";
 import { layoutDocument, toRenderModel } from "@readerx/reader-engine";
 import { toLayoutConfig } from "./atmosphere";
 import type { ReadingAtmosphere } from "./types";
@@ -10,7 +14,10 @@ class RenderScheduler {
 	private readonly onResult: (result: RenderResult) => void;
 	private layouter: TextLayouter | null = null;
 
-	constructor(onResult: (result: RenderResult) => void, layouter?: TextLayouter) {
+	constructor(
+		onResult: (result: RenderResult) => void,
+		layouter?: TextLayouter,
+	) {
 		this.onResult = onResult;
 		if (layouter) this.layouter = layouter;
 	}

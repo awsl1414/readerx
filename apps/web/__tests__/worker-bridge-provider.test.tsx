@@ -10,7 +10,7 @@ import { WorkerBridge } from "@/lib/worker-bridge";
  * Minimal renderHook implementation for testing React hooks.
  * Uses createElement + useState to simulate hook consumption.
  */
-function renderHook<T>(
+function _renderHook<T>(
 	hook: () => T,
 	wrapper?: (props: { children: ReactNode }) => ReactNode,
 ) {

@@ -27,7 +27,10 @@ vi.mock("@readerx/reader-engine", () => ({
 		pages: layout.pages,
 		totalPages: layout.pages.length,
 	})),
-	PretextLayouter: vi.fn(function() { return {}; }),
+	// biome-ignore lint/complexity/useArrowFunction: mock is called with `new`, requires function syntax
+	PretextLayouter: vi.fn(function () {
+		return {};
+	}),
 }));
 
 const mockLayouter = {} as never;
@@ -48,7 +51,10 @@ describe("RenderScheduler", () => {
 		const scheduler = new RenderScheduler(onResult, mockLayouter);
 		const atm = ATMOSPHERE_PRESETS.novel as ReadingAtmosphere;
 
-		const result = scheduler.invalidate({} as never, atm, { width: 1024, height: 768 });
+		const result = scheduler.invalidate({} as never, atm, {
+			width: 1024,
+			height: 768,
+		});
 
 		expect(result).not.toBeNull();
 		expect(result?.totalPages).toBe(1);
@@ -59,7 +65,10 @@ describe("RenderScheduler", () => {
 		const scheduler = new RenderScheduler(onResult);
 		const atm = ATMOSPHERE_PRESETS.novel as ReadingAtmosphere;
 
-		const result = scheduler.invalidate({} as never, atm, { width: 1024, height: 768 });
+		const result = scheduler.invalidate({} as never, atm, {
+			width: 1024,
+			height: 768,
+		});
 
 		expect(result).toBeNull();
 		expect(onResult).not.toHaveBeenCalled();

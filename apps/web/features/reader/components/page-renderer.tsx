@@ -1,5 +1,5 @@
-import { memo } from "react";
 import type { RenderPage } from "@readerx/reader-engine";
+import { memo } from "react";
 import type { ReadingAtmosphere } from "../types";
 import { RunRenderer } from "./run-renderer";
 
@@ -15,9 +15,14 @@ function PageRendererInner({ page, atmosphere }: PageRendererProps) {
 			style={{ maxWidth: `${atmosphere.maxWidth}px`, margin: "0 auto" }}
 		>
 			{page.lines.map((line, i) => (
-				<p key={i} style={{ height: `${line.height}px` }}>
-					{line.runs.map((run, j) => (
-						<RunRenderer key={j} run={run} atmosphere={atmosphere} />
+				// biome-ignore lint/suspicious/noArrayIndexKey: line position is stable within a laid-out page
+				<p key={`l${i}-y${line.y}`} style={{ height: `${line.height}px` }}>
+					{line.runs.map((run) => (
+						<RunRenderer
+							key={run.sourceNodeId}
+							run={run}
+							atmosphere={atmosphere}
+						/>
 					))}
 				</p>
 			))}
@@ -27,5 +32,5 @@ function PageRendererInner({ page, atmosphere }: PageRendererProps) {
 
 const PageRenderer = memo(PageRendererInner);
 
-export { PageRenderer };
 export type { PageRendererProps };
+export { PageRenderer };

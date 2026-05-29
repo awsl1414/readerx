@@ -11,7 +11,7 @@
 | persistence | IndexedDB(Dexie) + OPFS + 9 Repositories、57 测试通过 | ✅ Step 3 完成 |
 | quickjs-runtime | QuickJS WASM 沙箱、宿主函数注入（evalRule/ajaxWithOption）、async safe settlement、QuickJsExecutor、comlink Worker、peer dep rule-engine（import type only）、31 测试通过 | ✅ Step 4 完成 |
 | reader-engine | V3 完成（Document AST pipeline、ContentProcessor、layout engine、render model）、114 测试通过 | ✅ Step 5 完成 |
-| apps/web | Shell + Worker Bridge（comlink 懒初始化、AnalyzeRule 集成、串行队列、AbortSignal、crash 恢复、Provider + hook、12 测试通过）、架构决策已定（RSC 边界、ReaderSession、RenderModel 所有权） | 🟡 Step 6.0 完成 |
+| apps/web | Shell + Worker Bridge + Reader（ReaderSession、RenderScheduler、翻页手势、控制层 UI、章节预取、进度保存、氛围主题）、113 测试通过 | 🟡 Step 6.1 进行中 |
 | services/api | 路由结构 | 🔴 脚手架 |
 | ai | — | ⬜ 待规划（独立包，可随时启动） |
 
@@ -23,7 +23,7 @@
 | **M2: 书源导入** | 导入 Legado 书源 JSON → 校验通过 → 存入 IndexedDB | ✅ |
 | **M3: JS 规则可用** | 含 `@js:` 规则的书源能正确执行 | ✅ |
 | **M4: 搜索跑通** | 输入关键词 → 调用书源搜索 URL → 解析结果 → 展示列表 | ⬜ Step 6.3 |
-| **M5: 阅读跑通** | 点击搜索结果 → 获取目录 → 获取正文 → 分页渲染 → 翻页阅读 | ⬜ Step 6.1 |
+| **M5: 阅读跑通** | 点击搜索结果 → 获取目录 → 获取正文 → 分页渲染 → 翻页阅读 | 🟡 核心完成，待端到端验证 |
 | **M6: 完整体验** | 书源管理 + 搜索 + 书架 + 阅读器全链路可用 | ⬜ Step 6 |
 | **M7: 云端同步** | 阅读进度和书架可跨设备同步 | ⬜ Step 7 |
 | **M8: AI 增强可用** | 书源规则自动生成 + 正文兜底提取 + 阅读辅助 | ⬜ AI |

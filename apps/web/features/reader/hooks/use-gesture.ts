@@ -1,5 +1,8 @@
-import { useRef, useCallback } from "react";
-import type { PointerEvent as ReactPointerEvent, WheelEvent as ReactWheelEvent } from "react";
+import type {
+	PointerEvent as ReactPointerEvent,
+	WheelEvent as ReactWheelEvent,
+} from "react";
+import { useCallback, useRef } from "react";
 import type { GestureMode } from "../types";
 
 /** Accumulated deltaY required before triggering a page change via scroll. */
@@ -65,6 +68,14 @@ function useGesture({
 		(e: ReactWheelEvent<HTMLDivElement>) => {
 			if (mode !== "scroll") return;
 
+			// Reset accumulator on direction change for responsive scrolling
+			if (
+				wheelAccumRef.current !== 0 &&
+				Math.sign(e.deltaY) !== Math.sign(wheelAccumRef.current)
+			) {
+				wheelAccumRef.current = 0;
+			}
+
 			wheelAccumRef.current += e.deltaY;
 
 			if (wheelAccumRef.current > SCROLL_DELTA_THRESHOLD) {
@@ -81,5 +92,5 @@ function useGesture({
 	return { onPointerDown, onPointerMove, onPointerUp, onWheel };
 }
 
+export type { GestureHandlers, UseGestureOptions };
 export { useGesture };
-export type { UseGestureOptions, GestureHandlers };

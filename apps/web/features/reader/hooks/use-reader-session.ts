@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ReaderSession } from "../session";
 import type { AtmospherePreset, ReaderState, SessionDeps } from "../types";
 
@@ -62,5 +62,5 @@ function useReaderSession(deps: SessionDeps): UseReaderSessionReturn {
 	return { session, state, open, close, setAtmosphere };
 }
 
-export { useReaderSession };
 export type { UseReaderSessionReturn };
+export { useReaderSession };

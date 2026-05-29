@@ -7,19 +7,33 @@ type TocPanelProps = {
 	readonly isMobile: boolean;
 };
 
-function TocPanel({ chapters, currentChapter, onSelect, isMobile }: TocPanelProps) {
+function TocPanel({
+	chapters,
+	currentChapter,
+	onSelect,
+	isMobile,
+}: TocPanelProps) {
 	const width = isMobile ? "60%" : "35%";
 
 	return (
-		<div style={{
-			width,
-			minWidth: 0,
-			overflowY: "auto",
-			padding: "20px 16px",
-			fontFamily: "system-ui",
-			fontSize: 12,
-		}}>
-			<div style={{ fontSize: 13, marginBottom: 14, opacity: 0.5, letterSpacing: 0.5 }}>
+		<div
+			style={{
+				width,
+				minWidth: 0,
+				overflowY: "auto",
+				padding: "20px 16px",
+				fontFamily: "system-ui",
+				fontSize: 12,
+			}}
+		>
+			<div
+				style={{
+					fontSize: 13,
+					marginBottom: 14,
+					opacity: 0.5,
+					letterSpacing: 0.5,
+				}}
+			>
 				目录
 			</div>
 			<div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
@@ -58,5 +72,5 @@ function TocPanel({ chapters, currentChapter, onSelect, isMobile }: TocPanelProp
 	);
 }
 
-export { TocPanel };
 export type { TocPanelProps };
+export { TocPanel };

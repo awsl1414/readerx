@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
-import type { AtmospherePreset, GestureMode, SessionDeps } from "../types";
-import { PageRenderer } from "./page-renderer";
-import { IntentOverlay } from "./intent-overlay";
-import { ChapterEnd } from "./chapter-end";
-import { AtmospherePicker } from "./atmosphere-picker";
-import { TocPanel } from "./toc-panel";
-import { useReaderSession } from "../hooks/use-reader-session";
-import { useGesture } from "../hooks/use-gesture";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getThemeColors } from "../atmosphere";
+import { useGesture } from "../hooks/use-gesture";
+import { useReaderSession } from "../hooks/use-reader-session";
+import type { AtmospherePreset, GestureMode, SessionDeps } from "../types";
+import { AtmospherePicker } from "./atmosphere-picker";
+import { ChapterEnd } from "./chapter-end";
+import { IntentOverlay } from "./intent-overlay";
+import { PageRenderer } from "./page-renderer";
+import { TocPanel } from "./toc-panel";
 
 type ReaderViewProps = {
 	readonly bookId: string;
@@ -18,9 +18,15 @@ type ReaderViewProps = {
 	readonly gestureMode?: GestureMode;
 };
 
-const OVERLAY_DURATION = 1400;
+/** Duration before controls auto-hide (ms). Matches roadmap 6.1.5 spec. */
+const OVERLAY_DURATION = 3000;
 
-function ReaderView({ bookId, deps, onBack, gestureMode = "horizontal" }: ReaderViewProps) {
+function ReaderView({
+	bookId,
+	deps,
+	onBack,
+	gestureMode = "horizontal",
+}: ReaderViewProps) {
 	const { session, state, open, close, setAtmosphere } = useReaderSession(deps);
 	const [controlsVisible, setControlsVisible] = useState(false);
 	const [tocOpen, setTocOpen] = useState(false);
@@ -34,10 +40,21 @@ function ReaderView({ bookId, deps, onBack, gestureMode = "horizontal" }: Reader
 		open(bookId);
 	}, [bookId, open]);
 
+	const hideControls = useCallback(() => {
+		if (hideTimerRef.current) {
+			clearTimeout(hideTimerRef.current);
+			hideTimerRef.current = null;
+		}
+		setControlsVisible(false);
+		setAtmosphereOpen(false);
+	}, []);
+
 	const showControls = useCallback(() => {
-		// If controls are already visible (timer running), don't reset the
-		// timer — rapid tapping should not extend visibility indefinitely.
-		if (hideTimerRef.current) return;
+		if (hideTimerRef.current) {
+			// Controls already visible — dismiss early (toggle behavior)
+			hideControls();
+			return;
+		}
 		setControlsVisible(true);
 		setAtmosphereOpen(false);
 		hideTimerRef.current = setTimeout(() => {
@@ -45,7 +62,7 @@ function ReaderView({ bookId, deps, onBack, gestureMode = "horizontal" }: Reader
 			setControlsVisible(false);
 			setAtmosphereOpen(false);
 		}, OVERLAY_DURATION);
-	}, []);
+	}, [hideControls]);
 
 	const handleContentClick = useCallback(() => {
 		if (tocOpen) {
@@ -54,6 +71,16 @@ function ReaderView({ bookId, deps, onBack, gestureMode = "horizontal" }: Reader
 		}
 		showControls();
 	}, [tocOpen, showControls]);
+
+	const handleContentKeyDown = useCallback(
+		(e: React.KeyboardEvent) => {
+			if (e.key === "Enter" || e.key === " ") {
+				e.preventDefault();
+				handleContentClick();
+			}
+		},
+		[handleContentClick],
+	);
 
 	const handleNextPage = useCallback(() => {
 		session?.nextPage();
@@ -79,17 +106,23 @@ function ReaderView({ bookId, deps, onBack, gestureMode = "horizontal" }: Reader
 		setAtmosphereOpen((prev) => !prev);
 	}, []);
 
-	const handleAtmosphereSelect = useCallback((preset: AtmospherePreset) => {
-		setAtmosphere(preset);
-		setAtmosphereOpen(false);
-	}, [setAtmosphere]);
+	const handleAtmosphereSelect = useCallback(
+		(preset: AtmospherePreset) => {
+			setAtmosphere(preset);
+			setAtmosphereOpen(false);
+		},
+		[setAtmosphere],
+	);
 
-	const handleTocSelect = useCallback((index: number) => {
-		if (session) {
-			session.jumpToChapter(index);
-			setTocOpen(false);
-		}
-	}, [session]);
+	const handleTocSelect = useCallback(
+		(index: number) => {
+			if (session) {
+				session.jumpToChapter(index);
+				setTocOpen(false);
+			}
+		},
+		[session],
+	);
 
 	const handleBack = useCallback(() => {
 		close();
@@ -109,7 +142,9 @@ function ReaderView({ bookId, deps, onBack, gestureMode = "horizontal" }: Reader
 	}, []);
 
 	if (!session || !state) {
-		return <div style={{ minHeight: "100vh", background: "oklch(0.12 0 0)" }} />;
+		return (
+			<div style={{ minHeight: "100vh", background: "oklch(0.12 0 0)" }} />
+		);
 	}
 
 	const page = session.getPage(state.currentPage);
@@ -120,7 +155,6 @@ function ReaderView({ bookId, deps, onBack, gestureMode = "horizontal" }: Reader
 	const hasPrevChapter = state.currentChapter > 0;
 	const hasNextChapter = state.currentChapter < state.chapters.length - 1;
 
-	// Keep refs in sync for stable callbacks defined above the early return
 	currentChapterRef.current = state.currentChapter;
 	hasPrevChapterRef.current = hasPrevChapter;
 	hasNextChapterRef.current = hasNextChapter;
@@ -135,8 +169,10 @@ function ReaderView({ bookId, deps, onBack, gestureMode = "horizontal" }: Reader
 				overflow: "hidden",
 			}}
 		>
-			<div
+			<section
+				aria-label="Reader content"
 				onClick={handleContentClick}
+				onKeyDown={handleContentKeyDown}
 				onPointerDown={gesture.onPointerDown}
 				onPointerMove={gesture.onPointerMove}
 				onPointerUp={gesture.onPointerUp}
@@ -163,21 +199,23 @@ function ReaderView({ bookId, deps, onBack, gestureMode = "horizontal" }: Reader
 						</>
 					)}
 				</div>
-			</div>
+			</section>
 
 			{tocOpen && (
-				<div style={{
-					position: "absolute",
-					top: 0,
-					right: 0,
-					bottom: 0,
-					display: "flex",
-				}}>
+				<div
+					style={{
+						position: "absolute",
+						top: 0,
+						right: 0,
+						bottom: 0,
+						display: "flex",
+					}}
+				>
 					<div style={{ width: 1, background: "oklch(0.22 0 0)" }} />
 					<TocPanel
 						chapters={state.chapters}
 						currentChapter={state.currentChapter}
-						isMobile={deps.viewport.width < 768}
+						isMobile={deps.isMobile}
 						onSelect={handleTocSelect}
 					/>
 				</div>
@@ -186,7 +224,11 @@ function ReaderView({ bookId, deps, onBack, gestureMode = "horizontal" }: Reader
 			<IntentOverlay
 				visible={controlsVisible}
 				chapterTitle={chapterTitle}
-				progressPercent={state.pageCount > 0 ? Math.round((state.currentPage / state.pageCount) * 100) : 0}
+				progressPercent={
+					state.pageCount > 0
+						? Math.round((state.currentPage / state.pageCount) * 100)
+						: 0
+				}
 				onBack={handleBack}
 				onToc={() => setTocOpen(true)}
 				onPrevChapter={handlePrevChapter}
@@ -195,12 +237,14 @@ function ReaderView({ bookId, deps, onBack, gestureMode = "horizontal" }: Reader
 			/>
 
 			{controlsVisible && atmosphereOpen && (
-				<div style={{
-					position: "absolute",
-					bottom: 56,
-					left: "50%",
-					transform: "translateX(-50%)",
-				}}>
+				<div
+					style={{
+						position: "absolute",
+						bottom: 56,
+						left: "50%",
+						transform: "translateX(-50%)",
+					}}
+				>
 					<AtmospherePicker
 						current={state.atmosphere.preset}
 						onSelect={handleAtmosphereSelect}
@@ -211,5 +255,5 @@ function ReaderView({ bookId, deps, onBack, gestureMode = "horizontal" }: Reader
 	);
 }
 
-export { ReaderView };
 export type { ReaderViewProps };
+export { ReaderView };

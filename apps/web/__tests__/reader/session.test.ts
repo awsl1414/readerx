@@ -41,9 +41,14 @@ vi.mock("@readerx/reader-engine", () => ({
 		totalPages: layout.pages.length,
 	})),
 	fetchAndParse: vi.fn(async () => mockDocument),
-	ContentProcessor: vi.fn(function(this: { process: unknown }) { this.process = vi.fn((doc: unknown) => doc); }),
-	PretextLayouter: vi.fn(function() { return {}; }),
-	}));
+	ContentProcessor: vi.fn(function (this: { process: unknown }) {
+		this.process = vi.fn((doc: unknown) => doc);
+	}),
+	// biome-ignore lint/complexity/useArrowFunction: mock is called with `new`, requires function syntax
+	PretextLayouter: vi.fn(function () {
+		return {};
+	}),
+}));
 
 const mockHttpFetcher = {
 	fetch: vi.fn(async () => ({
@@ -101,7 +106,7 @@ const mockDeps = {
 			resourceUrl: "http://ex.com/ch1",
 		})),
 	},
-	viewport: { width: 1024, height: 768 },
+	isMobile: false,
 	httpFetcher: mockHttpFetcher,
 	sourceRepo: {
 		get: vi.fn(async () => ({
@@ -240,7 +245,8 @@ describe("ReaderSession", () => {
 		// After loading chapter 5, cache has been evicted to 5 entries.
 		// The farthest from chapter 5 is chapter 0, so it should be evicted.
 		// Verify by checking that navigating back to chapter 0 triggers a new load.
-		const getByIndexCallsBefore = mockDeps.chapterRepo.getByIndex.mock.calls.length;
+		const getByIndexCallsBefore =
+			mockDeps.chapterRepo.getByIndex.mock.calls.length;
 		await lruSession.jumpToChapter(0);
 		// chapter 0 was evicted, so getByIndex should be called again for it
 		expect(mockDeps.chapterRepo.getByIndex.mock.calls.length).toBeGreaterThan(
@@ -276,19 +282,21 @@ describe("ReaderSession", () => {
 	});
 
 	it("throws when source has no content rule", async () => {
-		vi.mocked(mockDeps.sourceRepo.get).mockResolvedValueOnce(undefined as never);
-		await expect(ReaderSession.open("book-norule", mockDeps as never)).rejects.toThrow(
-			"No content rule found for source",
+		vi.mocked(mockDeps.sourceRepo.get).mockResolvedValueOnce(
+			undefined as never,
 		);
+		await expect(
+			ReaderSession.open("book-norule", mockDeps as never),
+		).rejects.toThrow("No content rule found for source");
 	});
 
 	it("throws when source is missing ruleContent", async () => {
 		vi.mocked(mockDeps.sourceRepo.get).mockResolvedValueOnce({
 			bookSourceUrl: "src1",
 		} as never);
-		await expect(ReaderSession.open("book-norule", mockDeps as never)).rejects.toThrow(
-			"No content rule found for source",
-		);
+		await expect(
+			ReaderSession.open("book-norule", mockDeps as never),
+		).rejects.toThrow("No content rule found for source");
 	});
 
 	it("prefetch does not clobber active render result", async () => {

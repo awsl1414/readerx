@@ -127,5 +127,5 @@ function IntentOverlay({
 	);
 }
 
-export { IntentOverlay };
 export type { IntentOverlayProps };
+export { IntentOverlay };

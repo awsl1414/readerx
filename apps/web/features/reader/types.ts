@@ -80,7 +80,7 @@ type SessionDeps = {
 			sourceUrl: string,
 		): Promise<{ bookSourceUrl: string; ruleContent?: string } | undefined>;
 	};
-	readonly viewport: { width: number; height: number };
+	readonly isMobile: boolean;
 };
 
 export type {
