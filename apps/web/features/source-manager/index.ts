@@ -19,8 +19,8 @@ export type {
 export { useSources, useSourceMutations } from "./hooks/use-sources";
 export { useSourceDetail } from "./hooks/use-source-detail";
 export { importSources } from "./hooks/use-source-import";
-// export { useSourceDebug } from "./hooks/use-source-debug";
+export { useSourceDebug } from "./hooks/use-source-debug";
 export { useSourceCapabilities } from "./hooks/use-source-capabilities";
 // Core
 export { analyzeCapabilities } from "./lib/capability-analyzer";
-// export { runPipeline } from "./lib/pipeline-runner";
+export { runPipeline } from "./lib/pipeline-runner";
