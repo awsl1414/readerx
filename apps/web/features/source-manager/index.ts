@@ -12,9 +12,8 @@ export type {
 	SourceCapabilities,
 } from "./types";
 
-// Will be uncommented in later tasks:
 // Components
-// export { SourceWorkspace } from "./components/source-workspace";
+export { SourceWorkspace } from "./components/source-workspace";
 // Hooks
 export { useSources, useSourceMutations } from "./hooks/use-sources";
 export { useSourceDetail } from "./hooks/use-source-detail";
