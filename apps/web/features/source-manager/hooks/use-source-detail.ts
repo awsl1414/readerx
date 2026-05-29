@@ -9,7 +9,7 @@ const repo = new BookSourceRepository(db.bookSources);
 function useSourceDetail(url: string | null) {
 	return useQuery({
 		queryKey: ["source", url],
-		queryFn: () => repo.get(url as string),
+		queryFn: () => repo.get(url ?? ""),
 		enabled: url !== null,
 	});
 }

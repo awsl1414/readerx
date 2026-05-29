@@ -47,13 +47,13 @@ function importSources(rawSources: RawSource[]): ImportResult {
 			continue;
 		}
 
+		success.push(classified.record);
+
 		if (classified.compatWarnings.length > 0) {
 			warnings.push({
 				source: classified.record,
 				reasons: classified.compatWarnings,
 			});
-		} else {
-			success.push(classified.record);
 		}
 	}
 

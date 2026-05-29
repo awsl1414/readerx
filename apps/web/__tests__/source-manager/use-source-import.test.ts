@@ -45,15 +45,16 @@ describe("importSources", () => {
 		expect(result.failures[0]?.reasons.length).toBeGreaterThan(0);
 	});
 
-	it("classifies JS sources as warnings with compatibility info", () => {
+	it("classifies JS sources as warnings AND includes them in success for persistence", () => {
 		const result = importSources([jsSource]);
 		expect(result.warnings).toHaveLength(1);
 		expect(result.warnings[0]?.reasons).toContain("Uses JS runtime");
+		expect(result.success).toHaveLength(1);
 	});
 
 	it("handles mixed batch", () => {
 		const result = importSources([validSource, invalidSource, jsSource]);
-		expect(result.success).toHaveLength(1);
+		expect(result.success).toHaveLength(2);
 		expect(result.warnings).toHaveLength(1);
 		expect(result.failures).toHaveLength(1);
 	});

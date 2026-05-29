@@ -16,7 +16,9 @@ type SourceEditorProps = {
 /** Simple local state management for editing a source. */
 function useSourceEditorState(source: BookSourceRecord) {
 	const [local, setLocal] = useState(source);
-	useEffect(() => setLocal(source), [source]);
+	// Only reset when the source identity changes (URL), not on every revalidation.
+	// This prevents TanStack Query cache revalidation from wiping unsaved edits.
+	useEffect(() => setLocal(source), [source.bookSourceUrl]);
 	return [local, setLocal] as const;
 }
 

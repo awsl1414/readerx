@@ -26,6 +26,8 @@ function useSources({ filterMode, searchQuery }: UseSourcesOptions) {
 				: await repo.getAll();
 			if (filterMode === "enabled") return all.filter((s) => s.enabled);
 			if (filterMode === "disabled") return all.filter((s) => !s.enabled);
+			// "error" mode returns empty until error tracking is implemented
+			if (filterMode === "error") return [] as BookSourceRecord[];
 			return all;
 		},
 	});
