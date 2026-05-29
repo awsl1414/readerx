@@ -201,7 +201,7 @@ ReaderX 用户的核心行为：
 | **零操作** | 系统主动 | 继续阅读 Hero |
 | **单操作** | 一次点击 | 点击封面进入阅读、切换 Tab |
 | **上下文操作** | 在内容上操作 | 选中文字 → 浮出菜单 |
-| **深层操作** | 侧边栏/设置 | 书源管理、导入 |
+| **深层操作** | 侧边栏/设置 | 书源管理（Scraping Workspace）、导入 |
 
 80% 的操作应该在「单操作」完成。超过 2 次点击到达的功能，考虑移位置。
 
@@ -418,13 +418,19 @@ apps/web/
 |---|---|---|
 | 侧边栏/Tab | 设置内一级入口 | 设置内快捷入口 |
 | 首页 | 状态卡片（N 个书源已就绪） | 同桌面 |
-| 设置 | 书源管理 + 导入 | 同桌面 |
+| 设置 | 书源管理（Scraping Workspace） | 同桌面 |
 
-### 书源管理页
+### 书源管理页 — Scraping Workspace
 
-- 列表式。每行：名称、域名、健康状态标签、快速操作、启用开关。
-- 顶部过滤：全部 / 已启用 / 已禁用 / 异常。
-- 搜索书源名称。
+> 书源管理不是设置表单，而是 Scraping Workspace。详细设计见 `docs/superpowers/specs/2026-05-29-source-manager-design.md`。
+
+桌面端三段式布局（列表 | 编辑器 | 调试器），移动端 stack navigation。
+
+- **Layer 0 列表**：名称、域名、能力标记（`[JS]` `[Cookie]` `[CF]`）、启用开关。顶部筛选：全部 / 已启用 / 已禁用 / 异常。搜索书源名称。
+- **Layer 1 编辑器**：可折叠规则分组（IDE 风格），Schema-aware Code Textarea（解析器类型提示 `[CSS]` `[XPath]` `[JSONPath]` `[JS]`）。
+- **Layer 2 调试器**（一等公民）：Pipeline Timeline（阶段可视化）、Network Inspector（请求/响应详情）、Console（日志）。
+- **导入**：Dialog overlay，支持 URL / 文件 / 粘贴，含兼容性分析报告。
+- **能力检测**：静态扫描规则字段，推断 JS/Cookie/WebView/Cloudflare 需求。
 
 ## 12. 空状态
 

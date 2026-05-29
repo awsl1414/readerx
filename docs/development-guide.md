@@ -112,7 +112,7 @@ apps/web/
 │   ├── reader/             #   阅读器
 │   ├── bookshelf/          #   书架
 │   ├── search/             #   搜索
-│   └── source-manager/     #   书源管理
+│   └── source-manager/     #   书源管理（Scraping Workspace）
 ├── i18n/
 │   └── request.ts          #   next-intl 服务端配置（cookie → Accept-Language）
 ├── messages/               #   翻译文件

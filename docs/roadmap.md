@@ -369,30 +369,45 @@ BookSource.ruleContent
   - TanStack Query 缓存搜索结果（key: `["search", keyword, sourceIds]`）
   - 缓存时间 5 分钟
 
-### 6.4 书源管理（features/source-manager/）
+### 6.4 书源管理 — Scraping Workspace（features/source-manager/）
 
-- 6.4.1 **书源列表**
+> 书源管理不是设置表单，而是 Scraping Workspace。基于真实书源分析（`shuyuan.json`），规则包含 XPath/CSS/JSONPath 混用、`@js:` 动态脚本、反爬、多页 Pipeline 等复杂 DSL。设计详见 [`docs/superpowers/specs/2026-05-29-source-manager-design.md`](./superpowers/specs/2026-05-29-source-manager-design.md)。
+
+**路由**: `/settings/sources`
+
+**架构: Layered Workspace**
+
+- 桌面端：三段式 workspace — 列表(280px) | 编辑器(flex) | 调试器(360px,可折叠)
+- 移动端：Stack navigation（列表 → 编辑器 → 调试器）
+
+- 6.4.1 **书源列表（Layer 0）**
   - 全部书源，按名称排序
-  - 搜索过滤
-  - 分组筛选标签
+  - 搜索过滤（debounce 300ms）
+  - 筛选标签：全部 / 已启用 / 已禁用 / 异常
   - 启用/禁用开关（单行操作）
+  - 能力标记：`[JS]` `[Cookie]` `[CF]` `[WebView]`（从规则字段静态推断）
+  - 导入按钮（触发 Dialog）
 
 - 6.4.2 **书源导入**
-  - URL 导入：输入 URL → fetch JSON → Zod 校验 → 存储
-  - 文件导入：文件选择器 → 读取 JSON → 校验 → 存储
-  - 粘贴导入：文本区域粘贴 JSON → 校验 → 存储
+  - URL 导入：输入 URL → fetch JSON → Zod 校验 → 兼容性分析 → 存储
+  - 文件导入：文件选择器 → 读取 JSON → 校验 → 兼容性分析 → 存储
+  - 粘贴导入：文本区域粘贴 JSON → 校验 → 兼容性分析 → 存储
   - 批量导入：支持包含多个书源的 JSON 数组
-  - 导入结果报告：成功 N 个 / 失败 M 个（附失败原因）
+  - 导入结果报告：成功 N / 警告 M / 失败 K + 兼容性分级（✓兼容 / ⚠部分兼容 / ✗不支持）
+  - 兼容性分析：静态扫描 `@js:` / `startBrowserAwait` / `java.ajax` 等特征
 
-- 6.4.3 **书源编辑**
-  - 表单编辑各规则字段（搜索规则、书籍信息规则、目录规则、正文规则、翻页规则）
-  - Zod 实时校验，字段旁显示错误提示
+- 6.4.3 **书源编辑（Layer 1）**
+  - 可折叠规则分组（IDE 风格）：基本信息 / 搜索 / 书籍信息 / 目录 / 正文 / 发现 / Headers高级
+  - Schema-aware RuleFieldEditor：monospace + 解析器类型提示 `[CSS]` `[XPath]` `[JSONPath]` `[JS]`
+  - react-hook-form + Zod 实时校验
   - 保存前完整校验
 
-- 6.4.4 **书源调试**
-  - 输入 URL → 通过 Worker Bridge 执行各阶段规则
-  - 逐步展示结果：搜索结果 → 书籍信息 → 目录 → 正文
-  - 规则执行错误高亮
+- 6.4.4 **书源调试（Layer 2 = 一等公民）**
+  - Pipeline Timeline：逐步可视化 Fetch → Parse → bookList → name → bookUrl → bookInfo → toc → content
+  - Network Inspector：请求 URL / Method / Headers / Response / Timing（类 Chrome DevTools）
+  - Console：日志分级 info/warn/error
+  - 显式执行（用户主动 Run，不自动执行）+ AbortController 可中断
+  - 规则执行错误不阻塞后续阶段
 
 ### 6.5 基础 UI 完善
 
@@ -474,7 +489,7 @@ infrastructure  ←  packages/ai  ←  apps/web (features)
 
 ### AI Step A：书源规则智能生成
 
-**依赖**：Step 1（rule-engine）| **对应**：Step 6.2（source-manager）
+**依赖**：Step 1（rule-engine）| **对应**：Step 6.4（source-manager）
 
 用户输入目标网站 URL → AI 分析页面 DOM 结构 → 自动生成搜索、书籍信息、目录、正文四组规则。
 
@@ -486,7 +501,7 @@ infrastructure  ←  packages/ai  ←  apps/web (features)
   - 输入：目标 URL + 页面 HTML 样本
   - 输出：BookSource 规则对象（CSS/XPath/JSONPath）
   - 利用 rule-engine 类型定义确保生成结果符合 Schema
-- A.3 **书源调试 AI 助手**（集成到 source-manager）
+- A.3 **书源调试 AI 助手**（集成到 source-manager Scraping Workspace）
   - 规则执行失败时，AI 解释原因并建议修复
   - 自然语言 → 规则的交互模式
 - **验证**：对 5 个真实小说网站自动生成规则，至少 3 个可用
@@ -516,7 +531,7 @@ infrastructure  ←  packages/ai  ←  apps/web (features)
 
 ### AI Step D：智能搜索与推荐
 
-**依赖**：AI Step A + Step 6.3/6.4 | **对应**：Step 6.3（search）+ Step 6.4（bookshelf）
+**依赖**：AI Step A + Step 6.3/6.4 | **对应**：Step 6.3（search）+ Step 6.2（bookshelf）
 
 - D.1 **自然语言搜索**：用户描述需求（如"男主穿越到三国的军事小说"）→ AI 转化为多书源搜索关键词
 - D.2 **结果去重合并**：AI 判断不同书源的相同书籍，合并为一本书的多来源
