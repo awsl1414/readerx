@@ -18,7 +18,7 @@ export type {
 // Hooks
 export { useSources, useSourceMutations } from "./hooks/use-sources";
 export { useSourceDetail } from "./hooks/use-source-detail";
-// export { useSourceImport } from "./hooks/use-source-import";
+export { importSources } from "./hooks/use-source-import";
 // export { useSourceDebug } from "./hooks/use-source-debug";
 export { useSourceCapabilities } from "./hooks/use-source-capabilities";
 // Core
