@@ -1,3 +1,4 @@
+import { join } from "node:path";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
@@ -9,8 +10,7 @@ import {
 	validateTxtTocRuleFile,
 } from "../../src/schemas.js";
 
-const SCHEMAS_DIR =
-	"/Volumes/Data/workspaces/front/readerx/.claude/worktrees/refactor+rule-engine/schemas/readerx/examples";
+const SCHEMAS_DIR = join(import.meta.dirname, "../../../../schemas/readerx/examples");
 
 function readExample(name: string): unknown {
 	return JSON.parse(readFileSync(`${SCHEMAS_DIR}/${name}`, "utf-8"));
