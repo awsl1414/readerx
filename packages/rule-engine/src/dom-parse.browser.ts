@@ -1,18 +1,20 @@
-/**
- * DOM 解析 — 浏览器实现
- * 使用原生 DOMParser
- */
+export type ParsedDocument = {
+	readonly document: Document;
+	readonly dispose: () => void;
+};
 
-import type { ParsedDocument } from "./dom-utils";
-
-export function parseHTML(content: string): ParsedDocument {
+export function parseHTML(html: string, _url?: string): ParsedDocument {
 	const parser = new DOMParser();
-	const doc = parser.parseFromString(content, "text/html");
-	return doc as unknown as ParsedDocument;
+	return {
+		document: parser.parseFromString(html, "text/html"),
+		dispose: () => {},
+	};
 }
 
-export function parseXML(content: string): ParsedDocument {
+export function parseXML(xml: string): ParsedDocument {
 	const parser = new DOMParser();
-	const doc = parser.parseFromString(content, "application/xml");
-	return doc as unknown as ParsedDocument;
+	return {
+		document: parser.parseFromString(xml, "text/xml"),
+		dispose: () => {},
+	};
 }

@@ -1,241 +1,370 @@
-/**
- * BookSource 类型：0=文本, 1=音频, 2=图片, 3=文件
- */
-export type BookSourceType = 0 | 1 | 2 | 3;
+// ---- Error Types ----
 
-/**
- * 书源配置 — 定义如何从网站搜索、获取、解析书籍内容
- * 参考 docs/legado/book-source-fields.md
- */
-export interface BookSource {
-	/** 书源唯一标识 URL */
-	bookSourceUrl: string;
-	/** 书源名称 */
-	bookSourceName: string;
-	/** 书源分组（逗号分隔） */
-	bookSourceGroup?: string;
-	/** 类型 */
-	bookSourceType: BookSourceType;
-	/** 详情页 URL 匹配正则 */
-	bookUrlPattern?: string;
-	/** 书源注释 */
-	bookSourceComment?: string;
-	/** 变量说明 */
-	variableComment?: string;
+export type RuleErrorCode =
+	| "COMPILE_ERROR"
+	| "INVALID_SELECTOR"
+	| "JSONPATH_ERROR"
+	| "XPATH_ERROR"
+	| "REGEX_ERROR"
+	| "SCRIPT_ERROR"
+	| "SCRIPT_DISABLED"
+	| "NO_JS_EXECUTOR"
+	| "CONTENT_TYPE_MISMATCH"
+	| "DOM_PARSE_ERROR"
+	| "TYPE_MISMATCH";
 
-	/** 是否启用 */
-	enabled: boolean;
-	/** 是否启用发现页 */
-	enabledExplore: boolean;
-	/** 手动排序序号 */
-	customOrder: number;
-	/** 智能排序权重 */
-	weight: number;
-	/** 最后更新时间 */
-	lastUpdateTime: number;
-	/** 响应时间（毫秒） */
-	respondTime: number;
+export type RuleError = {
+	readonly code: RuleErrorCode;
+	readonly message: string;
+	readonly step?: number;
+	readonly rule?: string;
+	readonly source?: string;
+	readonly cause?: unknown;
+};
 
-	/** 自定义 HTTP 请求头（JSON） */
-	header?: string;
-	/** 登录 URL */
-	loginUrl?: string;
-	/** 登录界面定义（JSON） */
-	loginUi?: string;
-	/** 登录验证 JS */
-	loginCheckJs?: string;
-	/** 启用自动 Cookie 管理 */
-	enabledCookieJar?: boolean;
-	/** 并发请求频率限制 */
-	concurrentRate?: string;
+// ---- Runtime Values ----
 
-	/** 搜索 URL 规则 */
-	searchUrl?: string;
-	/** 发现页 URL 规则 */
-	exploreUrl?: string;
+// RuntimeValue represents any value flowing through the rule pipeline.
+// `unknown` is intentional — values can be strings, DOM nodes, or JSON values.
+// Use duck-typing guards (see serialize.ts) to narrow at runtime.
+export type RuntimeValue = unknown;
+export type RuntimeResult = readonly RuntimeValue[];
 
-	/** 搜索结果解析规则 */
-	ruleSearch?: SearchRule;
-	/** 发现页解析规则 */
-	ruleExplore?: ExploreRule;
-	/** 书籍详情解析规则 */
-	ruleBookInfo?: BookInfoRule;
-	/** 目录解析规则 */
-	ruleToc?: TocRule;
-	/** 正文解析规则 */
-	ruleContent?: ContentRule;
-}
+// ---- Extract Step ----
 
-/** 搜索结果规则 */
-export interface SearchRule {
-	/** 关键词校验规则 */
-	checkKeyWord?: string;
-	/** 书籍列表提取规则 */
-	bookList: string;
-	/** 书名提取规则 */
-	name: string;
-	/** 作者提取规则 */
-	author: string;
-	/** 简介提取规则 */
-	intro?: string;
-	/** 分类提取规则 */
-	kind?: string;
-	/** 最新章节提取规则 */
-	lastChapter?: string;
-	/** 更新时间提取规则 */
-	updateTime?: string;
-	/** 书籍详情 URL 提取规则 */
-	bookUrl: string;
-	/** 封面 URL 提取规则 */
-	coverUrl?: string;
-	/** 字数提取规则 */
-	wordCount?: string;
-}
+export type ExtractEngine = "css" | "xpath" | "jsonpath" | "regex";
+export type ExtractOutput = "html" | "text" | "outerHtml" | "attr";
 
-/** 发现页规则 */
-export type ExploreRule = Omit<SearchRule, "checkKeyWord">;
+export type ExtractStep = {
+	readonly type: "extract";
+	readonly engine: ExtractEngine;
+	readonly selector: string;
+	// scope is a runtime-only field, not present in JSON Schema
+	// (JSON Schema validation does not include this field)
+	readonly scope?: "current" | "root";
+	readonly output?: ExtractOutput;
+	readonly attr?: string;
+	readonly baseUrl?: string;
+};
 
-/** 书籍详情规则 */
-export interface BookInfoRule {
-	init?: string;
-	name?: string;
-	author?: string;
-	intro?: string;
-	kind?: string;
-	lastChapter?: string;
-	updateTime?: string;
-	coverUrl?: string;
-	tocUrl?: string;
-	wordCount?: string;
-	canReName?: string;
-	downloadUrls?: string;
-}
+// ---- Transform Steps ----
 
-/** 目录规则 */
-export interface TocRule {
-	preUpdateJs?: string;
-	chapterList: string;
-	chapterName: string;
-	chapterUrl: string;
-	formatJs?: string;
-	isVolume?: string;
-	isVip?: string;
-	isPay?: string;
-	updateTime?: string;
-	nextTocUrl?: string;
-}
+export type StringTransformStep = {
+	readonly type: "transform";
+	readonly category: "string";
+	readonly action: "replace" | "match" | "split" | "template" | "trim";
+	readonly pattern?: string;
+	readonly with?: string;
+	readonly flags?: string;
+	readonly group?: number;
+	readonly template?: string;
+};
 
-/** 正文规则 */
-export interface ContentRule {
-	content: string;
-	title?: string;
-	nextContentUrl?: string;
-	webJs?: string;
-	sourceRegex?: string;
-	replaceRegex?: string;
-	imageStyle?: string;
-	imageDecode?: string;
-	payAction?: string;
-}
+export type DomTransformStep = {
+	readonly type: "transform";
+	readonly category: "dom";
+	readonly action: "remove" | "unwrap" | "strip";
+	readonly selector: string;
+	readonly attrs?: readonly string[];
+};
 
-/** 评论规则 */
-export interface ReviewRule {
-	reviewUrl?: string;
-	avatarRule?: string;
-	contentRule?: string;
-	postTimeRule?: string;
-	reviewQuoteUrl?: string;
-	voteUpUrl?: string;
-	voteDownUrl?: string;
-	postReviewUrl?: string;
-	postQuoteUrl?: string;
-	deleteUrl?: string;
-}
+export type TransformStep = StringTransformStep | DomTransformStep;
 
-/** 规则解析模式 */
-export type AnalyzeRuleMode =
-	| "default" // CSS 选择器
-	| "xpath"
-	| "json"
-	| "js"
-	| "regex";
+// ---- Script Step ----
 
-/** 规则组合运算符（拆分用：&& || %%，正则用：##） */
-export type RuleOperator = "&&" | "||" | "%%" | "##";
+export type ScriptStep = {
+	readonly type: "script";
+	readonly code: string;
+};
 
-/** 仅用于操作符拆分的运算符（不含 ##） */
-export type CombineOperator = "&&" | "||" | "%%";
+// ---- Unified Step ----
 
-/** 运算符拆分后的规则片段 */
-export interface RuleSegment {
-	/** 子规则字符串（可能包含 ## 正则替换） */
-	rule: string;
-	/** 前置运算符（第一段为 undefined） */
-	operator: CombineOperator | undefined;
-}
+export type RuleStep = ExtractStep | TransformStep | ScriptStep;
 
-/** 解析成功 */
-export interface ParseSuccess {
-	ok: true;
-	/** 单字符串结果（多值用 \n 连接） */
-	value: string;
-	/** 所有匹配结果 */
-	values: string[];
-}
+// ---- Rule ----
 
-/** 解析失败 */
-export interface ParseFailure {
-	ok: false;
-	/** 错误描述 */
-	error: string;
-}
+export type Rule = readonly RuleStep[];
 
-/** 统一解析结果 — discriminated union */
-export type ParseResult = ParseSuccess | ParseFailure;
+export type RuleObject = {
+	readonly jsonpath?: string;
+	readonly css?: string;
+	readonly xpath?: string;
+	readonly regex?: string;
+	readonly template?: string;
+	readonly js?: string;
+	readonly attr?: string;
+	readonly separator?: string;
+	readonly reverse?: boolean;
+	readonly transform?: readonly TransformStep[];
+};
 
-/** 内容类型 */
-export type ContentType = "html" | "json" | "xml" | "text";
+// ---- Compiled Types ----
 
-/** URL 选项 JSON 结构 — 书源 URL 规则中逗号后的 JSON 配置 */
-export interface UrlOption {
-	method?: string;
-	charset?: string;
-	headers?: Record<string, string>;
-	body?: string;
-	retry?: number;
-	webJs?: string;
-	type?: string;
-	webView?: boolean;
-}
+export type CompiledExtractStep = ExtractStep & {
+	readonly compiledSelector?: unknown;
+};
 
-/** URL 分析器输入上下文 */
-export interface AnalyzeUrlContext {
-	variables?: Record<string, string>;
-	page?: number;
-	baseUrl?: string;
-	headers?: Record<string, string>;
-}
+export type CompiledTransformStep = TransformStep & {
+	readonly compiledRegex?: RegExp;
+};
 
-/** JS 规则执行器接口 — 依赖倒置，由消费方注入实现 */
-export interface JsExecutor {
+export type CompiledScriptStep = ScriptStep;
+
+export type CompiledStep =
+	| CompiledExtractStep
+	| CompiledTransformStep
+	| CompiledScriptStep;
+
+export type CompiledRule = {
+	readonly steps: readonly CompiledStep[];
+};
+
+// ---- Book Source ----
+
+export type BookSourceType = "novel" | "audio" | "comic" | "file";
+
+export type RequestConfig = {
+	readonly url?: string;
+	readonly method?: "GET" | "POST";
+	readonly charset?: string;
+	readonly headers?: Readonly<Record<string, string>>;
+	readonly body?: string;
+	readonly responseType?: "html" | "json" | "xml" | "text";
+};
+
+export type BookSource = {
+	readonly $schema: string;
+	readonly id: string;
+	readonly name: string;
+	readonly type: BookSourceType;
+	readonly baseUrl: string;
+	readonly description?: string;
+	readonly tags?: readonly string[];
+	readonly author?: string;
+	readonly version?: number;
+	readonly headers?: Readonly<Record<string, string>>;
+	readonly loginUrl?: string;
+	readonly enabled?: boolean;
+	readonly weight?: number;
+	readonly order?: number;
+	readonly rateLimit?: number;
+	readonly urlPattern?: string;
+	readonly createdAt?: string;
+	readonly updatedAt?: string;
+	readonly search?: SearchModule;
+	readonly explore?: ExploreModule;
+	readonly bookInfo?: BookInfoModule;
+	readonly toc?: TocModule;
+	readonly content?: ContentModule;
+};
+
+export type SearchRules = {
+	readonly list?: Rule;
+	readonly name?: Rule;
+	readonly url?: Rule;
+	readonly author?: Rule;
+	readonly cover?: Rule;
+	readonly intro?: Rule;
+	readonly kind?: Rule;
+	readonly lastChapter?: Rule;
+	readonly wordCount?: Rule;
+};
+
+export type SearchModule = RequestConfig & {
+	readonly url: string;
+	readonly checkKeyWord?: string;
+	readonly rules?: SearchRules;
+};
+
+export type ExploreCategory = {
+	readonly title: string;
+	readonly url?: string;
+};
+
+export type ExploreModule = RequestConfig & {
+	readonly categories: readonly ExploreCategory[];
+	readonly rules?: SearchRules;
+};
+
+export type BookInfoRules = {
+	readonly init?: Rule;
+	readonly name?: Rule;
+	readonly author?: Rule;
+	readonly cover?: Rule;
+	readonly intro?: Rule;
+	readonly kind?: Rule;
+	readonly lastChapter?: Rule;
+	readonly wordCount?: Rule;
+	readonly tocUrl?: Rule;
+	readonly [key: string]: Rule | undefined;
+};
+
+export type BookInfoModule = RequestConfig & {
+	readonly rules?: BookInfoRules;
+};
+
+export type TocRules = {
+	readonly list?: Rule;
+	readonly name?: Rule;
+	readonly url?: Rule;
+	readonly isVip?: Rule;
+	readonly isVolume?: Rule;
+	readonly updateTime?: Rule;
+	readonly [key: string]: Rule | undefined;
+};
+
+export type TocModule = RequestConfig & {
+	readonly nextUrl?: Rule;
+	readonly rules?: TocRules;
+};
+
+export type ContentRules = {
+	readonly text?: Rule;
+	readonly [key: string]: Rule | undefined;
+};
+
+export type ContentModule = RequestConfig & {
+	readonly nextUrl?: Rule;
+	readonly replaceRegex?: readonly ReplacePair[];
+	readonly rules?: ContentRules;
+};
+
+export type ReplacePair = {
+	readonly pattern: string;
+	readonly with: string;
+};
+
+// ---- Dict Rule ----
+
+export type DictRuleFile = {
+	readonly $schema: string;
+	readonly authors?: readonly string[];
+	readonly description?: string;
+	readonly updatedAt?: string;
+	readonly rules: readonly DictRule[];
+};
+
+export type DictRule = {
+	readonly id: string;
+	readonly name: string;
+	readonly description?: string;
+	readonly tags?: readonly string[];
+	readonly enabled?: boolean;
+	readonly weight?: number;
+	readonly variables?: Readonly<Record<string, string>>;
+	readonly request: DictRequest;
+	readonly fields?: Readonly<Record<string, DictField>>;
+};
+
+export type DictRequest = {
+	readonly url: string;
+	readonly method?: "GET" | "POST";
+	readonly charset?: string;
+	readonly headers?: Readonly<Record<string, string>>;
+	readonly body?: DictRequestBody;
+};
+
+/** Structured POST body for dict-rule requests */
+export type DictRequestBody =
+	| string
+	| { readonly type: "form" | "json" | "raw"; readonly data: unknown };
+
+export type FieldSchema = "html" | "string" | "html[]" | "string[]";
+
+export type DictField = {
+	readonly schema?: FieldSchema;
+	readonly pipeline: readonly RuleStep[];
+};
+
+// ---- Replace Rule ----
+
+export type ReplaceRuleFile = {
+	readonly $schema: string;
+	readonly rules: readonly ReplaceRule[];
+};
+
+export type ReplaceRule = {
+	readonly name: string;
+	readonly description?: string;
+	readonly tags?: readonly string[];
+	readonly enabled?: boolean;
+	readonly order?: number;
+	readonly scope?: ReplaceScope;
+	readonly pattern: string;
+	readonly flags?: string;
+	readonly literal?: boolean;
+	readonly replacement?: string;
+	readonly replacementJs?: string;
+};
+
+export type ReplaceScope = {
+	readonly include?: readonly string[];
+	readonly exclude?: readonly string[];
+	readonly target?: "content" | "title" | "both";
+};
+
+// ---- TXT TOC Rule ----
+
+export type TxtTocRuleFile = {
+	readonly $schema: string;
+	readonly rules: readonly TxtTocRule[];
+};
+
+export type TxtTocRule = {
+	readonly name: string;
+	readonly description?: string;
+	readonly tags?: readonly string[];
+	readonly enabled?: boolean;
+	readonly order?: number;
+	readonly pattern: string;
+	readonly flags?: string;
+};
+
+export type ChapterBoundary = {
+	readonly lineIndex: number;
+	readonly title: string;
+	readonly ruleName: string;
+};
+
+// ---- Evaluation Context ----
+
+export type JsExecutor = {
 	eval(code: string, context: JsEvalContext): Promise<JsEvalResult>;
-}
+};
 
-/** JS 规则执行上下文 — 传入沙箱的变量 */
-export interface JsEvalContext {
-	result?: unknown;
-	baseUrl?: string;
-	src?: string;
-	source?: Record<string, unknown>;
-	book?: Record<string, unknown>;
-	chapter?: Record<string, unknown>;
-	key?: string;
-	page?: number;
-}
+export type JsEvalContext = {
+	readonly result: string;
+	readonly baseUrl?: string;
+	readonly src?: string;
+	readonly source?: Readonly<Record<string, unknown>>;
+	readonly book?: Readonly<Record<string, unknown>>;
+	readonly chapter?: Readonly<Record<string, unknown>>;
+	readonly key?: string;
+	readonly page?: number;
+};
 
-/** JS 规则执行结果 */
-export interface JsEvalResult {
-	success: boolean;
-	value: unknown;
-	error?: string;
-}
+export type JsEvalResult = {
+	readonly success: boolean;
+	readonly value?: unknown;
+	readonly error?: string;
+};
+
+export type DocumentCache = {
+	getHTML(html: string, url?: string): Document;
+	getXML(xml: string): Document;
+	getJSON(json: string): unknown;
+	dispose(): void;
+};
+
+export type EvalContext = {
+	readonly baseUrl?: string;
+	readonly variables?: Readonly<Record<string, string>>;
+	readonly allowScript?: boolean;
+	readonly jsExecutor?: JsExecutor;
+	readonly documentCache?: DocumentCache;
+	readonly source?: Readonly<Record<string, unknown>>;
+	readonly book?: Readonly<Record<string, unknown>>;
+	readonly chapter?: Readonly<Record<string, unknown>>;
+	readonly key?: string;
+	readonly page?: number;
+};

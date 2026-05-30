@@ -1,84 +1,98 @@
-// 主入口 — 导出所有公开 API
+// ---- Types ----
 
-// 分析器
-export { AnalyzeRule } from "./analyzer";
-
-// 解析器（独立使用）
-export {
-	cssParser,
-	getElements as cssGetElements,
-	getString as cssGetString,
-	getStringList as cssGetStringList,
-	parseCssRule,
-} from "./css";
-export {
-	getElements as jsonpathGetElements,
-	getString as jsonpathGetString,
-	getStringList as jsonpathGetStringList,
-	jsonpathParser,
-} from "./jsonpath";
-export type { RuleParser } from "./parser-interface";
-// 解析器辅助
-export { fail, ok, okList } from "./parser-interface";
-export { applyReplacements, parseReplaceChain } from "./regex";
-// 操作符和正则
-export { combineResults, splitRuleByOperators } from "./rule-operators";
-// 校验 Schemas
-export {
-	bookInfoRuleSchema,
-	bookSourceSchema,
-	contentRuleSchema,
-	exploreRuleSchema,
-	isValidBookSourceType,
-	parseBookSource,
-	parseUrlOption,
-	reviewRuleSchema,
-	searchRuleSchema,
-	tocRuleSchema,
-	urlOptionSchema,
-	validateBookSource,
-} from "./schemas";
-// Rule schemas (ReplaceRule, TxtTocRule, DictRule, RssSource)
-export {
-	dictRuleSchema,
-	parseDictRule,
-	parseRssSource,
-	parseReplaceRule,
-	parseTxtTocRule,
-	replaceRuleSchema,
-	rssSourceSchema,
-	txtTocRuleSchema,
-} from "./rule-schemas";
-// 类型
+// ---- Compile ----
+export { compileRule, compileSteps } from "./compile";
+// ---- Extract (individual engines) ----
+export { extractCss } from "./css";
+export { createDocumentCache } from "./document-cache";
+// ---- Evaluate ----
+export { evaluateCompiled, evaluateRule } from "./evaluate";
+export { extractJsonPath } from "./jsonpath";
+// ---- Normalize ----
+export { normalizeRule, toRule } from "./normalize";
+export { extractRegex } from "./regex";
+export { applyReplaceRules, matchesScope } from "./replace";
+// ---- Result ----
+export type { Result } from "./result";
+export { err, isErr, isOk, ok } from "./result";
 export type {
-	AnalyzeRuleMode,
-	AnalyzeUrlContext,
-	BookInfoRule,
+	BookSourceInput,
+	BookSourceOutput,
+	DictRuleFileInput,
+	DictRuleFileOutput,
+	ReplaceRuleFileInput,
+	ReplaceRuleFileOutput,
+	TxtTocRuleFileInput,
+	TxtTocRuleFileOutput,
+} from "./schemas";
+// ---- Zod Schemas ----
+export {
+	bookSourceSchema,
+	dictRuleFileSchema,
+	parseBookSource,
+	parseDictRuleFile,
+	parseReplaceRuleFile,
+	parseTxtTocRuleFile,
+	replaceRuleFileSchema,
+	txtTocRuleFileSchema,
+	validateBookSource,
+	validateDictRuleFile,
+	validateReplaceRuleFile,
+	validateTxtTocRuleFile,
+} from "./schemas";
+export { elementToText, serializeResult, serializeValue } from "./serialize";
+export { expandTemplate } from "./template";
+// ---- Transform ----
+export { applyDomTransform, applyStringTransform } from "./transform";
+export { findChapterBoundaries } from "./txt-toc";
+export type {
+	BookInfoModule,
 	BookSource,
 	BookSourceType,
-	CombineOperator,
-	ContentRule,
-	ContentType,
-	ExploreRule,
+	ChapterBoundary,
+	CompiledExtractStep,
+	CompiledRule,
+	CompiledScriptStep,
+	CompiledStep,
+	CompiledTransformStep,
+	ContentModule,
+	DictField,
+	DictRequest,
+	DictRequestBody,
+	DictRule,
+	DictRuleFile,
+	DocumentCache,
+	DomTransformStep,
+	EvalContext,
+	ExploreCategory,
+	ExploreModule,
+	ExtractEngine,
+	ExtractOutput,
+	ExtractStep,
+	FieldSchema,
 	JsEvalContext,
 	JsEvalResult,
 	JsExecutor,
-	ParseFailure,
-	ParseResult,
-	ParseSuccess,
-	ReviewRule,
-	RuleOperator,
-	RuleSegment,
-	SearchRule,
-	TocRule,
-	UrlOption,
+	ReplacePair,
+	ReplaceRule,
+	ReplaceRuleFile,
+	ReplaceScope,
+	RequestConfig,
+	Rule,
+	RuleError,
+	RuleErrorCode,
+	RuleObject,
+	RuleStep,
+	RuntimeResult,
+	RuntimeValue,
+	ScriptStep,
+	SearchModule,
+	StringTransformStep,
+	TocModule,
+	TransformStep,
+	TxtTocRule,
+	TxtTocRuleFile,
 } from "./types";
-export type { AnalyzeUrlOptions, AnalyzeUrlResult } from "./url-analyzer";
-// URL 分析器
-export { AnalyzeUrl, analyzeUrlAsync } from "./url-analyzer";
-export {
-	getElements as xpathGetElements,
-	getString as xpathGetString,
-	getStringList as xpathGetStringList,
-	xpathParser,
-} from "./xpath";
+// ---- Utilities ----
+export { resolveUrl } from "./url";
+export { extractXPath } from "./xpath";

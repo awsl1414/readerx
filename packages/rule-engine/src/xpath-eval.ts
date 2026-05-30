@@ -1,57 +1,71 @@
-/**
- * XPath 求值 — Node.js 实现
- * 使用 xpath 库 + @xmldom/xmldom
- *
- * 此文件仅用于 Node.js 环境（测试/SSR），
- * 浏览器构建通过 package.json browser 字段替换为 xpath-eval.browser.ts
- */
+import { Window } from "happy-dom";
+import wgxpath from "wicked-good-xpath";
 
-import { createRequire } from "node:module";
-import { fixHtml } from "./xpath-shared";
+export type XPathEvalResult = {
+	readonly nodes: Node[];
+};
 
-const nodeRequire = createRequire(import.meta.url);
-
-let xpathLib: typeof import("xpath") | undefined;
-let xmldomDOMParser:
-	| InstanceType<typeof import("@xmldom/xmldom").DOMParser>
+// Lazily initialized wgxpath evaluate function (Node.js only)
+let wgxpathEvaluate:
+	| ((
+			expression: string,
+			contextNode: Node,
+			resolver: null,
+			type: number,
+			result: null,
+	  ) => XPathResult)
 	| undefined;
 
-export function evaluateXPath(rule: string, content: string): unknown[] {
-	const html = fixHtml(content);
-	if (!html) return [];
+function getWgxpathEvaluate() {
+	if (wgxpathEvaluate !== undefined) return wgxpathEvaluate;
 
-	if (!xpathLib) {
-		xpathLib = nodeRequire("xpath") as typeof import("xpath");
+	// Create a temporary Window to get the Document constructor,
+	// then install wgxpath on it to extract the evaluate function.
+	const tempWindow = new Window({
+		settings: { disableJavaScriptEvaluation: true },
+	});
+	wgxpath.install(tempWindow);
+	// wgxpath.install adds evaluate to the Document prototype
+	const fn = (
+		tempWindow.Document.prototype as unknown as Record<string, unknown>
+	).evaluate;
+	if (typeof fn !== "function") {
+		throw new Error(
+			"wgxpath.install did not add evaluate to Document prototype",
+		);
 	}
-	if (!xmldomDOMParser) {
-		const xmldom = nodeRequire(
-			"@xmldom/xmldom",
-		) as typeof import("@xmldom/xmldom");
-		xmldomDOMParser = new xmldom.DOMParser();
-	}
-
-	const isXml = html.trimStart().startsWith("<?xml");
-	const doc = xmldomDOMParser.parseFromString(
-		html,
-		isXml ? "text/xml" : "text/html",
-	);
-	if (!isXml) stripNamespaces(doc);
-
-	const selected = xpathLib.select(rule, doc as unknown as Node);
-	return Array.isArray(selected) ? selected : selected ? [selected] : [];
+	wgxpathEvaluate = fn as unknown as typeof wgxpathEvaluate;
+	tempWindow.close();
+	return wgxpathEvaluate;
 }
 
-function stripNamespaces(node: unknown): void {
-	if (!node || typeof node !== "object") return;
-	const el = node as Record<string, unknown>;
-	if (el.nodeType === 1) {
-		el.namespaceURI = null;
-		el.prefix = null;
+function isDocument(node: Document | Element): node is Document {
+	return node.nodeType === 9;
+}
+
+export function evaluateXPath(
+	expression: string,
+	contextNode: Document | Element,
+): XPathEvalResult {
+	const doc = isDocument(contextNode) ? contextNode : contextNode.ownerDocument;
+	if (!doc) throw new Error("No owner document");
+
+	// Use native evaluate if available (browser or patched environment)
+	const evaluate =
+		typeof doc.evaluate === "function"
+			? doc.evaluate.bind(doc)
+			: getWgxpathEvaluate();
+
+	if (!evaluate) {
+		throw new Error("No XPath evaluate function available");
 	}
-	const children = el.childNodes as ArrayLike<unknown> | undefined;
-	if (children) {
-		for (let i = 0; i < children.length; i++) {
-			stripNamespaces(children[i]);
-		}
+
+	const result = evaluate.call(doc, expression, contextNode, null, 5, null);
+	const nodes: Node[] = [];
+	let node: Node | null;
+	// biome-ignore lint/suspicious/noAssignInExpressions: XPath iterateNext pattern
+	while ((node = result.iterateNext()) !== null) {
+		nodes.push(node);
 	}
+	return { nodes };
 }

@@ -1,200 +1,365 @@
 import { z } from "zod";
-import type { BookSource } from "./types";
+import type { Result } from "./result";
+import { err, ok } from "./result";
 
-/**
- * Zod Schema 体系 — 书源配置校验
- * 参考 docs/legado/book-source-fields.md
- * 所有 schema 使用 .passthrough() 允许社区书源的额外字段
- */
+// ---- Replace Rule Schema ----
 
-// ─── URL 选项 Schema ─────────────────────────────────────────────────────
+const replaceScopeSchema = z.strictObject({
+	include: z.array(z.string()).optional(),
+	exclude: z.array(z.string()).optional(),
+	target: z.enum(["content", "title", "both"]).optional(),
+});
 
-export const urlOptionSchema = z
-	.object({
-		method: z.enum(["GET", "POST", "get", "post"]).optional(),
-		charset: z.string().optional(),
-		headers: z.record(z.string(), z.string()).optional(),
-		body: z.string().optional(),
-		retry: z.number().int().nonnegative().optional(),
-		webJs: z.string().optional(),
-		type: z.string().optional(),
-		webView: z.boolean().optional(),
+const replaceRuleSchema = z.strictObject({
+	name: z.string(),
+	pattern: z.string(),
+	description: z.string().optional(),
+	tags: z.array(z.string()).optional(),
+	enabled: z.boolean().optional(),
+	order: z.number().int().min(0).optional(),
+	scope: replaceScopeSchema.optional(),
+	flags: z.string().optional(),
+	literal: z.boolean().optional(),
+	replacement: z.string().optional(),
+	replacementJs: z.string().optional(),
+});
+
+export const replaceRuleFileSchema = z.strictObject({
+	$schema: z.string(),
+	rules: z.array(replaceRuleSchema),
+});
+
+export type ReplaceRuleFileInput = z.input<typeof replaceRuleFileSchema>;
+export type ReplaceRuleFileOutput = z.output<typeof replaceRuleFileSchema>;
+
+// ---- TXT TOC Rule Schema ----
+
+const txtTocRuleSchema = z.strictObject({
+	name: z.string(),
+	pattern: z.string(),
+	description: z.string().optional(),
+	tags: z.array(z.string()).optional(),
+	enabled: z.boolean().optional(),
+	order: z.number().int().min(0).optional(),
+	flags: z.string().optional(),
+});
+
+export const txtTocRuleFileSchema = z.strictObject({
+	$schema: z.string(),
+	rules: z.array(txtTocRuleSchema),
+});
+
+export type TxtTocRuleFileInput = z.input<typeof txtTocRuleFileSchema>;
+export type TxtTocRuleFileOutput = z.output<typeof txtTocRuleFileSchema>;
+
+// ---- Dict Rule Schema ----
+// Zod schema validates JSON input format and transforms to TS-compatible output:
+// - Infers `category` from `action` (JSON Schema has no `category` field)
+// - Flattens `{type:"attr", name:...}` output object to `{output:"attr", attr:...}`
+
+const DOM_ACTIONS = ["remove", "unwrap", "strip"] as const;
+const STRING_ACTIONS = ["replace"] as const;
+
+const dictExtractStepSchema = z
+	.strictObject({
+		type: z.literal("extract"),
+		engine: z.enum(["css", "xpath", "jsonpath", "regex"]),
+		selector: z.string(),
+		output: z
+			.union([
+				z.enum(["html", "text", "outerHtml"]),
+				z.strictObject({ type: z.literal("attr"), name: z.string() }),
+			])
+			.optional(),
+		baseUrl: z.string().optional(),
 	})
-	.passthrough();
+	.transform((step) => {
+		// Flatten {type:"attr", name:...} → {output:"attr", attr:name}
+		if (
+			typeof step.output === "object" &&
+			step.output !== null &&
+			"type" in step.output
+		) {
+			const { output, ...rest } = step;
+			return {
+				...rest,
+				output: "attr" as const,
+				attr: output.name,
+			};
+		}
+		return step;
+	});
 
-/**
- * 解析 URL 选项 JSON — 书源 URL 规则中逗号后的 JSON 配置
- */
-export function parseUrlOption(
-	json: string,
-):
-	| { success: true; data: z.infer<typeof urlOptionSchema> }
-	| { success: false; error: string } {
-	try {
-		const raw: unknown = JSON.parse(json);
-		const result = urlOptionSchema.safeParse(raw);
-		if (result.success) return { success: true, data: result.data };
-		return {
-			success: false,
-			error: result.error.issues.map((i) => i.message).join("; "),
-		};
-	} catch {
-		return { success: false, error: "Invalid JSON" };
-	}
-}
-
-// ─── 规则 Schemas ─────────────────────────────────────────────────────────
-
-/** 规则字符串类型 — 所有规则使用 z.string() */
-const stringRule = z.string();
-
-export const searchRuleSchema = z
-	.object({
-		checkKeyWord: stringRule.optional(),
-		bookList: z.string(),
-		name: z.string(),
-		author: z.string(),
-		intro: stringRule.optional(),
-		kind: stringRule.optional(),
-		lastChapter: stringRule.optional(),
-		updateTime: stringRule.optional(),
-		bookUrl: z.string(),
-		coverUrl: stringRule.optional(),
-		wordCount: stringRule.optional(),
+const dictTransformStepSchema = z
+	.strictObject({
+		type: z.literal("transform"),
+		action: z.enum([...DOM_ACTIONS, ...STRING_ACTIONS]),
+		selector: z.string().optional(),
+		attrs: z.array(z.string()).optional(),
+		pattern: z.string().optional(),
+		with: z.string().optional(),
+		flags: z.string().optional(),
 	})
-	.passthrough();
+	.transform((step) => {
+		// Infer category from action
+		const category = DOM_ACTIONS.includes(
+			step.action as (typeof DOM_ACTIONS)[number],
+		)
+			? ("dom" as const)
+			: ("string" as const);
+		return { ...step, category };
+	});
 
-export const exploreRuleSchema = searchRuleSchema.omit({ checkKeyWord: true });
+const dictScriptStepSchema = z.strictObject({
+	type: z.literal("script"),
+	code: z.string(),
+});
 
-export const bookInfoRuleSchema = z
-	.object({
-		init: stringRule.optional(),
-		name: stringRule.optional(),
-		author: stringRule.optional(),
-		intro: stringRule.optional(),
-		kind: stringRule.optional(),
-		lastChapter: stringRule.optional(),
-		updateTime: stringRule.optional(),
-		coverUrl: stringRule.optional(),
-		tocUrl: stringRule.optional(),
-		wordCount: stringRule.optional(),
-		canReName: stringRule.optional(),
-		downloadUrls: stringRule.optional(),
-	})
-	.passthrough();
-
-export const tocRuleSchema = z
-	.object({
-		preUpdateJs: stringRule.optional(),
-		chapterList: z.string(),
-		chapterName: z.string(),
-		chapterUrl: z.string(),
-		formatJs: stringRule.optional(),
-		isVolume: stringRule.optional(),
-		isVip: stringRule.optional(),
-		isPay: stringRule.optional(),
-		updateTime: stringRule.optional(),
-		nextTocUrl: stringRule.optional(),
-	})
-	.passthrough();
-
-export const contentRuleSchema = z
-	.object({
-		content: z.string(),
-		title: stringRule.optional(),
-		nextContentUrl: stringRule.optional(),
-		webJs: stringRule.optional(),
-		sourceRegex: stringRule.optional(),
-		replaceRegex: stringRule.optional(),
-		imageStyle: stringRule.optional(),
-		imageDecode: stringRule.optional(),
-		payAction: stringRule.optional(),
-	})
-	.passthrough();
-
-export const reviewRuleSchema = z
-	.object({
-		reviewUrl: stringRule.optional(),
-		avatarRule: stringRule.optional(),
-		contentRule: stringRule.optional(),
-		postTimeRule: stringRule.optional(),
-		reviewQuoteUrl: stringRule.optional(),
-		voteUpUrl: stringRule.optional(),
-		voteDownUrl: stringRule.optional(),
-		postReviewUrl: stringRule.optional(),
-		postQuoteUrl: stringRule.optional(),
-		deleteUrl: stringRule.optional(),
-	})
-	.passthrough();
-
-// ─── BookSource Schema ────────────────────────────────────────────────────
-
-export const bookSourceSchema = z
-	.object({
-		bookSourceUrl: z.string().min(1),
-		bookSourceName: z.string().min(1),
-		bookSourceGroup: z.string().optional(),
-		bookSourceType: z.union([
-			z.literal(0),
-			z.literal(1),
-			z.literal(2),
-			z.literal(3),
+const dictFieldSchema = z.strictObject({
+	schema: z.enum(["html", "string", "html[]", "string[]"]).default("html"),
+	pipeline: z.array(
+		z.union([
+			dictExtractStepSchema,
+			dictTransformStepSchema,
+			dictScriptStepSchema,
 		]),
-		bookUrlPattern: z.string().optional(),
-		bookSourceComment: z.string().optional(),
-		variableComment: z.string().optional(),
-		enabled: z.boolean(),
-		enabledExplore: z.boolean(),
-		customOrder: z.number(),
-		weight: z.number(),
-		lastUpdateTime: z.number(),
-		respondTime: z.number(),
-		header: z.string().optional(),
-		loginUrl: z.string().optional(),
-		loginUi: z.string().optional(),
-		loginCheckJs: z.string().optional(),
-		enabledCookieJar: z.boolean().optional(),
-		concurrentRate: z.string().optional(),
-		jsLib: z.string().optional(),
-		coverDecodeJs: z.string().optional(),
-		searchUrl: z.string().optional(),
-		exploreUrl: z.string().optional(),
-		exploreScreen: z.string().optional(),
-		ruleSearch: searchRuleSchema.optional(),
-		ruleExplore: exploreRuleSchema.optional(),
-		ruleBookInfo: bookInfoRuleSchema.optional(),
-		ruleToc: tocRuleSchema.optional(),
-		ruleContent: contentRuleSchema.optional(),
-		ruleReview: reviewRuleSchema.optional(),
+	),
+});
+
+const dictRequestBodySchema = z.union([
+	z.string(),
+	z.strictObject({
+		type: z.enum(["form", "json", "raw"]),
+		data: z.unknown(),
+	}),
+]);
+
+const dictRequestSchema = z.strictObject({
+	url: z.string(),
+	method: z.enum(["GET", "POST"]).optional(),
+	charset: z.string().optional(),
+	headers: z.record(z.string(), z.string()).optional(),
+	body: dictRequestBodySchema.optional(),
+});
+
+const dictRuleSchema = z.strictObject({
+	id: z.string(),
+	name: z.string(),
+	description: z.string().optional(),
+	tags: z.array(z.string()).optional(),
+	enabled: z.boolean().optional(),
+	weight: z.number().int().min(0).max(100).optional(),
+	variables: z.record(z.string(), z.string()).optional(),
+	request: dictRequestSchema,
+	fields: z.record(z.string(), dictFieldSchema).optional(),
+});
+
+export const dictRuleFileSchema = z.strictObject({
+	$schema: z.string(),
+	authors: z.array(z.string()).optional(),
+	description: z.string().optional(),
+	updatedAt: z.string().optional(),
+	rules: z.array(dictRuleSchema),
+});
+
+export type DictRuleFileInput = z.input<typeof dictRuleFileSchema>;
+export type DictRuleFileOutput = z.output<typeof dictRuleFileSchema>;
+
+// ---- Book Source Schema ----
+// Book-source rules use a different format than dict-rule:
+// - Rule = string shorthand | RuleObject (keyed) | RuleStep[] (keyed-object pipeline)
+// - normalizeRule() handles conversion to internal RuleStep[] format
+// The Zod schema validates the JSON input structure; detailed rule validation
+// happens in normalizeRule() at runtime.
+
+const bookSourceRuleSchema = z.union([
+	z.string(),
+	z.record(z.string(), z.unknown()), // RuleObject or keyed RuleStep
+	z.array(z.unknown()), // RuleStep[] pipeline
+]);
+
+const requestConfigSchema = z.strictObject({
+	url: z.string().optional(),
+	method: z.enum(["GET", "POST"]).optional(),
+	charset: z.string().optional(),
+	headers: z.record(z.string(), z.string()).optional(),
+	body: z.string().optional(),
+	responseType: z.enum(["html", "json", "xml", "text"]).optional(),
+});
+
+const searchRulesSchema = z
+	.object({
+		list: bookSourceRuleSchema.optional(),
+		name: bookSourceRuleSchema.optional(),
+		url: bookSourceRuleSchema.optional(),
+		author: bookSourceRuleSchema.optional(),
+		cover: bookSourceRuleSchema.optional(),
+		intro: bookSourceRuleSchema.optional(),
+		kind: bookSourceRuleSchema.optional(),
+		lastChapter: bookSourceRuleSchema.optional(),
+		wordCount: bookSourceRuleSchema.optional(),
 	})
 	.passthrough();
 
-// ─── 校验函数 ──────────────────────────────────────────────────────────────
+const searchModuleSchema = z
+	.strictObject({
+		url: z.string(),
+		checkKeyWord: z.string().optional(),
+		rules: searchRulesSchema,
+	})
+	.merge(requestConfigSchema);
 
-/**
- * 解析并校验 BookSource 对象
- * 成功返回 data，失败返回 ZodError
- */
-export function parseBookSource(
-	source: unknown,
-):
-	| { success: true; data: z.infer<typeof bookSourceSchema> }
-	| { success: false; errors: z.ZodError } {
-	const result = bookSourceSchema.safeParse(source);
-	if (result.success) return { success: true, data: result.data };
-	return { success: false, errors: result.error };
+const exploreCategorySchema = z.strictObject({
+	title: z.string(),
+	url: z.string().optional(),
+});
+
+const exploreModuleSchema = z
+	.strictObject({
+		categories: z.array(exploreCategorySchema),
+		rules: searchRulesSchema.optional(),
+	})
+	.merge(requestConfigSchema);
+
+const bookInfoRulesSchema = z
+	.object({
+		init: bookSourceRuleSchema.optional(),
+		name: bookSourceRuleSchema.optional(),
+		author: bookSourceRuleSchema.optional(),
+		cover: bookSourceRuleSchema.optional(),
+		intro: bookSourceRuleSchema.optional(),
+		kind: bookSourceRuleSchema.optional(),
+		lastChapter: bookSourceRuleSchema.optional(),
+		wordCount: bookSourceRuleSchema.optional(),
+		tocUrl: bookSourceRuleSchema.optional(),
+	})
+	.passthrough();
+
+const bookInfoModuleSchema = z
+	.strictObject({
+		init: bookSourceRuleSchema.optional(),
+		rules: bookInfoRulesSchema.optional(),
+	})
+	.merge(requestConfigSchema);
+
+const tocRulesSchema = z
+	.object({
+		list: bookSourceRuleSchema.optional(),
+		name: bookSourceRuleSchema.optional(),
+		url: bookSourceRuleSchema.optional(),
+		isVip: bookSourceRuleSchema.optional(),
+		isVolume: bookSourceRuleSchema.optional(),
+		updateTime: bookSourceRuleSchema.optional(),
+	})
+	.passthrough();
+
+const tocModuleSchema = z
+	.strictObject({
+		nextUrl: bookSourceRuleSchema.optional(),
+		rules: tocRulesSchema.optional(),
+	})
+	.merge(requestConfigSchema);
+
+const replacePairSchema = z.strictObject({
+	pattern: z.string(),
+	with: z.string(),
+});
+
+const contentRulesSchema = z
+	.object({
+		text: bookSourceRuleSchema.optional(),
+	})
+	.passthrough();
+
+const contentModuleSchema = z
+	.strictObject({
+		nextUrl: bookSourceRuleSchema.optional(),
+		replaceRegex: z.array(replacePairSchema).optional(),
+		rules: contentRulesSchema.optional(),
+	})
+	.merge(requestConfigSchema);
+
+export const bookSourceSchema = z.strictObject({
+	$schema: z.string(),
+	id: z.string(),
+	name: z.string(),
+	type: z.enum(["novel", "audio", "comic", "file"]),
+	baseUrl: z.string(),
+	description: z.string().optional(),
+	tags: z.array(z.string()).optional(),
+	author: z.string().optional(),
+	version: z.number().int().min(1).optional(),
+	urlPattern: z.string().optional(),
+	headers: z.record(z.string(), z.string()).optional(),
+	loginUrl: z.string().optional(),
+	enabled: z.boolean().optional(),
+	weight: z.number().int().min(0).max(100).optional(),
+	order: z.number().int().min(0).optional(),
+	rateLimit: z.number().int().min(0).optional(),
+	createdAt: z.string().optional(),
+	updatedAt: z.string().optional(),
+	search: searchModuleSchema.optional(),
+	explore: exploreModuleSchema.optional(),
+	bookInfo: bookInfoModuleSchema.optional(),
+	toc: tocModuleSchema.optional(),
+	content: contentModuleSchema.optional(),
+});
+
+export type BookSourceInput = z.input<typeof bookSourceSchema>;
+export type BookSourceOutput = z.output<typeof bookSourceSchema>;
+
+// ---- Validation helpers ----
+
+function validate<T>(schema: z.ZodType<T>, data: unknown): Result<T> {
+	const result = schema.safeParse(data);
+	if (result.success) {
+		return ok(result.data);
+	}
+	const issues = result.error.issues;
+	const message = issues
+		.map((i) => `${i.path.join(".")}: ${i.message}`)
+		.join("; ");
+	return err({
+		code: "COMPILE_ERROR",
+		message: `Validation failed: ${message}`,
+		cause: result.error,
+	});
 }
 
-/**
- * 类型守卫：判断输入是否为合法 BookSource
- */
-export function validateBookSource(source: unknown): source is BookSource {
-	return bookSourceSchema.safeParse(source).success;
+export function validateBookSource(data: unknown): Result<BookSourceOutput> {
+	return validate(bookSourceSchema, data);
 }
 
-/**
- * 判断 BookSourceType 是否合法 (0-3)
- */
-export function isValidBookSourceType(value: number): boolean {
-	return value === 0 || value === 1 || value === 2 || value === 3;
+export function validateDictRuleFile(
+	data: unknown,
+): Result<DictRuleFileOutput> {
+	return validate(dictRuleFileSchema, data);
+}
+
+export function validateReplaceRuleFile(
+	data: unknown,
+): Result<ReplaceRuleFileOutput> {
+	return validate(replaceRuleFileSchema, data);
+}
+
+export function validateTxtTocRuleFile(
+	data: unknown,
+): Result<TxtTocRuleFileOutput> {
+	return validate(txtTocRuleFileSchema, data);
+}
+
+export function parseBookSource(data: unknown): BookSourceOutput {
+	return bookSourceSchema.parse(data);
+}
+
+export function parseDictRuleFile(data: unknown): DictRuleFileOutput {
+	return dictRuleFileSchema.parse(data);
+}
+
+export function parseReplaceRuleFile(data: unknown): ReplaceRuleFileOutput {
+	return replaceRuleFileSchema.parse(data);
+}
+
+export function parseTxtTocRuleFile(data: unknown): TxtTocRuleFileOutput {
+	return txtTocRuleFileSchema.parse(data);
 }
