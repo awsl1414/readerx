@@ -96,3 +96,28 @@ export type {
 // ---- Utilities ----
 export { resolveUrl } from "./url";
 export { extractXPath } from "./xpath";
+// ── Import module ─────────────────────────────────────────
+export {
+	importBookSource,
+	importDictRuleFile,
+	importReplaceRuleFile,
+	importTxtTocRuleFile,
+	importLegadoBookSources,
+	importLegadoDictRules,
+	importLegadoReplaceRules,
+	importLegadoTxtTocRules,
+	tryDetectFormat,
+} from "./import/index.js";
+
+export type {
+	ImportError,
+	ImportOptions,
+	ConversionResult,
+	ConversionReport,
+	ImportedResult,
+	RuleFormatKind,
+	LegadoBookSource,
+	LegadoDictRule,
+	LegadoReplaceRule,
+	LegadoTxtTocRule,
+} from "./import/index.js";
