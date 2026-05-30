@@ -108,25 +108,70 @@ export type Cache = {
 
 // ─── ReplaceRule ───────────────────────────────────────────
 
-export type ReplaceRule = {
-	id?: number;
-	name: string;
-	group?: string;
-	pattern: string;
-	replacement: string;
-	scope?: string;
-	scopeTitle: boolean;
-	scopeContent: boolean;
-	excludeScope?: string;
-	isEnabled: boolean;
-	isRegex: boolean;
-	timeoutMillisecond: number;
-	order: number;
-};
+export type ReplaceRule = EnableableEntity &
+	SortableEntity &
+	TimestampEntity & {
+		id: string;
+		name: string;
+		group?: string;
+		pattern: string;
+		replacement: string;
+		scope?: string;
+		scopeTitle: boolean;
+		scopeContent: boolean;
+		excludeScope?: string;
+		isRegex: boolean;
+		timeoutMillisecond: number;
+	};
 
 // ─── Cookie ────────────────────────────────────────────────
 
 export type Cookie = {
 	url: string;
 	cookie: string;
+};
+
+// ─── Composable Type Traits ─────────────────────────────────
+
+export type EnableableEntity = {
+	enabled: boolean;
+};
+
+export type SortableEntity = {
+	order: number;
+};
+
+export type TimestampEntity = {
+	createdAt: number;
+	updatedAt: number;
+};
+
+// ─── RssSource ────────────────────────────────────────────────
+
+export type RssSourceRecord = {
+	sourceUrl: string;
+	sourceName: string;
+	sourceGroup?: string;
+	enabled: boolean;
+	customOrder: number;
+	createdAt: number;
+	updatedAt: number;
+	raw: Record<string, unknown>;
+};
+
+// ─── TxtTocRule ───────────────────────────────────────────────
+
+export type TxtTocRule = EnableableEntity & {
+	id: string;
+	name: string;
+	rule: string;
+};
+
+// ─── DictRule ─────────────────────────────────────────────────
+
+export type DictRule = EnableableEntity & {
+	id: string;
+	name: string;
+	urlRule?: string;
+	showRule?: string;
 };

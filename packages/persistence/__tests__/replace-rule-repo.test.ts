@@ -6,16 +6,18 @@ import type { ReplaceRule } from "../src/types";
 
 function makeRule(override: Partial<ReplaceRule> = {}): ReplaceRule {
 	return {
-		id: 1,
+		id: "test-id-1",
 		name: "test rule",
 		pattern: "foo",
 		replacement: "bar",
 		scopeTitle: true,
 		scopeContent: true,
-		isEnabled: true,
+		enabled: true,
 		isRegex: false,
 		timeoutMillisecond: 0,
 		order: 0,
+		createdAt: Date.now(),
+		updatedAt: Date.now(),
 		...override,
 	};
 }
@@ -31,15 +33,15 @@ describe("ReplaceRuleRepository", () => {
 	it("saves and retrieves a rule", async () => {
 		const { testDb, repo } = await setup();
 		await repo.save(makeRule());
-		const result = await repo.get(1);
+		const result = await repo.getById("test-id-1");
 		expect(result?.pattern).toBe("foo");
 		await testDb.delete();
 	});
 
 	it("returns all rules ordered", async () => {
 		const { testDb, repo } = await setup();
-		await repo.save(makeRule({ id: 1, order: 2, name: "B" }));
-		await repo.save(makeRule({ id: 2, order: 1, name: "A" }));
+		await repo.save(makeRule({ id: "id-a", order: 2, name: "B" }));
+		await repo.save(makeRule({ id: "id-b", order: 1, name: "A" }));
 		const all = await repo.getAll();
 		expect(all.map((r) => r.name)).toEqual(["A", "B"]);
 		await testDb.delete();
@@ -47,8 +49,8 @@ describe("ReplaceRuleRepository", () => {
 
 	it("gets enabled rules", async () => {
 		const { testDb, repo } = await setup();
-		await repo.save(makeRule({ id: 1, isEnabled: true }));
-		await repo.save(makeRule({ id: 2, isEnabled: false }));
+		await repo.save(makeRule({ id: "id-1", enabled: true }));
+		await repo.save(makeRule({ id: "id-2", enabled: false }));
 		const enabled = await repo.getEnabled();
 		expect(enabled).toHaveLength(1);
 		await testDb.delete();
@@ -58,26 +60,26 @@ describe("ReplaceRuleRepository", () => {
 		const { testDb, repo } = await setup();
 		await repo.save(
 			makeRule({
-				id: 1,
+				id: "id-1",
 				scopeTitle: true,
 				scopeContent: false,
-				isEnabled: true,
+				enabled: true,
 			}),
 		);
 		await repo.save(
 			makeRule({
-				id: 2,
+				id: "id-2",
 				scopeTitle: false,
 				scopeContent: true,
-				isEnabled: true,
+				enabled: true,
 			}),
 		);
 		const titleRules = await repo.getByScope("book", "origin", "title");
 		expect(titleRules).toHaveLength(1);
-		expect(titleRules[0]?.id).toBe(1);
+		expect(titleRules[0]?.id).toBe("id-1");
 		const contentRules = await repo.getByScope("book", "origin", "content");
 		expect(contentRules).toHaveLength(1);
-		expect(contentRules[0]?.id).toBe(2);
+		expect(contentRules[0]?.id).toBe("id-2");
 		await testDb.delete();
 	});
 });

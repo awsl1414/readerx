@@ -1,34 +1,14 @@
-import type { Table } from "dexie";
+import { BaseDexieRepository } from "./base-repository";
 import type { ReplaceRule } from "./types";
 
-export class ReplaceRuleRepository {
-	private table: Table<ReplaceRule, number>;
-
-	constructor(table: Table<ReplaceRule, number>) {
-		this.table = table;
-	}
-
-	async save(rule: ReplaceRule): Promise<void> {
-		await this.table.put(rule);
-	}
-
-	async get(id: number): Promise<ReplaceRule | undefined> {
-		return this.table.get(id);
-	}
-
-	async delete(id: number): Promise<void> {
-		await this.table.delete(id);
-	}
-
-	async getAll(): Promise<ReplaceRule[]> {
+class ReplaceRuleRepository extends BaseDexieRepository<ReplaceRule> {
+	override async getAll(): Promise<ReplaceRule[]> {
 		return this.table.orderBy("order").toArray();
 	}
 
 	async getEnabled(): Promise<ReplaceRule[]> {
-		const all = await this.table.toArray();
-		return all
-			.filter((rule) => rule.isEnabled)
-			.sort((a, b) => a.order - b.order);
+		const all = await this.getAll();
+		return all.filter((rule) => rule.enabled);
 	}
 
 	async getByScope(
@@ -54,3 +34,5 @@ export class ReplaceRuleRepository {
 		});
 	}
 }
+
+export { ReplaceRuleRepository };

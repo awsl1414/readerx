@@ -1,9 +1,12 @@
-// features/source-manager/components/source-editor.tsx
-
 "use client";
 
 import type { BookSourceRecord } from "@readerx/persistence";
+import { ArrowLeft, Bug, Save, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { useSourceMutations } from "../hooks/use-sources";
 import { useSourceManagerStore } from "../store";
 import { RuleFieldEditor } from "./rule-field-editor";
@@ -18,6 +21,7 @@ function useSourceEditorState(source: BookSourceRecord) {
 	const [local, setLocal] = useState(source);
 	// Only reset when the source identity changes (URL), not on every revalidation.
 	// This prevents TanStack Query cache revalidation from wiping unsaved edits.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: intentionally use bookSourceUrl as trigger to avoid wiping unsaved edits
 	useEffect(() => setLocal(source), [source.bookSourceUrl]);
 	return [local, setLocal] as const;
 }
@@ -61,10 +65,12 @@ function applyFieldChange(
 }
 
 function SourceEditor({ source }: SourceEditorProps) {
+	const t = useTranslations("sourceManager");
 	const expandedSections = useSourceManagerStore((s) => s.expandedSections);
 	const toggleSection = useSourceManagerStore((s) => s.toggleSection);
 	const selectSource = useSourceManagerStore((s) => s.selectSource);
 	const setDebuggerOpen = useSourceManagerStore((s) => s.setDebuggerOpen);
+	const setDirty = useSourceManagerStore((s) => s.setDirty);
 	const { save, remove } = useSourceMutations();
 
 	const [localSource, setLocalSource] = useSourceEditorState(source);
@@ -72,110 +78,94 @@ function SourceEditor({ source }: SourceEditorProps) {
 	const handleChange = useCallback(
 		(field: string, value: string) => {
 			setLocalSource((prev) => applyFieldChange(prev, field, value));
+			setDirty(true);
 		},
-		[setLocalSource],
+		[setLocalSource, setDirty],
 	);
 
 	const handleSave = useCallback(() => {
-		save.mutate(localSource as BookSourceRecord);
-	}, [save, localSource]);
+		save.mutate(localSource as BookSourceRecord, {
+			onSuccess: () => {
+				toast.success(t("saved"));
+				setDirty(false);
+			},
+		});
+	}, [save, localSource, t, setDirty]);
 
 	const handleDelete = useCallback(() => {
-		remove.mutate(source.bookSourceUrl);
-		selectSource(null);
-	}, [remove, source.bookSourceUrl, selectSource]);
+		remove.mutate(source.bookSourceUrl, {
+			onSuccess: () => {
+				toast.success(t("deleted"));
+				selectSource(null);
+			},
+		});
+	}, [remove, source.bookSourceUrl, selectSource, t]);
 
 	return (
-		<div style={{ height: "100%", overflow: "auto" }}>
+		<div className="flex h-full flex-col overflow-y-auto">
 			{/* Header */}
-			<div
-				style={{
-					padding: "12px 16px",
-					borderBottom: "1px solid oklch(0.2 0 0)",
-					display: "flex",
-					alignItems: "center",
-					justifyContent: "space-between",
-				}}
-			>
-				<h3
-					style={{
-						fontSize: "1rem",
-						fontWeight: 600,
-						color: "oklch(0.9 0 0)",
-					}}
-				>
-					{source.bookSourceName}
-				</h3>
-				<div style={{ display: "flex", gap: 8 }}>
-					<button
-						type="button"
+			<div className="flex items-center justify-between border-b border-border px-4 py-3">
+				<div className="flex items-center gap-2">
+					<Button
+						variant="ghost"
+						size="icon"
+						className="md:hidden size-7"
+						onClick={() => selectSource(null)}
+					>
+						<ArrowLeft className="size-4" />
+					</Button>
+					<h3 className="text-sm font-semibold truncate max-w-[200px]">
+						{source.bookSourceName}
+					</h3>
+				</div>
+				<div className="flex items-center gap-1.5">
+					<Button
+						variant="outline"
+						size="sm"
 						onClick={() => setDebuggerOpen(true)}
-						style={{
-							padding: "4px 12px",
-							borderRadius: 6,
-							border: "1px solid oklch(0.3 0.05 250)",
-							background: "transparent",
-							color: "oklch(0.7 0.1 250)",
-							cursor: "pointer",
-							fontSize: "0.8rem",
-						}}
+						className="text-xs"
 					>
-						▶ 调试器
-					</button>
-					<button
-						type="button"
-						onClick={handleSave}
-						style={{
-							padding: "4px 12px",
-							borderRadius: 6,
-							background: "oklch(0.5 0.2 150)",
-							color: "white",
-							border: "none",
-							cursor: "pointer",
-							fontSize: "0.8rem",
-						}}
-					>
-						保存
-					</button>
-					<button
-						type="button"
+						<Bug className="size-3.5" />
+						{t("debug")}
+					</Button>
+					<Button size="sm" onClick={handleSave} className="text-xs">
+						<Save className="size-3.5" />
+						{t("save")}
+					</Button>
+					<Button
+						variant="destructive"
+						size="icon"
+						className="size-7"
 						onClick={handleDelete}
-						style={{
-							padding: "4px 12px",
-							borderRadius: 6,
-							background: "oklch(0.5 0.2 25)",
-							color: "white",
-							border: "none",
-							cursor: "pointer",
-							fontSize: "0.8rem",
-						}}
 					>
-						🗑
-					</button>
+						<Trash2 className="size-3.5" />
+					</Button>
 				</div>
 			</div>
 
+			<Separator />
+
 			{/* Sections */}
 			<RuleSection
-				title="基本信息"
+				title={t("sectionBasic")}
 				sectionKey="basic"
 				expanded={expandedSections.has("basic")}
 				onToggle={toggleSection}
 			>
 				<RuleFieldEditor
-					label="名称"
+					label={t("fieldName")}
 					fieldName="bookSourceName"
 					value={localSource.bookSourceName as string}
 					onChange={handleChange}
 				/>
 				<RuleFieldEditor
-					label="URL"
+					label={t("fieldUrl")}
 					fieldName="bookSourceUrl"
 					value={localSource.bookSourceUrl as string}
 					onChange={handleChange}
 				/>
 				<RuleFieldEditor
-					label="分组"
+					label={t("fieldGroup")}
 					fieldName="bookSourceGroup"
 					value={(localSource.bookSourceGroup as string) ?? ""}
 					onChange={handleChange}
@@ -183,13 +173,13 @@ function SourceEditor({ source }: SourceEditorProps) {
 			</RuleSection>
 
 			<RuleSection
-				title="搜索规则"
+				title={t("sectionSearch")}
 				sectionKey="search"
 				expanded={expandedSections.has("search")}
 				onToggle={toggleSection}
 			>
 				<RuleFieldEditor
-					label="搜索 URL"
+					label={t("fieldSearchUrl")}
 					fieldName="searchUrl"
 					value={(localSource.searchUrl as string) ?? ""}
 					onChange={handleChange}
@@ -208,7 +198,7 @@ function SourceEditor({ source }: SourceEditorProps) {
 			</RuleSection>
 
 			<RuleSection
-				title="书籍信息规则"
+				title={t("sectionBookInfo")}
 				sectionKey="bookInfo"
 				expanded={expandedSections.has("bookInfo")}
 				onToggle={toggleSection}
@@ -227,7 +217,7 @@ function SourceEditor({ source }: SourceEditorProps) {
 			</RuleSection>
 
 			<RuleSection
-				title="目录规则"
+				title={t("sectionToc")}
 				sectionKey="toc"
 				expanded={expandedSections.has("toc")}
 				onToggle={toggleSection}
@@ -246,7 +236,7 @@ function SourceEditor({ source }: SourceEditorProps) {
 			</RuleSection>
 
 			<RuleSection
-				title="正文规则"
+				title={t("sectionContent")}
 				sectionKey="content"
 				expanded={expandedSections.has("content")}
 				onToggle={toggleSection}
@@ -265,25 +255,25 @@ function SourceEditor({ source }: SourceEditorProps) {
 			</RuleSection>
 
 			<RuleSection
-				title="Headers / 高级"
+				title={t("sectionAdvanced")}
 				sectionKey="advanced"
 				expanded={expandedSections.has("advanced")}
 				onToggle={toggleSection}
 			>
 				<RuleFieldEditor
-					label="Header"
+					label={t("fieldHeader")}
 					fieldName="header"
 					value={(localSource.header as string) ?? ""}
 					onChange={handleChange}
 				/>
 				<RuleFieldEditor
-					label="Login URL"
+					label={t("fieldLoginUrl")}
 					fieldName="loginUrl"
 					value={(localSource.loginUrl as string) ?? ""}
 					onChange={handleChange}
 				/>
 				<RuleFieldEditor
-					label="并发限制"
+					label={t("fieldConcurrentRate")}
 					fieldName="concurrentRate"
 					value={(localSource.concurrentRate as string) ?? ""}
 					onChange={handleChange}

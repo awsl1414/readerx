@@ -8,12 +8,15 @@ import type {
 	BookSourceRecord,
 	Cache,
 	Cookie,
+	DictRule,
 	ReplaceRule,
+	RssSourceRecord,
 	SearchKeyword,
+	TxtTocRule,
 } from "./types";
 
 export const DB_NAME = "readerx";
-export const DB_VERSION = 1;
+export const DB_VERSION = 2;
 
 export class ReaderXDB extends Dexie {
 	bookSources!: Table<BookSourceRecord, string>;
@@ -23,12 +26,15 @@ export class ReaderXDB extends Dexie {
 	bookmarks!: Table<Bookmark, number>;
 	searchKeywords!: Table<SearchKeyword, string>;
 	caches!: Table<Cache, string>;
-	replaceRules!: Table<ReplaceRule, number>;
+	replaceRules!: Table<ReplaceRule, string>;
 	cookies!: Table<Cookie, string>;
+	rssSources!: Table<RssSourceRecord, string>;
+	txtTocRules!: Table<TxtTocRule, string>;
+	dictRules!: Table<DictRule, string>;
 
 	constructor(name = DB_NAME) {
 		super(name);
-		this.version(DB_VERSION).stores({
+		this.version(1).stores({
 			bookSources:
 				"bookSourceUrl, bookSourceName, *bookSourceGroup, enabled, enabledExplore, bookSourceType, customOrder, lastUpdateTime",
 			books: "bookUrl, name, author, *groupIds, origin, durChapterTime, order",
@@ -39,6 +45,25 @@ export class ReaderXDB extends Dexie {
 			caches: "key, deadline",
 			replaceRules: "++id, name, group, order, isEnabled",
 			cookies: "url",
+		});
+		this.version(2).stores({
+			replaceRules: "id, name, group, order, enabled",
+			rssSources:
+				"sourceUrl, sourceName, *sourceGroup, enabled, [sourceGroup+enabled]",
+			txtTocRules: "id, name, enabled",
+			dictRules: "id, name, enabled",
+		}).upgrade((tx) => {
+			// Migrate replaceRules: numeric id → string id, isEnabled → enabled
+			return tx
+				.table("replaceRules")
+				.toCollection()
+				.modify((rule) => {
+					rule.id = String(rule.id);
+					rule.enabled = rule.isEnabled ?? true;
+					rule.createdAt = rule.createdAt ?? Date.now();
+					rule.updatedAt = rule.updatedAt ?? Date.now();
+					delete rule.isEnabled;
+				});
 		});
 	}
 }

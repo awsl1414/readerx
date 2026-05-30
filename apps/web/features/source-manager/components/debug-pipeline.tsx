@@ -1,99 +1,75 @@
-// features/source-manager/components/debug-pipeline.tsx
-
 "use client";
 
+import { AlertCircle, Check, Circle, Loader2 } from "lucide-react";
+import { cn } from "@/lib/cn";
 import type { DebugStageResult } from "../types";
 
 type DebugPipelineProps = {
 	readonly stages: readonly DebugStageResult[];
 };
 
-function statusIcon(status: DebugStageResult["status"]): string {
+function StatusIcon({ status }: { status: DebugStageResult["status"] }) {
 	switch (status) {
 		case "success":
-			return "✓";
+			return <Check className="size-3.5 text-green-600 dark:text-green-400" />;
 		case "error":
-			return "✗";
+			return <AlertCircle className="size-3.5 text-destructive" />;
 		case "running":
-			return "▶";
+			return (
+				<Loader2 className="size-3.5 animate-spin text-yellow-600 dark:text-yellow-400" />
+			);
 		case "pending":
-			return "○";
+			return <Circle className="size-3.5 text-muted-foreground" />;
 	}
 }
 
-function statusColor(status: DebugStageResult["status"]): string {
+function stageColor(status: DebugStageResult["status"]): string {
 	switch (status) {
 		case "success":
-			return "oklch(0.7 0.15 150)";
+			return "text-green-600 dark:text-green-400";
 		case "error":
-			return "oklch(0.7 0.2 25)";
+			return "text-destructive";
 		case "running":
-			return "oklch(0.7 0.15 85)";
+			return "text-yellow-600 dark:text-yellow-400";
 		case "pending":
-			return "oklch(0.5 0 0)";
+			return "text-muted-foreground";
 	}
 }
 
 function DebugPipeline({ stages }: DebugPipelineProps) {
 	if (stages.length === 0) {
 		return (
-			<div
-				style={{
-					padding: 16,
-					color: "oklch(0.5 0 0)",
-					textAlign: "center",
-				}}
-			>
-				点击 "Run Pipeline" 开始调试
+			<div className="py-4 text-center text-sm text-muted-foreground">
+				{`点击 "Run Pipeline" 开始调试`}
 			</div>
 		);
 	}
 
 	return (
-		<div style={{ padding: "8px 0" }}>
-			{stages.map((stage, i) => (
+		<div className="divide-y divide-border py-1">
+			{stages.map((stage, _i) => (
 				<div
-					key={`${stage.stage}-${i}`}
-					style={{
-						padding: "6px 12px",
-						display: "flex",
-						alignItems: "center",
-						gap: 8,
-						fontSize: "0.8rem",
-						color: statusColor(stage.status),
-						borderBottom: "1px solid oklch(0.15 0 0)",
-					}}
+					key={`${stage.stage}-${stage.timing}`}
+					className={cn(
+						"flex items-center gap-2 px-3 py-1.5 text-xs",
+						stageColor(stage.status),
+					)}
 				>
-					<span style={{ width: 16, textAlign: "center" }}>
-						{statusIcon(stage.status)}
-					</span>
-					<span style={{ flex: 1 }}>{stage.stage}</span>
+					<StatusIcon status={stage.status} />
+					<span className="flex-1">{stage.stage}</span>
 					{stage.timing > 0 && (
-						<span
-							style={{ fontSize: "0.7rem", color: "oklch(0.5 0 0)" }}
-						>
+						<span className="text-[0.65rem] text-muted-foreground">
 							{Math.round(stage.timing)}ms
 						</span>
 					)}
 					{stage.result && (
-						<span
-							style={{ fontSize: "0.7rem", color: "oklch(0.5 0 0)" }}
-						>
-							{stage.result.length > 40
-								? `${stage.result.slice(0, 40)}...`
-								: stage.result}
+						<span className="max-w-[160px] truncate text-[0.65rem] text-muted-foreground">
+							{stage.result}
 						</span>
 					)}
 					{stage.error && (
-						<span
-							style={{
-								fontSize: "0.7rem",
-								color: "oklch(0.7 0.2 25)",
-							}}
-						>
-							{stage.error.length > 30
-								? `${stage.error.slice(0, 30)}...`
-								: stage.error}
+						<span className="max-w-[120px] truncate text-[0.65rem] text-destructive">
+							{stage.error}
 						</span>
 					)}
 				</div>

@@ -1,42 +1,33 @@
-// features/source-manager/components/debug-console.tsx
-
 "use client";
 
+import { cn } from "@/lib/cn";
 import type { DebugLog } from "../types";
 
 type DebugConsoleProps = {
 	readonly logs: readonly DebugLog[];
 };
 
-function levelColor(level: DebugLog["level"]): string {
+function levelClassName(level: DebugLog["level"]): string {
 	switch (level) {
 		case "info":
-			return "oklch(0.7 0 0)";
+			return "text-muted-foreground";
 		case "warn":
-			return "oklch(0.75 0.15 85)";
+			return "text-yellow-600 dark:text-yellow-400";
 		case "error":
-			return "oklch(0.7 0.2 25)";
+			return "text-destructive";
 	}
 }
 
 function DebugConsole({ logs }: DebugConsoleProps) {
 	return (
-		<div
-			style={{
-				fontFamily: "monospace",
-				fontSize: "0.75rem",
-				padding: 8,
-				maxHeight: 200,
-				overflow: "auto",
-			}}
-		>
+		<div className="max-h-[200px] overflow-y-auto p-2 font-mono text-xs">
 			{logs.length === 0 ? (
-				<div style={{ color: "oklch(0.4 0 0)" }}>No logs</div>
+				<div className="text-muted-foreground/60">No logs</div>
 			) : (
-				logs.map((log, i) => (
+				logs.map((log, _i) => (
 					<div
-						key={i}
-						style={{ color: levelColor(log.level), padding: "2px 0" }}
+						key={log.timestamp}
+						className={cn("py-0.5", levelClassName(log.level))}
 					>
 						[{log.level}] {log.message}
 					</div>

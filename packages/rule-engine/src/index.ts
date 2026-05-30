@@ -38,6 +38,17 @@ export {
 	urlOptionSchema,
 	validateBookSource,
 } from "./schemas";
+// Rule schemas (ReplaceRule, TxtTocRule, DictRule, RssSource)
+export {
+	dictRuleSchema,
+	parseDictRule,
+	parseRssSource,
+	parseReplaceRule,
+	parseTxtTocRule,
+	replaceRuleSchema,
+	rssSourceSchema,
+	txtTocRuleSchema,
+} from "./rule-schemas";
 // 类型
 export type {
 	AnalyzeRuleMode,

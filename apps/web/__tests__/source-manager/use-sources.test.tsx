@@ -60,35 +60,21 @@ function createWrapper() {
 }
 
 describe("useSources", () => {
-	it("returns all sources when filter is 'all' and query is empty", async () => {
-		const { result } = renderHook(
-			() => useSources({ filterMode: "all", searchQuery: "" }),
-			{ wrapper: createWrapper() },
-		);
+	it("returns all sources", async () => {
+		const { result } = renderHook(() => useSources(), {
+			wrapper: createWrapper(),
+		});
 
 		await waitFor(() => expect(result.current.isSuccess).toBe(true));
 		expect(result.current.data).toHaveLength(2);
 	});
 
-	it("filters enabled sources", async () => {
-		const { result } = renderHook(
-			() => useSources({ filterMode: "enabled", searchQuery: "" }),
-			{ wrapper: createWrapper() },
-		);
+	it("fetches from repo.getAll", async () => {
+		const { result } = renderHook(() => useSources(), {
+			wrapper: createWrapper(),
+		});
 
 		await waitFor(() => expect(result.current.isSuccess).toBe(true));
-		expect(result.current.data).toHaveLength(1);
-		expect(result.current.data?.[0]?.bookSourceName).toBe("Source A");
-	});
-
-	it("filters disabled sources", async () => {
-		const { result } = renderHook(
-			() => useSources({ filterMode: "disabled", searchQuery: "" }),
-			{ wrapper: createWrapper() },
-		);
-
-		await waitFor(() => expect(result.current.isSuccess).toBe(true));
-		expect(result.current.data).toHaveLength(1);
-		expect(result.current.data?.[0]?.bookSourceName).toBe("Source B");
+		expect(mockRepo.getAll).toHaveBeenCalled();
 	});
 });
