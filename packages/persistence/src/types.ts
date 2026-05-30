@@ -137,11 +137,11 @@ export type EnableableEntity = {
 	enabled: boolean;
 };
 
-type SortableEntity = {
+export type SortableEntity = {
 	order: number;
 };
 
-type TimestampEntity = {
+export type TimestampEntity = {
 	createdAt: number;
 	updatedAt: number;
 };
