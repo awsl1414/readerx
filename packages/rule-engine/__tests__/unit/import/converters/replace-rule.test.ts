@@ -177,10 +177,11 @@ describe("convertLegadoReplaceRules", () => {
 		const result = convertLegadoReplaceRules(legado);
 		const rule = getRule(result.data.rules, 0);
 
-		expect(rule.scope?.target).toBe("content");
-	});
+		// target "content" is the default — omitted from output
+			expect(rule.scope?.target).toBeUndefined();
+		});
 
-	it("handles empty scope (global rule) with only target", () => {
+		it("handles empty scope (global rule) with only target", () => {
 		const legado: LegadoReplaceRule[] = [
 			{
 				name: "Global rule",
@@ -193,7 +194,8 @@ describe("convertLegadoReplaceRules", () => {
 		const rule = getRule(result.data.rules, 0);
 
 		expect(rule.scope).toBeDefined();
-		expect(rule.scope?.target).toBe("content");
+		// target "content" is the default — omitted from output
+					expect(rule.scope?.target).toBeUndefined();
 		expect(rule.scope?.include).toBeUndefined();
 		expect(rule.scope?.exclude).toBeUndefined();
 	});
@@ -311,7 +313,7 @@ describe("convertLegadoReplaceRules", () => {
 		expect(rule1.tags).toEqual(["ads"]);
 		expect(rule1.literal).toBeUndefined();
 		expect(rule1.scope?.include).toEqual(["sourceA"]);
-		expect(rule1.scope?.target).toBe("content");
+		expect(rule1.scope?.target).toBeUndefined();
 
 		// Rule 2
 		const rule2 = getRule(result.data.rules, 1);

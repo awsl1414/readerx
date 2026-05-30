@@ -1,4 +1,5 @@
 import type {
+	ConversionResult,
 	ImportError,
 	ImportedResult,
 	LegadoReplaceRule,
@@ -80,7 +81,7 @@ function convertOne(
 	const scope: ReplaceScope = {
 		...(include ? { include } : {}),
 		...(exclude ? { exclude } : {}),
-		target,
+		...(target !== "content" ? { target } : {}),
 	};
 
 	const rule: ReplaceRule = {
@@ -106,10 +107,7 @@ export function convertLegadoReplaceRules(
 ): ImportedResult<ReplaceRuleFile> {
 	const allWarnings: ImportError[] = [];
 	const convertedRules: ReplaceRule[] = [];
-	const conversionResults: {
-		steps: readonly [];
-		unsupported: readonly string[];
-	}[] = [];
+	const conversionResults: ConversionResult[] = [];
 
 	for (let i = 0; i < rules.length; i++) {
 		const legado = rules[i];
