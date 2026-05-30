@@ -1,35 +1,64 @@
 {
 	"nav": {
-		"home": "Home",
-		"library": "Library",
-		"search": "Search",
-		"settings": "Settings"
+		"bookshelf": "Bookshelf",
+		"explore": "Explore",
+		"subscriptions": "Subscriptions",
+		"my": "My"
 	},
-	"home": {
+	"bookshelf": {
 		"continueReading": "Continue Reading",
 		"recentBooks": "Recently Read",
 		"noBooks": "No books yet",
-		"searchToAdd": "Search to add your first book"
+		"noBooksHint": "Search to add your first book",
+		"allBooks": "All",
+		"sortRecentRead": "Recent Read",
+		"sortAddedTime": "Added Time",
+		"sortTitle": "Title",
+		"sortManual": "Manual",
+		"viewGrid": "Grid",
+		"viewList": "List",
+		"deleteConfirm": "Delete this book?",
+		"moveToGroup": "Move to Group",
+		"bookDetail": "Book Detail",
+		"changeSource": "Change Source",
+		"progress": "{percent}%",
+		"noBookSources": "No book sources",
+		"noBookSourcesHint": "Import book sources to start reading"
 	},
-	"library": { "title": "Library" },
 	"search": {
 		"title": "Search",
-		"placeholder": "Search by title or author..."
+		"placeholder": "Search by title or author...",
+		"history": "Search History",
+		"noResults": "No results found",
+		"sourceStatus": "{success} sources returned · {failed} unavailable",
+		"searching": "Searching..."
 	},
-	"settings": {
-		"title": "Settings",
+	"my": {
+		"title": "My",
 		"sources": "Book Sources",
-		"reading": "Reading",
-		"system": "System",
+		"rssSources": "RSS Sources",
+		"replaceRules": "Replace Rules",
+		"txtRules": "TXT TOC Rules",
+		"dictRules": "Dict Rules",
 		"theme": "Theme",
-		"themeLight": "Light",
-		"themeDark": "Dark",
-		"themeSystem": "System",
-		"language": "Language"
+		"reading": "Reading Settings",
+		"backup": "Backup & Restore",
+		"import": "Import from Legado",
+		"downloads": "Downloads",
+		"bookmarks": "All Bookmarks",
+		"readRecord": "Reading Record",
+		"about": "About",
+		"sectionRules": "Rules",
+		"sectionPersonal": "Personalize",
+		"sectionData": "Data",
+		"sectionStats": "Statistics",
+		"sectionOther": "Other"
 	},
 	"common": {
 		"loading": "Loading...",
 		"error": "Something went wrong",
-		"retry": "Retry"
+		"retry": "Retry",
+		"cancel": "Cancel",
+		"confirm": "Confirm"
 	}
 }
