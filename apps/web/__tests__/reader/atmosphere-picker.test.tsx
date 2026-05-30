@@ -26,15 +26,15 @@ describe("AtmospherePicker", () => {
 		const buttons = container.querySelectorAll("button");
 		expect(buttons).toHaveLength(3);
 
-		// The "focus" button should have full opacity, others should have 0.3
+		// The "focus" button should have opacity-100 class, others opacity-30
 		for (const button of buttons) {
-			const html = button as HTMLElement;
-			if (html.title === "专注") {
-				expect(html.style.opacity).toBe("1");
-				expect(html.style.borderBottom).not.toBe("none");
-			} else {
-				expect(html.style.opacity).toBe("0.3");
-			}
+		const html = button as HTMLElement;
+		if (html.title === "专注") {
+		expect(html.className).toContain("opacity-100");
+		expect(html.className).toContain("border-b");
+		} else {
+		expect(html.className).toContain("opacity-30");
+		}
 		}
 	});
 
