@@ -33,8 +33,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 							}
 							className="text-muted-foreground focus-visible:ring-primary/60"
 						>
-							<Sun className="size-4 scale-100 rotate-0 dark:scale-0 dark:-rotate-90 transition-transform" />
-							<Moon className="size-4 scale-0 rotate-90 dark:scale-100 dark:rotate-0 transition-transform" />
+							<Sun className="size-4 scale-100 rotate-0 dark:scale-0 dark:-rotate-180 transition-transform duration-300" />
+							<Moon className="size-4 scale-0 rotate-180 dark:scale-100 dark:rotate-0 transition-transform duration-300" />
 						</Button>
 					</div>
 				</header>
