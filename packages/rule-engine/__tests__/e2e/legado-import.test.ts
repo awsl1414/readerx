@@ -193,6 +193,45 @@ describe("E2E Legado Import: book-source-rule", () => {
 	});
 });
 
+// ── CONVERSION RATE ──────────────────────────────────────────────
+
+describe("E2E Legado Import: conversion rate", () => {
+	it("achieves >= 70% structural conversion rate across all rule types", () => {
+		const bs = convertLegadoBookSources(loadLegadoData<LegadoBookSource>("book-source-rule.json"));
+		const dr = convertLegadoDictRules(loadLegadoData<LegadoDictRule>("dict-rule.json"));
+		const rr = convertLegadoReplaceRules(loadLegadoData<LegadoReplaceRule>("replace-rule.json"));
+		const tr = convertLegadoTxtTocRules(loadLegadoData<LegadoTxtTocRule>("txt-toc-rule.json"));
+
+		const total = bs.report.totalRules + dr.report.totalRules + rr.report.totalRules + tr.report.totalRules;
+		const structural = bs.report.convertedRules + bs.report.partialConvertedRules
+			+ dr.report.convertedRules + dr.report.partialConvertedRules
+			+ rr.report.convertedRules + rr.report.partialConvertedRules
+			+ tr.report.convertedRules + tr.report.partialConvertedRules;
+
+		const rate = structural / total;
+		expect(rate).toBeGreaterThanOrEqual(0.7);
+	});
+
+	it("book sources achieve >= 60% structural rate (most complex)", () => {
+		const bs = convertLegadoBookSources(loadLegadoData<LegadoBookSource>("book-source-rule.json"));
+		const structural = bs.report.convertedRules + bs.report.partialConvertedRules;
+		const rate = structural / bs.report.totalRules;
+		expect(rate).toBeGreaterThanOrEqual(0.6);
+	});
+
+	it("replace rules achieve 100% (no DSL)", () => {
+		const rr = convertLegadoReplaceRules(loadLegadoData<LegadoReplaceRule>("replace-rule.json"));
+		expect(rr.report.scriptFallbackRules).toBe(0);
+		expect(rr.report.convertedRules).toBe(rr.report.totalRules);
+	});
+
+	it("txt-toc rules achieve 100% (no DSL)", () => {
+		const tr = convertLegadoTxtTocRules(loadLegadoData<LegadoTxtTocRule>("txt-toc-rule.json"));
+		expect(tr.report.scriptFallbackRules).toBe(0);
+		expect(tr.report.convertedRules).toBe(tr.report.totalRules);
+	});
+});
+
 // ── ROUND-TRIP VALIDATION ────────────────────────────────────────
 
 describe("E2E Legado Import: round-trip validation", () => {
