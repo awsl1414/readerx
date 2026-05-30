@@ -181,7 +181,14 @@ function convertTocRules(
 		}
 	}
 
-	return { rules: rules as TocRules, nextUrl, conversions };
+	const result: { rules: TocRules; nextUrl?: Rule; conversions: ConversionResult[] } = {
+		rules: rules as TocRules,
+		conversions,
+	};
+	if (nextUrl) {
+		result.nextUrl = nextUrl;
+	}
+	return result;
 }
 
 function convertContentRules(
@@ -201,7 +208,6 @@ function convertContentRules(
 		if (value === undefined || value === "") continue;
 
 		if (legadoKey === "content") {
-			// content → text in rules
 			const conversion = parseLegadoRule(value);
 			conversions.push(conversion);
 			const rule = convertToRule(conversion);
@@ -209,12 +215,10 @@ function convertContentRules(
 				rules["text"] = rule;
 			}
 		} else if (legadoKey === "nextContentUrl") {
-			// nextContentUrl → module-level nextUrl
 			const conversion = parseLegadoRule(value);
 			conversions.push(conversion);
 			nextUrl = convertToRule(conversion);
 		} else if (legadoKey === "replaceRegex") {
-			// Parse ##-separated patterns into ReplacePair[]
 			const segments = value.split("##").filter((s) => s.length > 0);
 			if (segments.length > 0) {
 				replaceRegex = segments.map((segment) => ({
@@ -225,12 +229,22 @@ function convertContentRules(
 		}
 	}
 
-	return {
+	const contentResult: {
+		rules: ContentRules;
+		nextUrl?: Rule;
+		replaceRegex?: readonly ReplacePair[];
+		conversions: ConversionResult[];
+	} = {
 		rules: rules as ContentRules,
-		nextUrl,
-		replaceRegex,
 		conversions,
 	};
+	if (nextUrl) {
+		contentResult.nextUrl = nextUrl;
+	}
+	if (replaceRegex) {
+		contentResult.replaceRegex = replaceRegex;
+	}
+	return contentResult;
 }
 
 function parseExploreUrl(exploreUrl: string): ExploreCategory[] {
@@ -260,7 +274,6 @@ export function convertLegadoBookSources(
 	const convertedSources: BookSource[] = [];
 
 	for (const source of sources) {
-		const sourceWarnings: ImportError[] = [];
 		const sourceConversions: ConversionResult[] = [];
 
 		// ── Top-level field mapping ──────────────────────────
@@ -336,21 +349,21 @@ export function convertLegadoBookSources(
 
 		// ── Unsupported feature warnings ─────────────────────
 		if (source.enabledCookieJar !== undefined) {
-			sourceWarnings.push({
+			warnings.push({
 				kind: "unsupported_feature",
 				message: `Field "enabledCookieJar" is not supported in ReaderX format and will be ignored`,
 				path: "enabledCookieJar",
 			});
 		}
 		if (source.loginUi !== undefined) {
-			sourceWarnings.push({
+			warnings.push({
 				kind: "unsupported_feature",
 				message: `Field "loginUi" is not supported in ReaderX format and will be ignored`,
 				path: "loginUi",
 			});
 		}
 		if (source.loginCheckJs !== undefined) {
-			sourceWarnings.push({
+			warnings.push({
 				kind: "unsupported_feature",
 				message: `Field "loginCheckJs" is not supported in ReaderX format and will be ignored`,
 				path: "loginCheckJs",
@@ -361,7 +374,7 @@ export function convertLegadoBookSources(
 		// ── searchUrl → search module ────────────────────────
 		if (source.searchUrl) {
 			if (source.searchUrl.startsWith("@js:")) {
-				sourceWarnings.push({
+				warnings.push({
 					kind: "unsupported_feature",
 					message: `searchUrl with "@js:" prefix is not supported and will be skipped`,
 					path: "searchUrl",
@@ -389,11 +402,9 @@ export function convertLegadoBookSources(
 					}
 				}
 
-				(bookSource as { search?: SearchModule }).search = searchModule as unknown as SearchModule;
+				(bookSource as { search?: SearchModule }).search =
+					searchModule as unknown as SearchModule;
 			}
-		} else if (source.ruleSearch) {
-			// ruleSearch without searchUrl: still convert rules but search module needs url
-			// Actually search module requires url, so skip if no searchUrl
 		}
 
 		// ── exploreUrl → explore module ──────────────────────
@@ -417,7 +428,8 @@ export function convertLegadoBookSources(
 				}
 			}
 
-			(bookSource as { explore?: ExploreModule }).explore = exploreModule as unknown as ExploreModule;
+			(bookSource as { explore?: ExploreModule }).explore =
+				exploreModule as unknown as ExploreModule;
 		}
 
 		// ── ruleBookInfo → bookInfo module ────────────────────
@@ -468,12 +480,12 @@ export function convertLegadoBookSources(
 			}
 
 			if (Object.keys(contentModule).length > 0) {
-				(bookSource as { content?: ContentModule }).content = contentModule as unknown as ContentModule;
+				(bookSource as { content?: ContentModule }).content =
+					contentModule as unknown as ContentModule;
 			}
 		}
 
 		allConversions.push(...sourceConversions);
-		warnings.push(...sourceWarnings);
 		convertedSources.push(bookSource);
 	}
 
