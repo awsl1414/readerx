@@ -1,5 +1,8 @@
 "use client";
 
+import { AlertCircle, Check, XCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { Badge } from "@/components/ui/badge";
 import type { ImportResult } from "../types";
 
 type ImportResultReportProps = {
@@ -7,31 +10,53 @@ type ImportResultReportProps = {
 };
 
 function ImportResultReport({ result }: ImportResultReportProps) {
+	const t = useTranslations("sourceManager");
 	const { success, warnings, failures } = result;
 
 	return (
-		<div style={{ fontSize: "0.875rem", lineHeight: 1.6 }}>
-			<p>
-				导入完成: {success.length} 成功 / {warnings.length} 警告 /{" "}
-				{failures.length} 失败
-			</p>
+		<div className="space-y-3 text-sm">
+			<div className="flex items-center gap-2">
+				<Badge variant="secondary">
+					<Check className="size-3" />
+					{t("importSuccess", { count: success.length })}
+				</Badge>
+				{warnings.length > 0 && (
+					<Badge variant="outline">
+						<AlertCircle className="size-3" />
+						{t("importSkipped", { count: warnings.length })}
+					</Badge>
+				)}
+				{failures.length > 0 && (
+					<Badge variant="destructive">
+						<XCircle className="size-3" />
+						{t("importFailed", { count: failures.length })}
+					</Badge>
+				)}
+			</div>
 
 			{success.length > 0 && (
-				<div style={{ marginTop: 8 }}>
+				<div className="space-y-0.5">
 					{success.map((s) => (
-						<div key={s.bookSourceUrl} style={{ color: "oklch(0.7 0.15 150)" }}>
-							✓ {s.bookSourceName}
+						<div
+							key={s.bookSourceUrl}
+							className="flex items-center gap-1.5 text-sm text-green-600 dark:text-green-400"
+						>
+							<Check className="size-3 shrink-0" />
+							{s.bookSourceName}
 						</div>
 					))}
 				</div>
 			)}
 
 			{warnings.length > 0 && (
-				<div style={{ marginTop: 8 }}>
+				<div className="space-y-0.5">
 					{warnings.map((w) => (
-						<div key={w.source.bookSourceUrl} style={{ color: "oklch(0.75 0.15 85)" }}>
-							⚠ {w.source.bookSourceName}
-							<ul style={{ margin: "2px 0 4px 16px" }}>
+						<div key={w.source.bookSourceUrl}>
+							<div className="flex items-center gap-1.5 text-sm text-yellow-600 dark:text-yellow-400">
+								<AlertCircle className="size-3 shrink-0" />
+								{w.source.bookSourceName}
+							</div>
+							<ul className="ml-5 list-disc text-xs text-muted-foreground">
 								{w.reasons.map((r) => (
 									<li key={r}>{r}</li>
 								))}
@@ -42,15 +67,16 @@ function ImportResultReport({ result }: ImportResultReportProps) {
 			)}
 
 			{failures.length > 0 && (
-				<div style={{ marginTop: 8 }}>
-					{failures.map((f, i) => (
-						<div key={`fail-${i}`} style={{ color: "oklch(0.7 0.2 25)" }}>
-							✗{" "}
-							{typeof f.raw.bookSourceName === "string"
-								? f.raw.bookSourceName
-								: "未知书源"}{" "}
-							(校验失败)
-							<ul style={{ margin: "2px 0 4px 16px" }}>
+				<div className="space-y-0.5">
+					{failures.map((f) => (
+						<div key={JSON.stringify(f.raw)}>
+							<div className="flex items-center gap-1.5 text-sm text-destructive">
+								<XCircle className="size-3 shrink-0" />
+								{typeof f.raw.bookSourceName === "string"
+									? f.raw.bookSourceName
+									: "未知书源"}
+							</div>
+							<ul className="ml-5 list-disc text-xs text-muted-foreground">
 								{f.reasons.map((r) => (
 									<li key={r}>{r}</li>
 								))}

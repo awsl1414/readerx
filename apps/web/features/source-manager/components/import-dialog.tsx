@@ -1,8 +1,20 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useCallback, useState } from "react";
-import { useSourceMutations } from "../hooks/use-sources";
+import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { importSources } from "../hooks/use-source-import";
+import { useSourceMutations } from "../hooks/use-sources";
 import type { ImportResult } from "../types";
 import { ImportResultReport } from "./import-result-report";
 
@@ -11,10 +23,9 @@ type ImportDialogProps = {
 	readonly onClose: () => void;
 };
 
-type ImportTab = "url" | "file" | "paste";
-
 function ImportDialog({ open, onClose }: ImportDialogProps) {
-	const [tab, setTab] = useState<ImportTab>("url");
+	const t = useTranslations("sourceManager");
+	const [tab, setTab] = useState("url");
 	const [urlInput, setUrlInput] = useState("");
 	const [pasteInput, setPasteInput] = useState("");
 	const [loading, setLoading] = useState(false);
@@ -47,9 +58,7 @@ function ImportDialog({ open, onClose }: ImportDialogProps) {
 					saveBatch.mutate(importResult.success);
 				}
 			} catch (e: unknown) {
-				setError(
-					e instanceof Error ? e.message : "JSON 解析失败",
-				);
+				setError(e instanceof Error ? e.message : "JSON parse failed");
 			} finally {
 				setLoading(false);
 			}
@@ -63,12 +72,10 @@ function ImportDialog({ open, onClose }: ImportDialogProps) {
 		try {
 			const resp = await fetch(urlInput.trim());
 			const text = await resp.text();
-			handleImport(text);
+			void handleImport(text);
 		} catch (e: unknown) {
 			setLoading(false);
-			setError(
-				e instanceof Error ? e.message : "网络请求失败",
-			);
+			setError(e instanceof Error ? e.message : "Network request failed");
 		}
 	}, [urlInput, handleImport]);
 
@@ -78,180 +85,96 @@ function ImportDialog({ open, onClose }: ImportDialogProps) {
 			if (!file) return;
 			const reader = new FileReader();
 			reader.onload = () => {
-				handleImport(reader.result as string);
+				void handleImport(reader.result as string);
 			};
 			reader.readAsText(file);
 		},
 		[handleImport],
 	);
 
-	if (!open) return null;
-
 	return (
-		<div
-			style={{
-				position: "fixed",
-				inset: 0,
-				zIndex: 50,
-				display: "flex",
-				alignItems: "center",
-				justifyContent: "center",
-				background: "oklch(0 0 0 / 0.5)",
+		<Dialog
+			open={open}
+			onOpenChange={(isOpen) => {
+				if (!isOpen) handleClose();
 			}}
 		>
-			<div
-				style={{
-					background: "oklch(0.15 0 0)",
-					borderRadius: 12,
-					padding: 24,
-					width: "min(90vw, 560px)",
-					maxHeight: "80vh",
-					overflow: "auto",
-				}}
-			>
-				<h2 style={{ marginBottom: 16, fontSize: "1.125rem", fontWeight: 600 }}>
-					导入书源
-				</h2>
+			<DialogContent className="max-w-lg">
+				<DialogHeader>
+					<DialogTitle>{t("importTitle")}</DialogTitle>
+					<DialogDescription className="sr-only">
+						{t("importTitle")}
+					</DialogDescription>
+				</DialogHeader>
 
-				<div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-					{(["url", "file", "paste"] as const).map((t) => (
-						<button
-							key={t}
-							type="button"
-							onClick={() => setTab(t)}
-							style={{
-								padding: "4px 12px",
-								borderRadius: 6,
-								border: "1px solid",
-								borderColor:
-									tab === t ? "oklch(0.6 0.2 250)" : "oklch(0.3 0 0)",
-								background:
-									tab === t ? "oklch(0.2 0.05 250)" : "transparent",
-								color: "oklch(0.85 0 0)",
-								cursor: "pointer",
-								fontSize: "0.875rem",
-							}}
-						>
-							{t === "url" ? "URL 导入" : t === "file" ? "文件导入" : "粘贴导入"}
-						</button>
-					))}
-				</div>
+				<Tabs value={tab} onValueChange={setTab}>
+					<TabsList className="w-full">
+						<TabsTrigger value="url" className="flex-1 text-xs">
+							{t("importUrl")}
+						</TabsTrigger>
+						<TabsTrigger value="file" className="flex-1 text-xs">
+							{t("importFile")}
+						</TabsTrigger>
+						<TabsTrigger value="paste" className="flex-1 text-xs">
+							{t("importPaste")}
+						</TabsTrigger>
+					</TabsList>
 
-				{tab === "url" && (
-					<div style={{ display: "flex", gap: 8 }}>
-						<input
-							type="url"
-							placeholder="https://example.com/sources.json"
-							value={urlInput}
-							onChange={(e) => setUrlInput(e.target.value)}
-							style={{
-								flex: 1,
-								padding: "6px 10px",
-								borderRadius: 6,
-								border: "1px solid oklch(0.3 0 0)",
-								background: "oklch(0.12 0 0)",
-								color: "oklch(0.9 0 0)",
-								fontSize: "0.875rem",
-							}}
-						/>
-						<button
-							type="button"
-							onClick={handleUrlImport}
+					<TabsContent value="url" className="mt-3">
+						<div className="flex gap-2">
+							<Input
+								type="url"
+								placeholder={t("importUrlPlaceholder")}
+								value={urlInput}
+								onChange={(e) => setUrlInput(e.target.value)}
+								className="flex-1 text-sm"
+							/>
+							<Button size="sm" onClick={handleUrlImport} disabled={loading}>
+								{loading ? t("importFetching") : t("importFetch")}
+							</Button>
+						</div>
+					</TabsContent>
+
+					<TabsContent value="file" className="mt-3">
+						<Input
+							type="file"
+							accept=".json"
+							onChange={handleFileImport}
 							disabled={loading}
-							style={{
-								padding: "6px 16px",
-								borderRadius: 6,
-								background: "oklch(0.5 0.2 250)",
-								color: "white",
-								cursor: loading ? "wait" : "pointer",
-								fontSize: "0.875rem",
-								border: "none",
-							}}
-						>
-							{loading ? "获取中..." : "获取并导入"}
-						</button>
-					</div>
-				)}
-
-				{tab === "file" && (
-					<input
-						type="file"
-						accept=".json"
-						onChange={handleFileImport}
-						disabled={loading}
-						style={{ color: "oklch(0.85 0 0)" }}
-					/>
-				)}
-
-				{tab === "paste" && (
-					<div>
-						<textarea
-							placeholder="粘贴 JSON（数组或单对象）"
-							value={pasteInput}
-							onChange={(e) => setPasteInput(e.target.value)}
-							rows={8}
-							style={{
-								width: "100%",
-								padding: 8,
-								borderRadius: 6,
-								border: "1px solid oklch(0.3 0 0)",
-								background: "oklch(0.12 0 0)",
-								color: "oklch(0.9 0 0)",
-								fontSize: "0.875rem",
-								fontFamily: "monospace",
-								resize: "vertical",
-								boxSizing: "border-box",
-							}}
+							className="text-sm"
 						/>
-						<button
-							type="button"
-							onClick={() => handleImport(pasteInput)}
-							disabled={loading || !pasteInput.trim()}
-							style={{
-								marginTop: 8,
-								padding: "6px 16px",
-								borderRadius: 6,
-								background: "oklch(0.5 0.2 250)",
-								color: "white",
-								cursor: loading ? "wait" : "pointer",
-								fontSize: "0.875rem",
-								border: "none",
-							}}
-						>
-							{loading ? "解析中..." : "导入"}
-						</button>
-					</div>
-				)}
+					</TabsContent>
 
-				{error && (
-					<p style={{ marginTop: 12, color: "oklch(0.7 0.2 25)" }}>{error}</p>
-				)}
+					<TabsContent value="paste" className="mt-3">
+						<div className="flex flex-col gap-2">
+							<Textarea
+								placeholder={t("importPastePlaceholder")}
+								value={pasteInput}
+								onChange={(e) => setPasteInput(e.target.value)}
+								rows={8}
+								className="font-mono text-xs"
+							/>
+							<Button
+								size="sm"
+								onClick={() => void handleImport(pasteInput)}
+								disabled={loading || !pasteInput.trim()}
+								className="self-end"
+							>
+								{loading ? t("importParsing") : t("importImport")}
+							</Button>
+						</div>
+					</TabsContent>
+				</Tabs>
+
+				{error && <p className="text-sm text-destructive">{error}</p>}
 
 				{result && (
-					<div style={{ marginTop: 16 }}>
+					<div className="mt-2">
 						<ImportResultReport result={result} />
 					</div>
 				)}
-
-				<div style={{ marginTop: 16, textAlign: "right" }}>
-					<button
-						type="button"
-						onClick={handleClose}
-						style={{
-							padding: "6px 16px",
-							borderRadius: 6,
-							border: "1px solid oklch(0.3 0 0)",
-							background: "transparent",
-							color: "oklch(0.85 0 0)",
-							cursor: "pointer",
-							fontSize: "0.875rem",
-						}}
-					>
-						关闭
-					</button>
-				</div>
-			</div>
-		</div>
+			</DialogContent>
+		</Dialog>
 	);
 }
 

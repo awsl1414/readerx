@@ -1,8 +1,11 @@
-// features/source-manager/components/source-filter-bar.tsx
-
 "use client";
 
+import { Plus, Search } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useCallback, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { FilterMode } from "../types";
 
 type SourceFilterBarProps = {
@@ -13,13 +16,6 @@ type SourceFilterBarProps = {
 	readonly onImport: () => void;
 };
 
-const FILTER_OPTIONS: Array<{ value: FilterMode; label: string }> = [
-	{ value: "all", label: "全部" },
-	{ value: "enabled", label: "已启用" },
-	{ value: "disabled", label: "已禁用" },
-	{ value: "error", label: "异常" },
-];
-
 function SourceFilterBar({
 	filterMode,
 	searchQuery,
@@ -27,6 +23,7 @@ function SourceFilterBar({
 	onSearchChange,
 	onImport,
 }: SourceFilterBarProps) {
+	const t = useTranslations("sourceManager");
 	const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	const handleSearch = useCallback(
@@ -39,65 +36,37 @@ function SourceFilterBar({
 	);
 
 	return (
-		<div style={{ padding: "8px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
-			<input
-				type="search"
-				placeholder="搜索书源..."
-				defaultValue={searchQuery}
-				onChange={handleSearch}
-				style={{
-					width: "100%",
-					padding: "6px 10px",
-					borderRadius: 6,
-					border: "1px solid oklch(0.3 0 0)",
-					background: "oklch(0.12 0 0)",
-					color: "oklch(0.9 0 0)",
-					fontSize: "0.875rem",
-					boxSizing: "border-box",
-				}}
-			/>
-			<div style={{ display: "flex", gap: 4 }}>
-				{FILTER_OPTIONS.map((opt) => (
-					<button
-						key={opt.value}
-						type="button"
-						onClick={() => onFilterChange(opt.value)}
-						style={{
-							padding: "3px 10px",
-							borderRadius: 4,
-							border: "none",
-							background:
-								filterMode === opt.value
-									? "oklch(0.3 0.1 250)"
-									: "transparent",
-							color:
-								filterMode === opt.value
-									? "oklch(0.9 0.1 250)"
-									: "oklch(0.6 0 0)",
-							cursor: "pointer",
-							fontSize: "0.8rem",
-						}}
-					>
-						{opt.label}
-					</button>
-				))}
+		<div className="flex flex-col gap-2 p-3">
+			<div className="relative">
+				<Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+				<Input
+					type="search"
+					placeholder={t("searchPlaceholder")}
+					defaultValue={searchQuery}
+					onChange={handleSearch}
+					className="h-8 pl-8 text-xs"
+				/>
 			</div>
-			<button
-				type="button"
-				onClick={onImport}
-				style={{
-					padding: "6px 12px",
-					borderRadius: 6,
-					border: "1px solid oklch(0.3 0.05 250)",
-					background: "transparent",
-					color: "oklch(0.7 0.1 250)",
-					cursor: "pointer",
-					fontSize: "0.8rem",
-					width: "100%",
-				}}
+			<Tabs
+				value={filterMode}
+				onValueChange={(v) => onFilterChange(v as FilterMode)}
 			>
-				+ 导入书源
-			</button>
+				<TabsList className="h-7 w-full">
+					<TabsTrigger value="all" className="text-xs flex-1">
+						{t("filterAll")}
+					</TabsTrigger>
+					<TabsTrigger value="enabled" className="text-xs flex-1">
+						{t("filterEnabled")}
+					</TabsTrigger>
+					<TabsTrigger value="disabled" className="text-xs flex-1">
+						{t("filterDisabled")}
+					</TabsTrigger>
+				</TabsList>
+			</Tabs>
+			<Button variant="outline" size="sm" onClick={onImport} className="w-full">
+				<Plus className="size-3.5" />
+				{t("import")}
+			</Button>
 		</div>
 	);
 }

@@ -1,6 +1,12 @@
-// features/source-manager/components/rule-section.tsx
-
 "use client";
+
+import { ChevronRight } from "lucide-react";
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { cn } from "@/lib/cn";
 
 type RuleSectionProps = {
 	readonly title: string;
@@ -18,38 +24,22 @@ function RuleSection({
 	children,
 }: RuleSectionProps) {
 	return (
-		<div style={{ borderBottom: "1px solid oklch(0.2 0 0)" }}>
-			<button
-				type="button"
-				onClick={() => onToggle(sectionKey)}
-				style={{
-					width: "100%",
-					padding: "10px 16px",
-					background: "transparent",
-					border: "none",
-					color: "oklch(0.85 0 0)",
-					cursor: "pointer",
-					display: "flex",
-					alignItems: "center",
-					gap: 8,
-					fontSize: "0.9rem",
-					fontWeight: 500,
-					textAlign: "left",
-				}}
-			>
-				<span
-					style={{
-						transition: "transform 0.15s",
-						transform: expanded ? "rotate(90deg)" : "rotate(0deg)",
-						display: "inline-block",
-					}}
-				>
-					▶
-				</span>
+		<Collapsible
+			open={expanded}
+			onOpenChange={() => onToggle(sectionKey)}
+			className="border-b border-border"
+		>
+			<CollapsibleTrigger className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-medium text-foreground/85 hover:bg-surface-1 transition-colors">
+				<ChevronRight
+					className={cn(
+						"size-4 shrink-0 transition-transform duration-150",
+						expanded && "rotate-90",
+					)}
+				/>
 				{title}
-			</button>
-			{expanded && <div style={{ padding: "0 16px 16px" }}>{children}</div>}
-		</div>
+			</CollapsibleTrigger>
+			<CollapsibleContent className="px-4 pb-4">{children}</CollapsibleContent>
+		</Collapsible>
 	);
 }
 

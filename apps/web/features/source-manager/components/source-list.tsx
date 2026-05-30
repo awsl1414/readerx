@@ -1,8 +1,7 @@
-// features/source-manager/components/source-list.tsx
-
 "use client";
 
 import type { BookSourceRecord } from "@readerx/persistence";
+import { useTranslations } from "next-intl";
 import { useSourceCapabilities } from "../hooks/use-source-capabilities";
 import { useSourceMutations } from "../hooks/use-sources";
 import { useSourceManagerStore } from "../store";
@@ -39,12 +38,9 @@ function SourceListItemWithCapabilities({
 	);
 }
 
-function SourceList({
-	sources,
-	isLoading,
-	importOpen,
-	onImportOpen,
-}: SourceListProps) {
+function SourceList({ sources, isLoading, onImportOpen }: SourceListProps) {
+	const t = useTranslations("sourceManager");
+	const tCommon = useTranslations("common");
 	const filterMode = useSourceManagerStore((s) => s.filterMode);
 	const searchQuery = useSourceManagerStore((s) => s.searchQuery);
 	const setFilterMode = useSourceManagerStore((s) => s.setFilterMode);
@@ -53,8 +49,8 @@ function SourceList({
 
 	if (isLoading) {
 		return (
-			<div style={{ padding: 24, color: "oklch(0.5 0 0)", textAlign: "center" }}>
-				加载中...
+			<div className="flex items-center justify-center p-6 text-sm text-muted-foreground">
+				{tCommon("loading")}
 			</div>
 		);
 	}
@@ -64,7 +60,7 @@ function SourceList({
 	}
 
 	return (
-		<div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+		<div className="flex h-full flex-col">
 			<SourceFilterBar
 				filterMode={filterMode}
 				searchQuery={searchQuery}
@@ -72,10 +68,10 @@ function SourceList({
 				onSearchChange={setSearchQuery}
 				onImport={onImportOpen}
 			/>
-			<div style={{ flex: 1, overflow: "auto" }}>
+			<div className="flex-1 overflow-y-auto">
 				{sources.length === 0 ? (
-					<div style={{ padding: 24, color: "oklch(0.5 0 0)", textAlign: "center" }}>
-						未找到匹配的书源
+					<div className="p-6 text-center text-sm text-muted-foreground">
+						{t("noMatch")}
 					</div>
 				) : (
 					sources.map((source) => (

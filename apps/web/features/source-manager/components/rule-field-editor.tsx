@@ -1,8 +1,10 @@
-// features/source-manager/components/rule-field-editor.tsx
-
 "use client";
 
 import { useCallback, useMemo } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/cn";
 
 type RuleFieldEditorProps = {
 	readonly label: string;
@@ -48,72 +50,34 @@ function RuleFieldEditor({
 	const lineCount = Math.max(2, value.split("\n").length);
 
 	return (
-		<div style={{ marginBottom: 8 }}>
-			<div
-				style={{
-					display: "flex",
-					alignItems: "center",
-					gap: 8,
-					marginBottom: 4,
-				}}
-			>
-				<label
+		<div className="mb-2">
+			<div className="mb-1 flex items-center gap-2">
+				<Label
 					htmlFor={fieldName}
-					style={{
-						fontSize: "0.8rem",
-						color: "oklch(0.7 0 0)",
-						fontWeight: 500,
-					}}
+					className="text-xs font-medium text-muted-foreground"
 				>
 					{label}
-				</label>
+				</Label>
 				{parserType && (
-					<span
-						style={{
-							padding: "1px 6px",
-							borderRadius: 3,
-							background: "oklch(0.2 0.03 250)",
-							color: "oklch(0.7 0.1 250)",
-							fontSize: "0.65rem",
-							fontFamily: "monospace",
-						}}
+					<Badge
+						variant="secondary"
+						className="font-mono text-[0.65rem] px-1.5 py-0"
 					>
 						{parserType}
-					</span>
+					</Badge>
 				)}
 			</div>
-			<textarea
+			<Textarea
 				id={fieldName}
 				value={value}
 				onChange={handleChange}
 				rows={lineCount}
-				style={{
-					width: "100%",
-					padding: "6px 8px",
-					borderRadius: 6,
-					border: `1px solid ${
-						error ? "oklch(0.6 0.2 25)" : "oklch(0.25 0 0)"
-					}`,
-					background: "oklch(0.1 0 0)",
-					color: "oklch(0.9 0 0)",
-					fontSize: "0.8rem",
-					fontFamily: "monospace",
-					resize: "vertical",
-					lineHeight: 1.5,
-					boxSizing: "border-box",
-				}}
+				className={cn(
+					"font-mono text-xs resize-y",
+					error && "border-destructive",
+				)}
 			/>
-			{error && (
-				<p
-					style={{
-						fontSize: "0.75rem",
-						color: "oklch(0.7 0.2 25)",
-						marginTop: 2,
-					}}
-				>
-					{error}
-				</p>
-			)}
+			{error && <p className="mt-0.5 text-xs text-destructive">{error}</p>}
 		</div>
 	);
 }

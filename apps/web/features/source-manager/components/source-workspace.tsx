@@ -1,8 +1,7 @@
-// features/source-manager/components/source-workspace.tsx
-
 "use client";
 
-import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { useMemo, useState } from "react";
 import { useSourceDetail } from "../hooks/use-source-detail";
 import { useSources } from "../hooks/use-sources";
 import { useSourceManagerStore } from "../store";
@@ -12,36 +11,52 @@ import { SourceEditor } from "./source-editor";
 import { SourceList } from "./source-list";
 
 function SourceWorkspace() {
+	const t = useTranslations("sourceManager");
 	const selectedUrl = useSourceManagerStore((s) => s.selectedSourceUrl);
 	const debuggerOpen = useSourceManagerStore((s) => s.debuggerOpen);
 	const filterMode = useSourceManagerStore((s) => s.filterMode);
 	const searchQuery = useSourceManagerStore((s) => s.searchQuery);
+	const mobileLayer = useSourceManagerStore((s) => s.mobileLayer);
+
 	const [importOpen, setImportOpen] = useState(false);
 
-	const { data: sources = [], isLoading } = useSources({
-		filterMode,
-		searchQuery,
-	});
+	const { data: allSources = [], isLoading } = useSources();
 	const { data: selectedSource } = useSourceDetail(selectedUrl);
 
+	// Client-side filtering based on filterMode and searchQuery
+	const sources = useMemo(() => {
+		let filtered = allSources;
+
+		if (filterMode === "enabled") {
+			filtered = filtered.filter((s) => s.enabled);
+		} else if (filterMode === "disabled") {
+			filtered = filtered.filter((s) => !s.enabled);
+		}
+
+		if (searchQuery.trim()) {
+			const query = searchQuery.toLowerCase();
+			filtered = filtered.filter(
+				(s) =>
+					s.bookSourceName.toLowerCase().includes(query) ||
+					s.bookSourceUrl.toLowerCase().includes(query) ||
+					(s.bookSourceGroup ?? "").toLowerCase().includes(query),
+			);
+		}
+
+		return filtered;
+	}, [allSources, filterMode, searchQuery]);
+
 	return (
-		<div
-			style={{
-				display: "flex",
-				height: "100%",
-				background: "oklch(0.12 0 0)",
-				color: "oklch(0.9 0 0)",
-			}}
-		>
+		<div className="flex h-full bg-background text-foreground">
+			{/* Mobile: show only active layer */}
+			{/* Desktop: always show list panel */}
+
 			{/* Layer 0: Source List */}
 			<div
-				style={{
-					width: 280,
-					minWidth: 280,
-					borderRight: "1px solid oklch(0.2 0 0)",
-					display: "flex",
-					flexDirection: "column",
-				}}
+				className={
+					"border-r border-border md:flex md:w-[280px] md:min-w-[280px] md:flex-col" +
+					(mobileLayer === 0 ? " flex flex-col" : " hidden md:flex md:flex-col")
+				}
 			>
 				<SourceList
 					sources={sources}
@@ -52,41 +67,37 @@ function SourceWorkspace() {
 			</div>
 
 			{/* Layer 1: Source Editor */}
-			<div style={{ flex: 1, overflow: "hidden" }}>
+			<div
+				className={
+					"flex-1 overflow-hidden md:block" +
+					(mobileLayer === 1 ? " block" : " hidden md:block")
+				}
+			>
 				{selectedSource ? (
 					<SourceEditor source={selectedSource} />
 				) : (
-					<div
-						style={{
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
-							height: "100%",
-							color: "oklch(0.5 0 0)",
-						}}
-					>
-						选择一个书源进行编辑
+					<div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+						{t("selectToEdit")}
 					</div>
 				)}
 			</div>
 
-			{/* Layer 2: Source Debugger */}
+			{/* Layer 2: Source Debugger (desktop: side panel, mobile: overlay) */}
 			{debuggerOpen && selectedSource && (
 				<div
-					style={{
-						width: 360,
-						borderLeft: "1px solid oklch(0.2 0 0)",
-					}}
+					className={
+						"w-[320px] border-l border-border" +
+						(mobileLayer === 2
+							? " fixed inset-0 z-40 w-full bg-background md:relative md:z-auto md:w-[320px]"
+							: " hidden md:block")
+					}
 				>
 					<SourceDebugger source={selectedSource} />
 				</div>
 			)}
 
 			{/* Import Dialog */}
-			<ImportDialog
-				open={importOpen}
-				onClose={() => setImportOpen(false)}
-			/>
+			<ImportDialog open={importOpen} onClose={() => setImportOpen(false)} />
 		</div>
 	);
 }

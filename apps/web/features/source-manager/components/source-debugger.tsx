@@ -1,9 +1,14 @@
-// features/source-manager/components/source-debugger.tsx
-
 "use client";
 
-import { useState } from "react";
 import type { BookSourceRecord } from "@readerx/persistence";
+import { Play, RotateCcw, Square, X } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSourceDebug } from "../hooks/use-source-debug";
 import { useSourceManagerStore } from "../store";
 import { DebugConsole } from "./debug-console";
@@ -14,175 +19,114 @@ type SourceDebuggerProps = {
 	readonly source: BookSourceRecord;
 };
 
-type DebuggerTab = "pipeline" | "console";
-
 function SourceDebugger({ source: _source }: SourceDebuggerProps) {
-	// source prop reserved for future pipeline execution context
+	const t = useTranslations("sourceManager");
 	const { stages, logs, isRunning, runPipeline, abort, reset } =
 		useSourceDebug();
 	const setDebuggerOpen = useSourceManagerStore((s) => s.setDebuggerOpen);
 	const [testUrl, setTestUrl] = useState("");
-	const [activeTab, setActiveTab] = useState<DebuggerTab>("pipeline");
+	const [activeTab, setActiveTab] = useState("pipeline");
 
 	const lastStage = stages[stages.length - 1];
 
 	return (
-		<div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+		<div className="flex h-full flex-col">
 			{/* Header */}
-			<div
-				style={{
-					padding: "8px 12px",
-					borderBottom: "1px solid oklch(0.2 0 0)",
-					display: "flex",
-					alignItems: "center",
-					justifyContent: "space-between",
-				}}
-			>
-				<span style={{ fontSize: "0.85rem", fontWeight: 500 }}>调试器</span>
-				<button
-					type="button"
+			<div className="flex items-center justify-between px-3 py-2">
+				<span className="text-sm font-medium">{t("debug")}</span>
+				<Button
+					variant="ghost"
+					size="icon"
+					className="size-6"
 					onClick={() => setDebuggerOpen(false)}
-					style={{
-						background: "transparent",
-						border: "none",
-						color: "oklch(0.5 0 0)",
-						cursor: "pointer",
-						fontSize: "0.8rem",
-					}}
 				>
-					&#x25B8; 收起
-				</button>
+					<X className="size-3.5" />
+				</Button>
 			</div>
 
+			<Separator />
+
 			{/* URL input */}
-			<div
-				style={{
-					padding: "8px 12px",
-					borderBottom: "1px solid oklch(0.2 0 0)",
-				}}
-			>
-				<input
+			<div className="flex flex-col gap-2 px-3 py-2">
+				<Input
 					type="url"
-					placeholder="输入测试 URL..."
+					placeholder="URL..."
 					value={testUrl}
 					onChange={(e) => setTestUrl(e.target.value)}
-					style={{
-						width: "100%",
-						padding: "6px 8px",
-						borderRadius: 6,
-						border: "1px solid oklch(0.3 0 0)",
-						background: "oklch(0.12 0 0)",
-						color: "oklch(0.9 0 0)",
-						fontSize: "0.8rem",
-						boxSizing: "border-box",
-					}}
+					className="h-8 text-xs"
 				/>
-				<div style={{ display: "flex", gap: 8, marginTop: 6 }}>
-					<button
-						type="button"
+				<div className="flex gap-2">
+					<Button
+						size="sm"
+						variant={isRunning ? "secondary" : "default"}
 						onClick={() => {
 							void runPipeline(testUrl);
 						}}
 						disabled={isRunning || !testUrl.trim()}
-						style={{
-							flex: 1,
-							padding: "5px 12px",
-							borderRadius: 6,
-							background: "oklch(0.5 0.2 150)",
-							color: "white",
-							border: "none",
-							cursor: isRunning ? "wait" : "pointer",
-							fontSize: "0.8rem",
-						}}
+						className="flex-1 text-xs"
 					>
-						{isRunning ? "执行中..." : "▶ Run Pipeline"}
-					</button>
+						{isRunning
+							? t("debugRunning")
+							: [t("debugRun"), <Play className="size-3" key="icon" />]}
+					</Button>
 					{isRunning && (
-						<button
-							type="button"
+						<Button
+							variant="destructive"
+							size="sm"
 							onClick={abort}
-							style={{
-								padding: "5px 12px",
-								borderRadius: 6,
-								background: "oklch(0.5 0.2 25)",
-								color: "white",
-								border: "none",
-								cursor: "pointer",
-								fontSize: "0.8rem",
-							}}
+							className="text-xs"
 						>
-							&#x25A0; Stop
-						</button>
+							<Square className="size-3" />
+							{t("debugStop")}
+						</Button>
 					)}
-					<button
-						type="button"
+					<Button
+						variant="outline"
+						size="sm"
 						onClick={reset}
-						style={{
-							padding: "5px 8px",
-							borderRadius: 6,
-							border: "1px solid oklch(0.3 0 0)",
-							background: "transparent",
-							color: "oklch(0.6 0 0)",
-							cursor: "pointer",
-							fontSize: "0.8rem",
-						}}
+						className="text-xs"
 					>
-						重置
-					</button>
+						<RotateCcw className="size-3" />
+						{t("debugReset")}
+					</Button>
 				</div>
 			</div>
 
-			{/* Tab switch */}
-			<div
-				style={{
-					display: "flex",
-					borderBottom: "1px solid oklch(0.2 0 0)",
-				}}
-			>
-				{(["pipeline", "console"] as const).map((t) => (
-					<button
-						key={t}
-						type="button"
-						onClick={() => setActiveTab(t)}
-						style={{
-							flex: 1,
-							padding: "6px 0",
-							background: "transparent",
-							border: "none",
-							borderBottom:
-								activeTab === t
-									? "2px solid oklch(0.6 0.2 250)"
-									: "none",
-							color:
-								activeTab === t
-									? "oklch(0.85 0 0)"
-									: "oklch(0.5 0 0)",
-							cursor: "pointer",
-							fontSize: "0.8rem",
-						}}
-					>
-						{t === "pipeline" ? "Pipeline" : "Console"}
-					</button>
-				))}
-			</div>
+			<Separator />
 
-			{/* Content */}
-			<div style={{ flex: 1, overflow: "auto" }}>
-				{activeTab === "pipeline" && (
-					<>
+			{/* Tab switch */}
+			<Tabs
+				value={activeTab}
+				onValueChange={setActiveTab}
+				className="flex flex-1 flex-col"
+			>
+				<TabsList className="mx-3 mt-2">
+					<TabsTrigger value="pipeline" className="text-xs">
+						Pipeline
+					</TabsTrigger>
+					<TabsTrigger value="console" className="text-xs">
+						Console
+					</TabsTrigger>
+				</TabsList>
+
+				<TabsContent value="pipeline" className="mt-0 flex-1 overflow-y-auto">
+					<ScrollArea className="h-full">
 						<DebugPipeline stages={stages} />
 						{lastStage && (
-							<div style={{ padding: 12 }}>
+							<div className="px-3 py-2">
 								<DebugResultViewer
 									result={lastStage.result}
 									error={lastStage.error}
 								/>
 							</div>
 						)}
-					</>
-				)}
-				{activeTab === "console" && <DebugConsole logs={logs} />}
-			</div>
+					</ScrollArea>
+				</TabsContent>
+
+				<TabsContent value="console" className="mt-0 flex-1 overflow-y-auto">
+					<DebugConsole logs={logs} />
+				</TabsContent>
+			</Tabs>
 		</div>
 	);
 }
