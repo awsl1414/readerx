@@ -61,7 +61,6 @@ function SourceWorkspace() {
 				<SourceList
 					sources={sources}
 					isLoading={isLoading}
-					importOpen={importOpen}
 					onImportOpen={() => setImportOpen(true)}
 				/>
 			</div>

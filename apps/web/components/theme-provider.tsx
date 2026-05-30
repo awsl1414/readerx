@@ -103,5 +103,5 @@ function useTheme(): ThemeContextValue {
 	return ctx;
 }
 
-export { ThemeProvider, useTheme };
 export type { ResolvedTheme, Theme };
+export { ThemeProvider, useTheme };

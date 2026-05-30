@@ -12,7 +12,6 @@ import { SourceListItem } from "./source-list-item";
 type SourceListProps = {
 	readonly sources: readonly BookSourceRecord[];
 	readonly isLoading: boolean;
-	readonly importOpen: boolean;
 	readonly onImportOpen: () => void;
 };
 

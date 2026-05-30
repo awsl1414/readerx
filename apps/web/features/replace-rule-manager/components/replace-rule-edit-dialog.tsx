@@ -2,7 +2,7 @@
 
 import type { ReplaceRule } from "@readerx/persistence";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -55,7 +55,12 @@ function ReplaceRuleEditDialog({
 		() => rule ?? { ...createDefaultRule(), id: "" },
 	);
 
-	// Sync form when rule changes or dialog opens
+	// Reset form when switching between different rules
+	useEffect(() => {
+		setFormState(rule ?? { ...createDefaultRule(), id: "" });
+	}, [rule]);
+
+	// Sync form when dialog opens
 	const handleOpenChange = (isOpen: boolean) => {
 		if (isOpen) {
 			setFormState(rule ?? { ...createDefaultRule(), id: crypto.randomUUID() });

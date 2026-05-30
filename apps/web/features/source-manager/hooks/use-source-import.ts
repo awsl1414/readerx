@@ -26,7 +26,7 @@ function classifySource(raw: RawSource): {
 		compatWarnings.push("Uses Java API (partial support on Web)");
 
 	return {
-		record: source as unknown as BookSourceRecord,
+		record: source as BookSourceRecord,
 		compatWarnings,
 	};
 }

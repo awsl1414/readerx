@@ -46,8 +46,8 @@ describe("TocPanel", () => {
 
 		const currentButton = buttons[1];
 		expect(currentButton).toBeTruthy();
-		expect(currentButton?.style.fontWeight).toBe("500");
-		expect(currentButton?.style.opacity).toBe("0.9");
+		// Active chapter uses font-medium and bg-foreground/10
+		expect(currentButton?.className).toContain("font-medium");
 	});
 
 	it("fires onSelect with correct index when chapter is clicked", () => {
@@ -73,7 +73,7 @@ describe("TocPanel", () => {
 		expect(onSelect).toHaveBeenCalledWith(2);
 	});
 
-	it("applies mobile width style when isMobile=true", () => {
+	it("applies mobile width class when isMobile=true", () => {
 		const { container } = render(
 			<TocPanel
 				chapters={chapters}
@@ -85,10 +85,10 @@ describe("TocPanel", () => {
 
 		const panel = container.firstChild as HTMLElement;
 		expect(panel).toBeTruthy();
-		expect(panel.style.width).toBe("60%");
+		expect(panel.className).toContain("w-[60%]");
 	});
 
-	it("applies desktop width style when isMobile=false", () => {
+	it("applies desktop width class when isMobile=false", () => {
 		const { container } = render(
 			<TocPanel
 				chapters={chapters}
@@ -100,6 +100,6 @@ describe("TocPanel", () => {
 
 		const panel = container.firstChild as HTMLElement;
 		expect(panel).toBeTruthy();
-		expect(panel.style.width).toBe("35%");
+		expect(panel.className).toContain("w-[35%]");
 	});
 });

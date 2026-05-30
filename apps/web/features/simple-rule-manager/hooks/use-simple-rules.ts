@@ -1,12 +1,13 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMemo } from "react";
 import type { RuleManagerConfig } from "../types";
 
 function useSimpleRules<T extends { id: string }>(
 	config: RuleManagerConfig<T>,
 ) {
-	const repo = config.createRepository();
+	const repo = useMemo(() => config.createRepository(), [config]);
 
 	return useQuery({
 		queryKey: [config.queryKeyPrefix],
@@ -19,7 +20,7 @@ function useSimpleRuleMutations<T extends { id: string }>(
 	config: RuleManagerConfig<T>,
 ) {
 	const queryClient = useQueryClient();
-	const repo = config.createRepository();
+	const repo = useMemo(() => config.createRepository(), [config]);
 
 	const invalidate = () =>
 		queryClient.invalidateQueries({ queryKey: [config.queryKeyPrefix] });

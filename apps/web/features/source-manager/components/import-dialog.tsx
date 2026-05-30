@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useCallback, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -16,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { importSources } from "../hooks/use-source-import";
 import { useSourceMutations } from "../hooks/use-sources";
 import type { ImportResult } from "../types";
+import { validateFetchUrl } from "../utils/validate-fetch-url";
 import { ImportResultReport } from "./import-result-report";
 
 type ImportDialogProps = {
@@ -68,6 +70,11 @@ function ImportDialog({ open, onClose }: ImportDialogProps) {
 
 	const handleUrlImport = useCallback(async () => {
 		if (!urlInput.trim()) return;
+		const validationError = validateFetchUrl(urlInput.trim());
+		if (validationError) {
+			toast.error(validationError);
+			return;
+		}
 		setLoading(true);
 		try {
 			const resp = await fetch(urlInput.trim());

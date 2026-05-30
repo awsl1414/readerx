@@ -1,3 +1,4 @@
+import { cn } from "@/lib/cn";
 import type { ChapterInfo } from "../types";
 
 type TocPanelProps = {
@@ -13,56 +14,30 @@ function TocPanel({
 	onSelect,
 	isMobile,
 }: TocPanelProps) {
-	const width = isMobile ? "60%" : "35%";
-
 	return (
 		<div
-			style={{
-				width,
-				minWidth: 0,
-				overflowY: "auto",
-				padding: "20px 16px",
-				fontFamily: "system-ui",
-				fontSize: 12,
-			}}
+			className={cn(
+				"min-w-0 overflow-y-auto py-5 px-4 font-sans text-xs",
+				isMobile ? "w-[60%]" : "w-[35%]",
+			)}
 		>
-			<div
-				style={{
-					fontSize: 13,
-					marginBottom: 14,
-					opacity: 0.5,
-					letterSpacing: 0.5,
-				}}
-			>
+			<div className="text-[13px] mb-3.5 opacity-50 tracking-wide text-reader-text">
 				目录
 			</div>
-			<div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+			<div className="flex flex-col gap-px">
 				{chapters.map((ch) => (
 					<button
 						key={ch.index}
 						type="button"
 						onClick={() => onSelect(ch.index)}
-						style={{
-							padding: "8px 10px",
-							borderRadius: 6,
-							border: "none",
-							textAlign: "left",
-							cursor: "pointer",
-							fontSize: "inherit",
-							fontFamily: "inherit",
-							color: "inherit",
-							background:
-								ch.index === currentChapter
-									? "oklch(0.18 0.01 260)"
-									: "transparent",
-							opacity:
-								ch.index === currentChapter
-									? 0.9
-									: ch.index < currentChapter
-										? 0.3
-										: 0.7,
-							fontWeight: ch.index === currentChapter ? 500 : 400,
-						}}
+						className={cn(
+							"px-2.5 py-2 rounded-md text-left cursor-pointer text-inherit font-inherit border-none",
+							ch.index === currentChapter
+								? "bg-foreground/10 opacity-90 font-medium text-reader-text"
+								: "bg-transparent",
+							ch.index !== currentChapter &&
+								(ch.index < currentChapter ? "opacity-30" : "opacity-70"),
+						)}
 					>
 						第 {ch.index + 1} 章 · {ch.title}
 					</button>

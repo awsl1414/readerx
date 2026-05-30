@@ -10,48 +10,21 @@ function ChapterEnd({
 	onNextChapter,
 }: ChapterEndProps) {
 	return (
-		<div
-			style={{
-				display: "flex",
-				flexDirection: "column",
-				alignItems: "center",
-				justifyContent: "center",
-				minHeight: "40vh",
-				padding: "20px",
-				textAlign: "center",
-				fontFamily: "system-ui",
-			}}
-		>
-			<div
-				style={{
-					width: 40,
-					height: 1,
-					background: "currentColor",
-					opacity: 0.15,
-					margin: "0 auto 40px",
-				}}
-			/>
-			<div style={{ fontSize: 12, opacity: 0.4, marginBottom: 8 }}>
+		<div className="flex flex-col items-center justify-center min-h-[40vh] p-5 text-center font-sans">
+			<div className="w-10 h-px bg-current opacity-15 mx-auto mb-10" />
+			<div className="text-xs opacity-40 mb-2 text-reader-text">
 				你已读完本章
 			</div>
 			{hasNextChapter && (
 				<button
 					type="button"
 					onClick={onNextChapter}
-					style={{
-						fontSize: 13,
-						opacity: 0.6,
-						background: "none",
-						border: "none",
-						color: "inherit",
-						cursor: "pointer",
-						padding: "8px 16px",
-					}}
+					className="text-[13px] opacity-60 bg-transparent border-none text-inherit cursor-pointer px-4 py-2 text-reader-text"
 				>
 					继续下一章 →
 				</button>
 			)}
-			<div style={{ fontSize: 11, opacity: 0.25, marginTop: 32 }}>
+			<div className="text-[11px] opacity-25 mt-8 text-reader-text">
 				{chapterTitle}
 			</div>
 		</div>

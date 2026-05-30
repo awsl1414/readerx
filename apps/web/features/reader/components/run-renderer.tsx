@@ -1,6 +1,7 @@
 import type { RenderRun } from "@readerx/reader-engine";
 import { memo } from "react";
 import type { ReadingAtmosphere } from "../types";
+import { sanitizeHref } from "../utils/sanitize-href";
 
 type RunRendererProps = {
 	readonly run: RenderRun;
@@ -16,12 +17,16 @@ const RunRenderer = memo(function RunRenderer({
 		lineHeight: atmosphere.lineHeight,
 	};
 
-	if (run.style?.href) {
+	const safeHref = run.style?.href ? sanitizeHref(run.style.href) : null;
+	if (safeHref) {
 		return (
-			<a href={run.style.href} style={style}>
+			<a href={safeHref} style={style}>
 				{run.text}
 			</a>
 		);
+	}
+	if (run.style?.href) {
+		return <span style={style}>{run.text}</span>;
 	}
 	if (run.style?.bold && run.style?.italic) {
 		return (

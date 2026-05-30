@@ -1,5 +1,3 @@
-import type { CSSProperties } from "react";
-
 type IntentOverlayProps = {
 	readonly visible: boolean;
 	readonly chapterTitle: string;
@@ -9,16 +7,6 @@ type IntentOverlayProps = {
 	readonly onPrevChapter: () => void;
 	readonly onNextChapter: () => void;
 	readonly onProgressClick: () => void;
-};
-
-const capsule: CSSProperties = {
-	position: "absolute",
-	background: "oklch(0.15 0.01 260 / 0.8)",
-	backdropFilter: "blur(12px)",
-	borderRadius: 20,
-	padding: "6px 14px",
-	fontSize: 12,
-	cursor: "pointer",
 };
 
 function IntentOverlay({
@@ -36,89 +24,50 @@ function IntentOverlay({
 	}
 
 	return (
-		<div
-			style={{
-				position: "absolute",
-				inset: 0,
-				zIndex: 10,
-				transition: "opacity 0.3s ease",
-			}}
-		>
+		<div className="absolute inset-0 z-10 transition-opacity duration-300 ease-in-out">
 			<button
 				type="button"
+				aria-label="返回"
 				onClick={onBack}
-				style={{ ...capsule, top: 16, left: 16 }}
+				className="absolute top-4 left-4 rounded-[20px] bg-foreground/80 px-3.5 py-1.5 text-xs text-background backdrop-blur-xl cursor-pointer"
 			>
 				←
 			</button>
 
-			<div
-				style={{
-					position: "absolute",
-					top: 18,
-					left: "50%",
-					transform: "translateX(-50%)",
-					fontSize: 12,
-					opacity: 0.5,
-				}}
-			>
+			<div className="absolute top-[18px] left-1/2 -translate-x-1/2 text-xs opacity-50 text-reader-text">
 				{chapterTitle}
 			</div>
 
 			<button
 				type="button"
+				aria-label="目录"
 				onClick={onToc}
-				style={{ ...capsule, top: 16, right: 16 }}
+				className="absolute top-4 right-4 rounded-[20px] bg-foreground/80 px-3.5 py-1.5 text-xs text-background backdrop-blur-xl cursor-pointer"
 			>
 				☰
 			</button>
 
-			<div
-				style={{
-					position: "absolute",
-					bottom: 16,
-					left: "50%",
-					transform: "translateX(-50%)",
-					display: "flex",
-					alignItems: "center",
-					gap: 16,
-					fontSize: 11,
-					opacity: 0.5,
-				}}
-			>
+			<div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4 text-[11px] opacity-50 text-reader-text">
 				<button
 					type="button"
+					aria-label="上一章"
 					onClick={onPrevChapter}
-					style={{
-						background: "none",
-						border: "none",
-						color: "inherit",
-						cursor: "pointer",
-					}}
+					className="bg-transparent border-none text-inherit cursor-pointer"
 				>
 					上一章
 				</button>
 				<button
 					type="button"
 					onClick={onProgressClick}
-					style={{
-						background: "none",
-						border: "none",
-						color: "inherit",
-						cursor: "pointer",
-					}}
+					className="bg-transparent border-none text-inherit cursor-pointer"
 				>
 					{progressPercent}%
 				</button>
 				<button
 					type="button"
+					aria-label="下一章"
 					onClick={onNextChapter}
-					style={{
-						background: "none",
-						border: "none",
-						color: "inherit",
-						cursor: "pointer",
-					}}
+					className="bg-transparent border-none text-inherit cursor-pointer"
 				>
 					下一章
 				</button>

@@ -75,7 +75,7 @@ function useSourceDebug(): UseSourceDebugReturn {
 				);
 				addLog(
 					result.ok ? "info" : "error",
-					`[${stage}] ${result.ok ? "Success" : "Failed: " + result.error.message}`,
+					`[${stage}] ${result.ok ? "Success" : `Failed: ${result.error.message}`}`,
 				);
 			} catch (e: unknown) {
 				const timing = performance.now() - start;

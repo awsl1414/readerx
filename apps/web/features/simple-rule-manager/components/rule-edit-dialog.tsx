@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -45,6 +45,15 @@ function RuleEditDialog<T extends { id: string }>({
 		}
 		return { ...config.defaultValue, id: "" };
 	});
+
+	// Reset form when switching between different rules
+	useEffect(() => {
+		if (rule) {
+			setFormState({ ...rule });
+		} else {
+			setFormState({ ...config.defaultValue, id: "" });
+		}
+	}, [rule, config.defaultValue]);
 
 	// Reset form when rule changes or dialog opens
 	const handleClose = (isOpen: boolean) => {

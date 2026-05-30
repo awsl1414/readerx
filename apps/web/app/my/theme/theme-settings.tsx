@@ -172,8 +172,8 @@ export function ThemeSettings() {
 							className={cn(
 								"flex flex-col items-center gap-1.5 rounded-lg border px-3 py-3 text-sm transition-colors",
 								themeMounted && theme === value
-								? "border-primary bg-primary/10 text-primary"
-								: "border-border bg-surface-1 hover:bg-surface-2",
+									? "border-primary bg-primary/10 text-primary"
+									: "border-border bg-surface-1 hover:bg-surface-2",
 							)}
 						>
 							<Icon className="size-5" />
