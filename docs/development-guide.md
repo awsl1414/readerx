@@ -140,14 +140,14 @@ RootLayout (RSC)
 
 ### RSC 边界
 
-Server Components 仅用于 shell 层（layout、metadata、HTML 结构）。所有交互运行时（IndexedDB、Web Worker、QuickJS）必须在 Client Component 中。
+Server Components 负责数据获取、页面组装、SEO、Streaming。Client Components 仅在需要交互 / 浏览器 API / 本地状态时使用。所有运行时（IndexedDB、Web Worker、QuickJS）必须在 Client Component 中。
 
 ```text
-Server Component 职责：          Client Component 职责：
-- layout.tsx (HTML 结构)        - providers.tsx (QueryClient, Theme)
-- metadata (title, description)  - features/* (所有交互)
-- shell HTML (无业务逻辑)        - Worker bridge (QuickJS 通信)
-                                - IndexedDB 访问
+Server Component 职责：              Client Component 职责：
+- 数据获取（async RSC fetch）        - providers.tsx (QueryClient, Theme)
+- 页面组装与 Streaming              - features/* (所有交互)
+- layout.tsx (HTML 结构)            - Worker bridge (QuickJS 通信)
+- metadata (title, description)     - IndexedDB 访问
 ```
 
 **禁止**：Server Component 接触 runtime（IndexedDB / Worker / QuickJS / Dexie）。
@@ -261,7 +261,7 @@ cd apps/web && pnpm dlx shadcn@latest add <component>
 - [ ] `pnpm typecheck` 通过
 - [ ] `pnpm lint` 通过
 - [ ] 相关测试通过
-- [ ] 未破坏 RSC 边界
+- [ ] 未破坏 RSC 边界（RSC = 数据获取/组装/Streaming，Client = 交互/浏览器 API）
 - [ ] 未引入 client bundle 膨胀
 - [ ] 未新增循环依赖或 `any`
 - [ ] 包依赖方向正确

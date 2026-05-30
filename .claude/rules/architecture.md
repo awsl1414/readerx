@@ -3,7 +3,7 @@
 1. **按边界分包** — 每个包是完整领域，类型/逻辑/校验内聚，禁止按文件类型拆包
 2. **Feature 和 Engine 分离** — Engine 是纯逻辑（packages/），Feature 是 UI 层（apps/web/features/），禁止交叉
 3. **Runtime 独立** — quickjs-runtime 仅 peer dep 引用 rule-engine 类型（import type only），禁止引入其他包
-4. **shared 克制** — 禁止创建独立 shared 包放业务逻辑；允许最小 shared-kernel（仅 types / errors / Result / ID 类型），禁止包含业务逻辑
+4. **shared 克制** — 禁止创建独立 shared 包放业务逻辑；允许最小 shared-kernel（仅 types / errors / Result / ID 类型），禁止包含业务逻辑；`apps/web/lib/` 只放 infra helper（cn.ts, env.ts, fetch.ts），禁止放业务逻辑
 5. **Store 随 Feature** — Zustand store 在 feature 内部，禁止全局 stores/
 6. **Worker 随 Runtime** — Worker 入口在 runtime 包内，禁止放在 apps/web
 7. **RSC 是默认渲染模式** — Server Component 负责数据获取/页面组装/Streaming；Client Component 仅在交互/浏览器 API/本地状态时使用
@@ -48,3 +48,4 @@ rule-engine  ←  services/api
 
 - 优先云端 AI（用户自带 key）和本地部署（Ollama），暂不支持端侧推理
 - 仅 peer dep 引用 rule-engine 类型，不依赖其他业务包
+- 详细规划见 [`docs/roadmap.md`](../../docs/roadmap.md) AI 增强规划章节

@@ -5,6 +5,7 @@
 ## React
 
 - **RSC 是默认渲染模式** — Server Component 负责数据获取、页面组装、SEO、Streaming；Client Component 仅在需要交互 / 浏览器 API / 本地状态时使用 `"use client"`
+- 优先 async Server Components 获取数据
 - **禁止 `useEffect` 获取数据** — 数据获取优先 RSC fetch / TanStack Query / Server Action；仅在浏览器专属 API（`navigator.bluetooth`、`navigator.serial`、`BroadcastChannel`、`WebRTC`）场景允许 useEffect 初始化
 - **禁止 `useEffect` 触发布局重排** — 阅读器的 layout invalidation 由 Render Scheduler 驱动，不在 useEffect 中触发
 - **禁止在 render 中产生副作用**
