@@ -35,3 +35,6 @@ graphify-out/
 # wireframes (temporary)
 .wireframes/
 .superpowers/
+
+# claude worktrees (runtime)
+.claude/worktrees/
