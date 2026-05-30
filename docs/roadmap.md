@@ -40,7 +40,7 @@
 |---|---|---|---|
 | — | **App Shell** | 布局框架（侧边栏 + 顶栏 + 内容区 + 底栏）、主题切换 | ✅ 完成 |
 | — | **导航** | Legado 模式 4 Tab（书架/发现/订阅/我的）+ 智能显隐（MVP 全显示） | ✅ 完成 |
-| — | **路由** | `/` `/search` `/my` `/my/sources` `/explore` `/subscriptions` `/reader/[bookId]` | ✅ 完成 |
+| — | **路由** | `/` `/search` `/my` `/my/sources` `/my/about` `/explore` `/subscriptions` `/reader/[bookId]` | ✅ 完成 |
 
 ### 三、后端服务（services/api）— Step 7
 

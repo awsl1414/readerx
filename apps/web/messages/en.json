@@ -54,6 +54,21 @@
 		"sectionStats": "Statistics",
 		"sectionOther": "Other"
 	},
+	"about": {
+		"title": "About",
+		"version": "v{version}",
+		"description": "Open-source reading, your way.",
+		"aboutReaderX": "About ReaderX",
+		"aboutDescription": "ReaderX is a web rewrite and enhancement of Legado, dedicated to providing a modern web reading experience.",
+		"license": "License",
+		"licenseType": "MIT License",
+		"github": "GitHub",
+		"acknowledgements": "Acknowledgements",
+		"thanksLegado": "Thanks to Legado",
+		"thanksLegadoDesc": "Built on the Legado open-source project",
+		"copyright": "© 2026 ReaderX",
+		"basedOn": "Based on Legado"
+	},
 	"common": {
 		"loading": "Loading...",
 		"error": "Something went wrong",

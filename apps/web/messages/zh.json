@@ -54,6 +54,21 @@
 		"sectionStats": "统计",
 		"sectionOther": "其他"
 	},
+	"about": {
+		"title": "关于",
+		"version": "v{version}",
+		"description": "开源阅读，自在掌控。",
+		"aboutReaderX": "关于 ReaderX",
+		"aboutDescription": "ReaderX 是 Legado（阅读）的 Web 重写增强项目，致力于提供现代化的 Web 阅读体验。",
+		"license": "开源许可证",
+		"licenseType": "MIT License",
+		"github": "GitHub",
+		"acknowledgements": "致谢",
+		"thanksLegado": "感谢 Legado",
+		"thanksLegadoDesc": "基于 Legado 开源项目构建",
+		"copyright": "© 2026 ReaderX",
+		"basedOn": "Based on Legado"
+	},
 	"common": {
 		"loading": "加载中...",
 		"error": "出错了",
