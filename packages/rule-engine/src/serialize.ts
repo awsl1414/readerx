@@ -1,4 +1,4 @@
-import type { RuntimeResult, RuntimeValue, ExtractOutput } from "./types";
+import type { ExtractOutput, RuntimeResult, RuntimeValue } from "./types";
 
 function isElement(value: unknown): value is Element {
 	return (

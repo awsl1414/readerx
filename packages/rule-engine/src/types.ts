@@ -23,7 +23,10 @@ export type RuleError = {
 
 // ---- Runtime Values ----
 
-export type RuntimeValue = string | Element | Document | unknown;
+// RuntimeValue represents any value flowing through the rule pipeline.
+// `unknown` is intentional — values can be strings, DOM nodes, or JSON values.
+// Use duck-typing guards (see serialize.ts) to narrow at runtime.
+export type RuntimeValue = unknown;
 export type RuntimeResult = readonly RuntimeValue[];
 
 // ---- Extract Step ----

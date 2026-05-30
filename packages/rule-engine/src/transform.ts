@@ -1,12 +1,12 @@
-import type {
-	RuntimeResult,
-	DomTransformStep,
-	CompiledTransformStep,
-	StringTransformStep,
-} from "./types";
 import type { Result } from "./result";
 import { err, ok } from "./result";
 import { elementToText } from "./serialize";
+import type {
+	CompiledTransformStep,
+	DomTransformStep,
+	RuntimeResult,
+	StringTransformStep,
+} from "./types";
 
 function asStringStep(
 	step: CompiledTransformStep,
@@ -33,16 +33,12 @@ export function applyStringTransform(
 	switch (def.action) {
 		case "replace": {
 			const re =
-				step.compiledRegex ??
-				new RegExp(def.pattern ?? "", def.flags ?? "g");
-			return ok(
-				strings.map((s) => s.replaceAll(re, def.replacement ?? "")),
-			);
+				step.compiledRegex ?? new RegExp(def.pattern ?? "", def.flags ?? "g");
+			return ok(strings.map((s) => s.replaceAll(re, def.replacement ?? "")));
 		}
 		case "match": {
 			const re =
-				step.compiledRegex ??
-				new RegExp(def.pattern ?? "", def.flags ?? "g");
+				step.compiledRegex ?? new RegExp(def.pattern ?? "", def.flags ?? "g");
 			const groupIndex = def.group ?? 0;
 			return ok(
 				strings.flatMap((s) => {
@@ -53,15 +49,12 @@ export function applyStringTransform(
 		}
 		case "split": {
 			const re =
-				step.compiledRegex ??
-				new RegExp(def.pattern ?? "", def.flags ?? "g");
+				step.compiledRegex ?? new RegExp(def.pattern ?? "", def.flags ?? "g");
 			return ok(strings.flatMap((s) => s.split(re)));
 		}
 		case "template":
 			return ok(
-				strings.map((s) =>
-					(def.template ?? "").replaceAll("{{result}}", s),
-				),
+				strings.map((s) => (def.template ?? "").replaceAll("{{result}}", s)),
 			);
 		case "trim":
 			return ok(strings.map((s) => s.trim()));
@@ -69,7 +62,13 @@ export function applyStringTransform(
 }
 
 function isElement(value: unknown): value is Element {
-	return value instanceof Element;
+	return (
+		typeof value === "object" &&
+		value !== null &&
+		"querySelectorAll" in value &&
+		"getAttribute" in value &&
+		!("write" in value)
+	);
 }
 
 export function applyDomTransform(
@@ -89,9 +88,9 @@ export function applyDomTransform(
 			return ok(
 				elements.map((el) => {
 					const clone = el.cloneNode(true) as Element;
-					clone
-						.querySelectorAll(step.selector)
-						.forEach((child) => child.remove());
+					clone.querySelectorAll(step.selector).forEach((child) => {
+						child.remove();
+					});
 					return clone as unknown;
 				}),
 			);
@@ -99,17 +98,15 @@ export function applyDomTransform(
 			return ok(
 				elements.map((el) => {
 					const clone = el.cloneNode(true) as Element;
-					clone
-						.querySelectorAll(step.selector)
-						.forEach((child) => {
-							const parent = child.parentNode;
-							if (parent) {
-								while (child.firstChild) {
-									parent.insertBefore(child.firstChild, child);
-								}
-								child.remove();
+					clone.querySelectorAll(step.selector).forEach((child) => {
+						const parent = child.parentNode;
+						if (parent) {
+							while (child.firstChild) {
+								parent.insertBefore(child.firstChild, child);
 							}
-						});
+							child.remove();
+						}
+					});
 					return clone as unknown;
 				}),
 			);
@@ -117,13 +114,11 @@ export function applyDomTransform(
 			return ok(
 				elements.map((el) => {
 					const clone = el.cloneNode(true) as Element;
-					clone
-						.querySelectorAll(step.selector)
-						.forEach((child) => {
-							for (const attr of step.attributes ?? []) {
-								child.removeAttribute(attr);
-							}
-						});
+					clone.querySelectorAll(step.selector).forEach((child) => {
+						for (const attr of step.attributes ?? []) {
+							child.removeAttribute(attr);
+						}
+					});
 					return clone as unknown;
 				}),
 			);

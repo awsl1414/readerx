@@ -26,14 +26,15 @@ function getWgxpathEvaluate() {
 	});
 	wgxpath.install(tempWindow);
 	// wgxpath.install adds evaluate to the Document prototype
-	wgxpathEvaluate = (
-		tempWindow.Document.prototype as unknown as Record<string, unknown>
-	).evaluate as typeof wgxpathEvaluate;
-	tempWindow.close();
-
-	if (!wgxpathEvaluate) {
-		throw new Error("Failed to initialize XPath evaluate");
+	const fn = (tempWindow.Document.prototype as Record<string, unknown>)
+		.evaluate;
+	if (typeof fn !== "function") {
+		throw new Error(
+			"wgxpath.install did not add evaluate to Document prototype",
+		);
 	}
+	wgxpathEvaluate = fn as typeof wgxpathEvaluate;
+	tempWindow.close();
 	return wgxpathEvaluate;
 }
 

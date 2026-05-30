@@ -1,6 +1,6 @@
-import type { RuntimeResult } from "./types";
 import type { Result } from "./result";
 import { err, ok } from "./result";
+import type { RuntimeResult } from "./types";
 
 export function extractRegex(
 	pattern: string,
