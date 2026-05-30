@@ -1,6 +1,6 @@
 # 技术标准与注意事项
 
-本文档是 CLAUDE.md 中约束条目的详细参考。约束（禁止什么）见 CLAUDE.md，本文档说明正确用法和注意事项。
+本文档是 CLAUDE.md 引入的约束规则的详细参考。约束（禁止什么）见 CLAUDE.md 及 `.claude/rules/`，本文档说明正确用法和注意事项。
 
 ## TypeScript 6（ESM + strict + erasable syntax）
 
@@ -113,15 +113,24 @@ if (!item) return
 
 当 packages/ 中的模块需要同时支持 Node（测试/SSR）和浏览器时，采用**文件分离**模式，禁止在客户端 bundle 可达的文件中引用 Node 内置模块。
 
-**文件结构：**
-```
-src/
-  xpath-eval.ts           # Node 实现（import node:module, xpath, xmldom）
-  xpath-eval.browser.ts   # 浏览器实现（使用原生 DOMParser / document.evaluate）
-  xpath.ts                # 公共 API — import from "./xpath-eval"
+**推荐方式：`exports` 条件导出（2026 标准）**
+
+```json
+{
+  "exports": {
+    "./xpath-eval": {
+      "browser": "./src/xpath-eval.browser.ts",
+      "node": "./src/xpath-eval.ts",
+      "default": "./src/xpath-eval.browser.ts"
+    }
+  }
+}
 ```
 
-**package.json 路由：**
+Node / Bun / Vitest / Vite / Turborepo 共同支持 `exports` 条件导出，这是 2026 年的主流方向。
+
+**兼容回退：`browser` 字段**
+
 ```json
 {
   "browser": {
@@ -130,7 +139,15 @@ src/
 }
 ```
 
-Turbopack 客户端构建时自动替换为 `.browser.ts` 版本；Node/Vitest 使用原始文件。公共 API 层（`xpath.ts`）只包含接口和共享逻辑，不直接引用任何 Node 模块。
+Turbopack 客户端构建时自动替换为 `.browser.ts` 版本；Node/Vitest 使用原始文件。公共 API 层只包含接口和共享逻辑，不直接引用任何 Node 模块。
+
+**文件结构：**
+```
+src/
+  xpath-eval.ts           # Node 实现（import node:module, xpath, xmldom）
+  xpath-eval.browser.ts   # 浏览器实现（使用原生 DOMParser / document.evaluate）
+  xpath.ts                # 公共 API — import from "./xpath-eval"
+```
 
 **适用场景：**
 - DOM 解析（`linkedom` / `@xmldom/xmldom` ↔ 原生 `DOMParser`）
@@ -172,14 +189,14 @@ async function settle() {
 
 ### 核心原则
 
-- Server Components 是默认的 — 不写 `"use client"`，组件在服务端执行
+- Server Components 是默认的 — 负责数据获取、页面组装、SEO、Streaming，不仅限于 shell
 - Client Component 尽可能下沉到叶子节点 — 仅在需要 hooks / 浏览器 API / DOM 交互时添加 `"use client"`
-- 减少客户端 JS、减少 hydration、减少 `useEffect`
+- 减少客户端 JS、减少 hydration、减少不必要的 `useEffect`
 
 ### 推荐用法
 
 - `ref` 作为普通 prop 传递，不再需要 `forwardRef`
-- 使用 `use()` hook 在渲染中读取 Promise 和 Context：`const data = use(fetchData())`
+- `use()` hook 可用于在渲染中读取 Promise 和 Context（非必须 — 多数场景 RSC fetch / TanStack Query 更合适）
 - 使用 `<form action={fn}>` + Server Actions 处理表单提交
 - 使用 `useActionState` 管理 action 状态、`useOptimistic` 管理乐观更新、`useFormStatus` 获取表单 pending 状态
 - `<title>`、`<meta>` 等 SEO 标签可直接在组件中声明
@@ -188,7 +205,7 @@ async function settle() {
 ### 注意事项
 
 - 不要滥用 Client Component — `"use client"` 会导致 bundle 增大、hydration 增加、streaming 失效
-- 避免无意义 `useEffect` — 优先使用 derived state、server fetch、action、memoized computation
+- 避免 `useEffect` 获取数据 — 优先 RSC fetch / TanStack Query / Server Action；仅在浏览器专属 API（`navigator.bluetooth`、`navigator.serial`、`BroadcastChannel`、`WebRTC`）场景允许 useEffect 初始化
 - React Compiler 兼容 — 保持纯函数、无副作用 render、immutable update（禁止 `arr.push()`、`obj.x = 1` 等直接变异）
 
 ## Next.js 16（App Router + RSC）
@@ -292,7 +309,8 @@ async function settle() {
 ## Node 运行时
 
 - `package.json` 中 `"type": "module"` — 使用 ESM，不用 CommonJS
-- Node 22+ 原生支持 TypeScript（`--experimental-strip-types`），无需 `ts-node`
+- Node 22+ 可运行可擦除 TypeScript（`--experimental-strip-types`），仅支持类型注解擦除，不理解 path alias / JSX / decorator metadata
+- 项目构建仍依赖 Turbopack（Next.js）完成完整编译，不依赖 Node 原生 TS
 - 测试使用 Vitest（已配置）
 
 ### 注意事项

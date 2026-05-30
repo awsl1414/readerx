@@ -266,7 +266,7 @@ cd apps/web && pnpm dlx shadcn@latest add <component>
 - [ ] 未新增循环依赖或 `any`
 - [ ] 包依赖方向正确
 
-完整审查清单见 [`CLAUDE.md`](../CLAUDE.md) 的 Review Checklist 章节。
+完整审查清单见 [`.claude/rules/code-organization.md`](../.claude/rules/code-organization.md) 的提交前 Review Checklist。
 
 ## 测试
 

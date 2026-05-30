@@ -6,7 +6,7 @@ ReaderX 项目文档索引。
 
 | 文档 | 职责 | 读者 |
 |---|---|---|
-| [`CLAUDE.md`](../CLAUDE.md) | AI 编码约束 — 禁止什么、必须遵守什么 | AI / 开发者 |
+| [`CLAUDE.md`](../CLAUDE.md) + [`.claude/rules/`](../.claude/rules/) | AI 编码约束（入口 + 模块化规则） — 禁止什么、必须遵守什么 | AI / 开发者 |
 | [`development-guide.md`](./development-guide.md) | 开发实操 — 环境搭建、Web 架构模式（RSC 边界、ReaderSession、Worker Bridge）、工作流 | 开发者 |
 | [`roadmap.md`](./roadmap.md) | 开发排期 — 模块状态、Step 详细内容、里程碑 | 开发者 / 规划者 |
 | [`tech-standards.md`](./tech-standards.md) | 技术标准 — TypeScript / React / Next.js 等各技术栈的正确用法和注意事项 | 开发者 |
@@ -37,7 +37,7 @@ ReaderX 项目文档索引。
 ## 原则
 
 - 每个文档有明确的单一职责，不重复其他文档的内容
-- 硬性约束 → `CLAUDE.md`（禁止/必须）
+- 硬性约束 → `CLAUDE.md` + `.claude/rules/`（禁止/必须）
 - 正确用法 → `tech-standards.md`（怎么做对）
 - 实操指南 → `development-guide.md`（怎么干活）
 - 排期规划 → `roadmap.md`（做什么/什么时候做）
