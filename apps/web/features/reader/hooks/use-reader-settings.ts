@@ -37,16 +37,13 @@ function loadSettings(): ReaderSettings {
 function useReaderSettings() {
 	const [settings, setSettings] = useState<ReaderSettings>(loadSettings);
 
-	const updateSettings = useCallback(
-		(partial: Partial<ReaderSettings>) => {
-			setSettings((prev) => {
-				const next = { ...prev, ...partial };
-				settingsStorage.set(STORAGE_KEY, next);
-				return next;
-			});
-		},
-		[],
-	);
+	const updateSettings = useCallback((partial: Partial<ReaderSettings>) => {
+		setSettings((prev) => {
+			const next = { ...prev, ...partial };
+			settingsStorage.set(STORAGE_KEY, next);
+			return next;
+		});
+	}, []);
 
 	return { settings, updateSettings };
 }

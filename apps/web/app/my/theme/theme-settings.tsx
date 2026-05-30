@@ -13,8 +13,11 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { FONT_PRESETS, useReaderSettings } from "@/features/reader/hooks/use-reader-settings";
 import type { ReaderFontPreset } from "@/features/reader/hooks/use-reader-settings";
+import {
+	FONT_PRESETS,
+	useReaderSettings,
+} from "@/features/reader/hooks/use-reader-settings";
 import type { ReaderTheme } from "@/features/reader/types";
 import { cn } from "@/lib/cn";
 
@@ -294,9 +297,7 @@ export function ThemeSettings() {
 							</SelectTrigger>
 							<SelectContent>
 								<SelectItem value="left">{t("alignLeft")}</SelectItem>
-								<SelectItem value="justify">
-									{t("alignJustify")}
-								</SelectItem>
+								<SelectItem value="justify">{t("alignJustify")}</SelectItem>
 							</SelectContent>
 						</Select>
 					</div>

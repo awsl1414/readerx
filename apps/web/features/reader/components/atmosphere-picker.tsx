@@ -1,5 +1,5 @@
-import type { AtmospherePreset } from "../types";
 import { cn } from "@/lib/cn";
+import type { AtmospherePreset } from "../types";
 
 type AtmospherePickerProps = {
 	readonly current: AtmospherePreset;

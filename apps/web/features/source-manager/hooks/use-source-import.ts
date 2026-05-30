@@ -1,7 +1,7 @@
 // features/source-manager/hooks/use-source-import.ts
 
-import { parseBookSource } from "@readerx/rule-engine";
 import type { BookSourceRecord } from "@readerx/persistence";
+import { parseBookSource } from "@readerx/rule-engine";
 import { analyzeCapabilities } from "../lib/capability-analyzer";
 import type { ImportResult } from "../types";
 
@@ -20,8 +20,10 @@ function classifySource(raw: RawSource): {
 	const compatWarnings: string[] = [];
 	if (caps.usesJs) compatWarnings.push("Uses JS runtime");
 	if (caps.usesCookieJar) compatWarnings.push("Uses Cookie Jar");
-	if (caps.usesWebView) compatWarnings.push("Requires WebView (unsupported on Web)");
-	if (caps.usesJavaApi) compatWarnings.push("Uses Java API (partial support on Web)");
+	if (caps.usesWebView)
+		compatWarnings.push("Requires WebView (unsupported on Web)");
+	if (caps.usesJavaApi)
+		compatWarnings.push("Uses Java API (partial support on Web)");
 
 	return {
 		record: source as unknown as BookSourceRecord,
@@ -42,7 +44,9 @@ function importSources(rawSources: RawSource[]): ImportResult {
 				raw,
 				reasons: parsed.success
 					? ["Unknown validation error"]
-					: parsed.errors.issues.map((i) => `${i.path.join(".")}: ${i.message}`),
+					: parsed.errors.issues.map(
+							(i) => `${i.path.join(".")}: ${i.message}`,
+						),
 			});
 			continue;
 		}

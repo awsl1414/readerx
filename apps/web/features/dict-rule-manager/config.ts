@@ -1,6 +1,6 @@
+import type { DictRule } from "@readerx/persistence";
 import { DictRuleRepository, db } from "@readerx/persistence";
 import type { RuleManagerConfig } from "@/features/simple-rule-manager";
-import type { DictRule } from "@readerx/persistence";
 
 const dictRuleConfig: RuleManagerConfig<DictRule> = {
 	i18nNamespace: "dictRules",
@@ -8,8 +8,18 @@ const dictRuleConfig: RuleManagerConfig<DictRule> = {
 	createRepository: () => new DictRuleRepository(db.dictRules),
 	fields: [
 		{ key: "name", labelKey: "fieldName", type: "text", required: true },
-		{ key: "urlRule", labelKey: "fieldUrlRule", type: "textarea", monospace: true },
-		{ key: "showRule", labelKey: "fieldShowRule", type: "textarea", monospace: true },
+		{
+			key: "urlRule",
+			labelKey: "fieldUrlRule",
+			type: "textarea",
+			monospace: true,
+		},
+		{
+			key: "showRule",
+			labelKey: "fieldShowRule",
+			type: "textarea",
+			monospace: true,
+		},
 	],
 	defaultValue: { name: "", enabled: true },
 	importParser: (raw) => {
@@ -23,7 +33,8 @@ const dictRuleConfig: RuleManagerConfig<DictRule> = {
 				enabled: true,
 			};
 			if (typeof record.urlRule === "string") result.urlRule = record.urlRule;
-			if (typeof record.showRule === "string") result.showRule = record.showRule;
+			if (typeof record.showRule === "string")
+				result.showRule = record.showRule;
 			return result;
 		});
 	},

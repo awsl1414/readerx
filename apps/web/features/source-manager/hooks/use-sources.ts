@@ -1,10 +1,6 @@
-import { BookSourceRepository, db } from "@readerx/persistence";
-import {
-	useMutation,
-	useQuery,
-	useQueryClient,
-} from "@tanstack/react-query";
 import type { BookSourceRecord } from "@readerx/persistence";
+import { BookSourceRepository, db } from "@readerx/persistence";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const repo = new BookSourceRepository(db.bookSources);
 
@@ -23,10 +19,8 @@ function useSourceMutations() {
 		queryClient.invalidateQueries({ queryKey: ["sources"] });
 
 	const enable = useMutation({
-		mutationFn: ({
-			url,
-			enabled,
-		}: { url: string; enabled: boolean }) => repo.enable(url, enabled),
+		mutationFn: ({ url, enabled }: { url: string; enabled: boolean }) =>
+			repo.enable(url, enabled),
 		onSuccess: invalidate,
 	});
 
@@ -53,4 +47,4 @@ function useSourceMutations() {
 	return { enable, save, saveBatch, remove, removeBatch };
 }
 
-export { useSources, useSourceMutations };
+export { useSourceMutations, useSources };

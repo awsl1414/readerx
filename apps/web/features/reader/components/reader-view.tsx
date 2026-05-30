@@ -141,9 +141,7 @@ function ReaderView({
 	}, []);
 
 	if (!session || !state) {
-		return (
-			<div className="min-h-dvh bg-surface-0" />
-		);
+		return <div className="min-h-dvh bg-surface-0" />;
 	}
 
 	const page = session.getPage(state.currentPage);
