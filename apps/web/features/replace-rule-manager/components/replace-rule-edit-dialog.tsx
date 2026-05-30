@@ -235,7 +235,7 @@ function ReplaceRuleEditDialog({
 				<DialogFooter>
 					{isEditing && (
 						<Button variant="destructive" size="sm" onClick={handleDelete}>
-							{t("deleted")}
+							{t("delete")}
 						</Button>
 					)}
 					<div className="flex-1" />

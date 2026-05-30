@@ -120,7 +120,14 @@
 		"importSkipped": "Skipped {count} (invalid format)",
 		"importFailed": "Failed {count}",
 		"importClose": "Close",
-		"importSelectFile": "Select File"
+		"importSelectFile": "Select File",
+		"debugUrlPlaceholder": "URL...",
+		"pipelineTab": "Pipeline",
+		"consoleTab": "Console",
+		"disable": "Disable",
+		"enable": "Enable",
+		"noRulesFound": "No matching rules found",
+		"disabledBadge": "Disabled"
 	},
 	"rssSourceManager": {
 		"searchPlaceholder": "Search RSS sources...",
@@ -149,7 +156,8 @@
 		"fieldRuleContent": "Content Rule",
 		"fieldRuleDescription": "Description Rule",
 		"saved": "Saved",
-		"deleted": "Deleted"
+		"deleted": "Deleted",
+		"addSource": "Add Source"
 	},
 	"replaceRules": {
 		"title": "Replace Rules",
@@ -176,7 +184,10 @@
 		"regexBadge": "Regex",
 		"literalBadge": "Literal",
 		"titleScope": "Title",
-		"contentScope": "Content"
+		"contentScope": "Content",
+		"delete": "Delete",
+		"noRulesFound": "No matching rules found",
+		"disabledBadge": "Disabled"
 	},
 	"txtRules": {
 		"title": "TXT TOC Rules",
@@ -191,7 +202,8 @@
 		"save": "Save",
 		"cancel": "Cancel",
 		"editTitle": "Edit Rule",
-		"addTitle": "Add Rule"
+		"addTitle": "Add Rule",
+		"disabledBadge": "Disabled"
 	},
 	"dictRules": {
 		"title": "Dictionary Rules",
@@ -207,6 +219,7 @@
 		"save": "Save",
 		"cancel": "Cancel",
 		"editTitle": "Edit Rule",
-		"addTitle": "Add Rule"
+		"addTitle": "Add Rule",
+		"disabledBadge": "Disabled"
 	}
 }

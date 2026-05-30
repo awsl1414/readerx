@@ -1,6 +1,7 @@
 "use client";
 
 import type { BookSourceRecord } from "@readerx/persistence";
+import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/cn";
@@ -30,6 +31,7 @@ function SourceListItem({
 	onSelect,
 	onToggleEnabled,
 }: SourceListItemProps) {
+	const t = useTranslations("sourceManager");
 	const domain =
 		source.bookSourceUrl.replace(/https?:\/\//, "").split("/")[0] ?? "";
 	const tags = getCapabilityTags(capabilities);
@@ -55,7 +57,7 @@ function SourceListItem({
 					}}
 					onClick={(e) => e.stopPropagation()}
 					size="sm"
-					aria-label={source.enabled ? "禁用" : "启用"}
+					aria-label={source.enabled ? t("disable") : t("enable")}
 				/>
 			</div>
 			<div className="mt-0.5 text-xs text-muted-foreground">{domain}</div>

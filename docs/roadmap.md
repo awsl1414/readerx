@@ -31,7 +31,7 @@
 | 6.1 | **阅读器** | ReaderSession、RenderScheduler、翻页手势（touch/scroll）、控制层 UI、章节预取、进度保存、氛围主题、5 套阅读器主题 | ✅ 完成 |
 | 6.2 | **书架** | 网格/列表视图、分组管理、排序、继续阅读 Hero、TanStack Query 数据层 | ✅ 完成 |
 | 6.3 | **搜索** | 多源并发搜索、搜索历史、流式结果、书源选择 | ⬜ 脚手架 |
-| 6.4 | **书源管理** | Scraping Workspace（三层 UI：列表 / 编辑器 / 调试器）、导入（URL/文件/粘贴）、Capability Analyzer、Pipeline Runner、调试 Console | ✅ 完成 |
+| 6.4 | **书源管理** | Scraping Workspace（三层 UI：列表 / 编辑器 / 调试器）、导入（URL/文件/粘贴）、Capability Analyzer、Pipeline Runner、调试 Console；Tailwind + shadcn/ui 重构 | ✅ 完成 |
 | 6.5 | **基础 UI** | 命令面板 ⌘K、响应式细化、组件补全 | ⬜ 未开始 |
 
 #### 导航与页面
@@ -40,7 +40,7 @@
 |---|---|---|---|
 | — | **App Shell** | 布局框架（侧边栏 + 顶栏 + 内容区 + 底栏）、主题切换 | ✅ 完成 |
 | — | **导航** | Legado 模式 4 Tab（书架/发现/订阅/我的）+ 智能显隐（MVP 全显示） | ✅ 完成 |
-| — | **路由** | `/` `/search` `/my` `/my/sources` `/explore` `/subscriptions` `/reader/[bookId]` | ✅ 完成 |
+| — | **路由** | `/` `/search` `/my` `/my/sources` `/my/rss-sources` `/my/replace-rules` `/my/txt-rules` `/my/dict-rules` `/my/about` `/explore` `/subscriptions` `/reader/[bookId]` | ✅ 完成 |
 
 ### 三、后端服务（services/api）— Step 7
 
@@ -71,10 +71,10 @@
 |---|---|---|
 | **WebDAV 同步** | 待实现 | ⬜ 未开始 |
 | **下载管理** | 待实现 | ⬜ 未开始 |
-| **TXT 导入** | 待实现 | ⬜ 未开始 |
+| **TXT 导入** | `features/txt-rule-manager/` via SimpleRuleManager 模板 | ✅ 完成 |
 | **规则订阅** | 待实现 | ⬜ 未开始 |
-| **替换净化** | 待实现 | ⬜ 未开始 |
-| **RSS 订阅** | 待实现 | ⬜ 未开始 |
+| **替换净化** | `features/replace-rule-manager/` + persistence ReplaceRuleRepository + Dexie v2 migration | ✅ 完成 |
+| **RSS 订阅** | `features/rss-source-manager/` + persistence RssSourceRepository | ✅ 完成 |
 | **书内搜索** | 待实现 | ⬜ 未开始 |
 | **阅读统计** | 待实现 | ⬜ 未开始 |
 | **规则沙箱** | 待实现 | ⬜ 未开始 |
@@ -85,7 +85,7 @@
 |---|---|---|
 | **发现**（书源 exploreUrl 分类浏览） | P2 | ⬜ 未开始 |
 | **换封面** | P2 | ⬜ 未开始 |
-| **字典规则** | P2 | ⬜ 未开始 |
+| **字典规则** | P2 | ✅ 完成 (`features/dict-rule-manager/`) |
 | **EPUB** | P2 | ⬜ 未开始 |
 | **命令面板 ⌘K** | P2 | ⬜ 未开始 |
 | **漫画模式** | P2 | ⬜ 未开始 |

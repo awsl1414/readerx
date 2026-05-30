@@ -2,11 +2,13 @@ import { BaseDexieRepository } from "./base-repository";
 import type { ReplaceRule } from "./types";
 
 class ReplaceRuleRepository extends BaseDexieRepository<ReplaceRule> {
+	override async getAll(): Promise<ReplaceRule[]> {
+		return this.table.orderBy("order").toArray();
+	}
+
 	async getEnabled(): Promise<ReplaceRule[]> {
 		const all = await this.getAll();
-		return all
-			.filter((rule) => rule.enabled)
-			.sort((a, b) => a.order - b.order);
+		return all.filter((rule) => rule.enabled);
 	}
 
 	async getByScope(

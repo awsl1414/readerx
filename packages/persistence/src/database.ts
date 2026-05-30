@@ -52,6 +52,18 @@ export class ReaderXDB extends Dexie {
 				"sourceUrl, sourceName, *sourceGroup, enabled, [sourceGroup+enabled]",
 			txtTocRules: "id, name, enabled",
 			dictRules: "id, name, enabled",
+		}).upgrade((tx) => {
+			// Migrate replaceRules: numeric id → string id, isEnabled → enabled
+			return tx
+				.table("replaceRules")
+				.toCollection()
+				.modify((rule) => {
+					rule.id = String(rule.id);
+					rule.enabled = rule.isEnabled ?? true;
+					rule.createdAt = rule.createdAt ?? Date.now();
+					rule.updatedAt = rule.updatedAt ?? Date.now();
+					delete rule.isEnabled;
+				});
 		});
 	}
 }

@@ -120,7 +120,14 @@
 		"importSkipped": "跳过 {count} 个（格式错误）",
 		"importFailed": "失败 {count} 个",
 		"importClose": "关闭",
-		"importSelectFile": "选择文件"
+		"importSelectFile": "选择文件",
+		"debugUrlPlaceholder": "URL...",
+		"pipelineTab": "管线",
+		"consoleTab": "控制台",
+		"disable": "禁用",
+		"enable": "启用",
+		"noRulesFound": "未找到匹配的规则",
+		"disabledBadge": "已禁用"
 	},
 	"rssSourceManager": {
 		"searchPlaceholder": "搜索订阅源...",
@@ -149,7 +156,8 @@
 		"fieldRuleContent": "内容规则",
 		"fieldRuleDescription": "描述规则",
 		"saved": "已保存",
-		"deleted": "已删除"
+		"deleted": "已删除",
+		"addSource": "添加订阅源"
 	},
 	"replaceRules": {
 		"title": "替换净化",
@@ -176,7 +184,10 @@
 		"regexBadge": "正则",
 		"literalBadge": "字面量",
 		"titleScope": "标题",
-		"contentScope": "正文"
+		"contentScope": "正文",
+		"delete": "删除",
+		"noRulesFound": "未找到匹配的规则",
+		"disabledBadge": "已禁用"
 	},
 	"txtRules": {
 		"title": "TXT目录规则",
@@ -191,7 +202,8 @@
 		"save": "保存",
 		"cancel": "取消",
 		"editTitle": "编辑规则",
-		"addTitle": "添加规则"
+		"addTitle": "添加规则",
+		"disabledBadge": "已禁用"
 	},
 	"dictRules": {
 		"title": "字典规则",
@@ -207,6 +219,7 @@
 		"save": "保存",
 		"cancel": "取消",
 		"editTitle": "编辑规则",
-		"addTitle": "添加规则"
+		"addTitle": "添加规则",
+		"disabledBadge": "已禁用"
 	}
 }

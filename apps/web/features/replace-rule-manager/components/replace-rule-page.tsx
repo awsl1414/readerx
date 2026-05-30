@@ -17,6 +17,7 @@ import { ReplaceRuleListItem } from "./replace-rule-list-item";
 
 function ReplaceRulePage() {
 	const t = useTranslations("replaceRules");
+	const tCommon = useTranslations("common");
 
 	const { data: rules = [], isLoading } = useReplaceRules();
 	const { save, remove, toggleEnabled } = useReplaceRuleMutations();
@@ -69,7 +70,7 @@ function ReplaceRulePage() {
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center py-12">
-				<p className="text-muted-foreground text-sm">Loading...</p>
+				<p className="text-muted-foreground text-sm">{tCommon("loading")}</p>
 			</div>
 		);
 	}
@@ -120,9 +121,7 @@ function ReplaceRulePage() {
 					</div>
 				) : filteredRules.length === 0 ? (
 					<div className="flex items-center justify-center py-12">
-						<p className="text-muted-foreground text-sm">
-							No matching rules found
-						</p>
+						<p className="text-muted-foreground text-sm">{t("noRulesFound")}</p>
 					</div>
 				) : (
 					<div className="divide-y divide-border">

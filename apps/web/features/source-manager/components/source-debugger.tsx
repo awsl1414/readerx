@@ -50,7 +50,7 @@ function SourceDebugger({ source: _source }: SourceDebuggerProps) {
 			<div className="flex flex-col gap-2 px-3 py-2">
 				<Input
 					type="url"
-					placeholder="URL..."
+					placeholder={t("debugUrlPlaceholder")}
 					value={testUrl}
 					onChange={(e) => setTestUrl(e.target.value)}
 					className="h-8 text-xs"
@@ -102,10 +102,10 @@ function SourceDebugger({ source: _source }: SourceDebuggerProps) {
 			>
 				<TabsList className="mx-3 mt-2">
 					<TabsTrigger value="pipeline" className="text-xs">
-						Pipeline
+						{t("pipelineTab")}
 					</TabsTrigger>
 					<TabsTrigger value="console" className="text-xs">
-						Console
+						{t("consoleTab")}
 					</TabsTrigger>
 				</TabsList>
 

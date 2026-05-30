@@ -17,6 +17,7 @@ function RuleListItem<T extends { id: string }>({
 	onToggle,
 	config,
 }: RuleListItemProps<T>) {
+	const t = useTranslations(config.i18nNamespace);
 	const nameField = config.fields.find((f) => f.key === "name");
 	const displayName = nameField
 		? String((rule as Record<string, unknown>)[nameField.key] ?? "")
@@ -38,7 +39,7 @@ function RuleListItem<T extends { id: string }>({
 
 			{!isEnabled && (
 				<Badge variant="outline" className="text-muted-foreground shrink-0">
-					Disabled
+					{t("disabledBadge")}
 				</Badge>
 			)}
 

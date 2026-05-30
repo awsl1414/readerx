@@ -24,6 +24,7 @@ function RuleListPage<T extends { id: string }>({
 	config,
 }: RuleListPageProps<T>) {
 	const t = useTranslations(config.i18nNamespace);
+	const tCommon = useTranslations("common");
 
 	const { data: rules = [], isLoading } = useSimpleRules(config);
 	const { save, remove, toggleEnabled } = useSimpleRuleMutations(config);
@@ -76,7 +77,7 @@ function RuleListPage<T extends { id: string }>({
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center py-12">
-				<p className="text-muted-foreground text-sm">Loading...</p>
+				<p className="text-muted-foreground text-sm">{tCommon("loading")}</p>
 			</div>
 		);
 	}
@@ -116,9 +117,7 @@ function RuleListPage<T extends { id: string }>({
 					/>
 				) : filteredRules.length === 0 ? (
 					<div className="flex items-center justify-center py-12">
-						<p className="text-muted-foreground text-sm">
-							No matching rules found
-						</p>
+						<p className="text-muted-foreground text-sm">{t("noRulesFound")}</p>
 					</div>
 				) : (
 					<div className="divide-y divide-border">

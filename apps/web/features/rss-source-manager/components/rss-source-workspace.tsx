@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
+import { useMemo } from "react";
 import { useRssSourceDetail } from "../hooks/use-rss-source-detail";
 import { useRssSources } from "../hooks/use-rss-sources";
 import { useRssSourceStore } from "../store";
@@ -8,12 +9,11 @@ import { RssSourceEditorPanel } from "./rss-source-editor-panel";
 import { RssSourceListPanel } from "./rss-source-list-panel";
 
 function RssSourceWorkspace() {
+	const t = useTranslations("rssSourceManager");
 	const selectedUrl = useRssSourceStore((s) => s.selectedSourceUrl);
 	const filterMode = useRssSourceStore((s) => s.filterMode);
 	const searchQuery = useRssSourceStore((s) => s.searchQuery);
 	const mobileLayer = useRssSourceStore((s) => s.mobileLayer);
-
-	const [_importOpen, setImportOpen] = useState(false);
 
 	const { data: allSources = [], isLoading } = useRssSources();
 	const { data: selectedSource } = useRssSourceDetail(selectedUrl);
@@ -53,7 +53,6 @@ function RssSourceWorkspace() {
 				<RssSourceListPanel
 					sources={sources}
 					isLoading={isLoading}
-					onImportOpen={() => setImportOpen(true)}
 				/>
 			</div>
 
@@ -68,7 +67,7 @@ function RssSourceWorkspace() {
 					<RssSourceEditorPanel source={selectedSource} />
 				) : (
 					<div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-						选择一个订阅源进行编辑
+						{t("selectToEdit")}
 					</div>
 				)}
 			</div>
