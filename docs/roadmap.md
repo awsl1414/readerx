@@ -356,7 +356,7 @@ BookSource.ruleContent
 
 > 各模式的详细说明和代码示例见 [`development-guide.md`](./development-guide.md)。
 
-- **RSC 边界** — Server Components 仅用于 shell（layout、metadata），所有 runtime（IndexedDB/Worker/QuickJS）在 Client Component 中
+- **RSC 边界** — Server Components 负责数据获取、页面组装、SEO、Streaming；所有 runtime（IndexedDB/Worker/QuickJS）在 Client Component 中
 - **ReaderSession 模式** — 阅读器状态由 session 对象管理，不使用全局 Zustand store
 - **RenderModel 所有权** — Render Scheduler 驱动 layout invalidation，禁止 useEffect 触发重排
 - **Worker Bridge** — QuickJS Worker 通信封装为 async API，feature 不直接接触 comlink/Worker

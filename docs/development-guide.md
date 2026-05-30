@@ -100,10 +100,11 @@ apps/web/
 ├── app/                    # Next.js App Router
 │   ├── layout.tsx          #   根布局（async RSC，providers inline）
 │   ├── globals.css         #   Tailwind v4 + shadcn tokens + reader themes
-│   ├── page.tsx            #   首页
-│   ├── library/            #   书库
-│   ├── search/             #   搜索
-│   └── settings/           #   设置
+│   ├── page.tsx            #   首页（书架）
+│   ├── my/                 #   我的
+│   │   └── sources/        #     书源管理
+│   ├── reader/             #   阅读器
+│   └── search/             #   搜索
 ├── components/
 │   ├── layout/             #   布局组件（AppShell, NavItems）
 │   ├── providers.tsx       #   QueryProvider（client boundary）
