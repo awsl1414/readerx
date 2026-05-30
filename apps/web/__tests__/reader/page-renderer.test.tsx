@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+// @vitest-environment happy-dom
 
 import type { RenderPage, RenderRun } from "@readerx/reader-engine";
 import { render, screen } from "@testing-library/react";

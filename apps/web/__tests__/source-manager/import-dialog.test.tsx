@@ -1,10 +1,12 @@
-// @vitest-environment jsdom
+// @vitest-environment happy-dom
 
-import { cleanup, render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { cleanup, render, screen } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ImportDialog } from "@/features/source-manager/components/import-dialog";
+import zhMessages from "@/messages/zh.json";
 
 const { mockRepo } = vi.hoisted(() => {
 	const mockRepo = {
@@ -42,7 +44,9 @@ function createWrapper() {
 		defaultOptions: { queries: { retry: false } },
 	});
 	return ({ children }: { children: ReactNode }) => (
-		<QueryClientProvider client={client}>{children}</QueryClientProvider>
+		<NextIntlClientProvider locale="zh" messages={zhMessages}>
+			<QueryClientProvider client={client}>{children}</QueryClientProvider>
+		</NextIntlClientProvider>
 	);
 }
 
@@ -51,14 +55,14 @@ describe("ImportDialog", () => {
 		render(<ImportDialog open={true} onClose={() => {}} />, {
 			wrapper: createWrapper(),
 		});
-		expect(screen.getByText("导入书源")).toBeTruthy();
+		expect(screen.getByRole("heading", { name: "导入书源" })).toBeTruthy();
 	});
 
 	it("does not render when closed", () => {
 		render(<ImportDialog open={false} onClose={() => {}} />, {
 			wrapper: createWrapper(),
 		});
-		expect(screen.queryByText("导入书源")).toBeNull();
+		expect(screen.queryByRole("heading", { name: "导入书源" })).toBeNull();
 	});
 
 	it("renders three tab buttons", () => {

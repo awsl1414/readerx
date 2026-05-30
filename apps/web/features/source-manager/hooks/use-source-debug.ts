@@ -27,22 +27,14 @@ type UseSourceDebugReturn = {
 function useSourceDebug(): UseSourceDebugReturn {
 	const bridge = useWorkerBridge();
 	const [stages, setStages] = useState<DebugStageResult[]>([]);
-	const [networkRequests, setNetworkRequests] = useState<NetworkRequest[]>(
-		[],
-	);
+	const [networkRequests, setNetworkRequests] = useState<NetworkRequest[]>([]);
 	const [logs, setLogs] = useState<DebugLog[]>([]);
 	const [isRunning, setIsRunning] = useState(false);
 	const abortRef = useRef<AbortController | null>(null);
 
-	const addLog = useCallback(
-		(level: DebugLog["level"], message: string) => {
-			setLogs((prev) => [
-				...prev,
-				{ level, message, timestamp: Date.now() },
-			]);
-		},
-		[],
-	);
+	const addLog = useCallback((level: DebugLog["level"], message: string) => {
+		setLogs((prev) => [...prev, { level, message, timestamp: Date.now() }]);
+	}, []);
 
 	const runStage = useCallback(
 		async (stage: DebugStage, rule: string, content: string) => {
@@ -83,7 +75,7 @@ function useSourceDebug(): UseSourceDebugReturn {
 				);
 				addLog(
 					result.ok ? "info" : "error",
-					`[${stage}] ${result.ok ? "Success" : "Failed: " + result.error.message}`,
+					`[${stage}] ${result.ok ? "Success" : `Failed: ${result.error.message}`}`,
 				);
 			} catch (e: unknown) {
 				const timing = performance.now() - start;

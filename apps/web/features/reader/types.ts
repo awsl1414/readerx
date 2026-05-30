@@ -9,6 +9,8 @@ type AtmospherePreset = "novel" | "focus" | "dense";
 
 type ReaderTheme = "warm-white" | "black" | "green" | "sepia" | "beige";
 
+type ReaderFontPreset = "system" | "serif" | "sans";
+
 type ReadingAtmosphere = {
 	readonly preset: AtmospherePreset;
 	readonly fontSize: number;
@@ -17,12 +19,6 @@ type ReadingAtmosphere = {
 	readonly paragraphSpacing: number;
 	readonly theme: ReaderTheme;
 	readonly font: string;
-};
-
-type ReaderThemeColors = {
-	readonly bg: string;
-	readonly text: string;
-	readonly textSecondary: string;
 };
 
 type ChapterInfo = {
@@ -88,9 +84,9 @@ export type {
 	CachedChapter,
 	ChapterInfo,
 	GestureMode,
+	ReaderFontPreset,
 	ReaderState,
 	ReaderTheme,
-	ReaderThemeColors,
 	ReadingAtmosphere,
 	SessionDeps,
 };

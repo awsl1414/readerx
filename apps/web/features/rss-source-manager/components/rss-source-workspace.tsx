@@ -50,10 +50,7 @@ function RssSourceWorkspace() {
 					(mobileLayer === 0 ? " flex flex-col" : " hidden md:flex md:flex-col")
 				}
 			>
-				<RssSourceListPanel
-					sources={sources}
-					isLoading={isLoading}
-				/>
+				<RssSourceListPanel sources={sources} isLoading={isLoading} />
 			</div>
 
 			{/* Layer 1: Source Editor */}

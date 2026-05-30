@@ -16,10 +16,7 @@ type RssSourceListPanelProps = {
 	readonly isLoading: boolean;
 };
 
-function RssSourceListPanel({
-	sources,
-	isLoading,
-}: RssSourceListPanelProps) {
+function RssSourceListPanel({ sources, isLoading }: RssSourceListPanelProps) {
 	const t = useTranslations("rssSourceManager");
 	const tCommon = useTranslations("common");
 	const filterMode = useRssSourceStore((s) => s.filterMode);

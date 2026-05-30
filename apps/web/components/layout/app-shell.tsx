@@ -2,7 +2,7 @@
 
 import { Moon, Search, Sun } from "lucide-react";
 import Link from "next/link";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { DesktopNav, MobileNav } from "./nav-items";
 
@@ -19,21 +19,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 						<Link href="/search">
 							<Button
 								variant="ghost"
-								size="icon-sm"
-								className="text-muted-foreground"
+								size="icon"
+								className="text-muted-foreground focus-visible:ring-primary/60"
 							>
 								<Search className="size-4" />
 							</Button>
 						</Link>
 						<Button
-							variant="outline"
-							size="icon-sm"
+							variant="ghost"
+							size="icon"
 							onClick={() =>
 								setTheme(resolvedTheme === "dark" ? "light" : "dark")
 							}
+							className="text-muted-foreground focus-visible:ring-primary/60"
 						>
-							<Sun className="size-4 scale-100 rotate-0 dark:scale-0 dark:-rotate-90 transition-transform" />
-							<Moon className="size-4 scale-0 rotate-90 dark:scale-100 dark:rotate-0 transition-transform" />
+							<Sun className="size-4 rotate-0 scale-100 dark:-rotate-90 dark:scale-0 transition-all duration-200" />
+							<Moon className="size-4 rotate-90 scale-0 dark:rotate-0 dark:scale-100 transition-all duration-200" />
 						</Button>
 					</div>
 				</header>

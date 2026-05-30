@@ -1,10 +1,15 @@
 import type { LayoutConfig } from "@readerx/reader-engine";
 import type {
 	AtmospherePreset,
-	ReaderTheme,
-	ReaderThemeColors,
+	ReaderFontPreset,
 	ReadingAtmosphere,
 } from "./types";
+
+const FONT_PRESETS = Object.freeze({
+	system: "system-ui, -apple-system, sans-serif",
+	serif: "ui-serif, Georgia, 'Noto Serif SC', serif",
+	sans: "ui-sans-serif, 'Noto Sans SC', sans-serif",
+} as const satisfies Record<ReaderFontPreset, string>);
 
 const ATMOSPHERE_PRESETS = Object.freeze({
 	novel: {
@@ -14,7 +19,7 @@ const ATMOSPHERE_PRESETS = Object.freeze({
 		maxWidth: 680,
 		paragraphSpacing: 1.2,
 		theme: "warm-white",
-		font: "Georgia, 'Noto Serif SC', 'Songti SC', serif",
+		font: FONT_PRESETS.serif,
 	},
 	focus: {
 		preset: "focus",
@@ -23,7 +28,7 @@ const ATMOSPHERE_PRESETS = Object.freeze({
 		maxWidth: 580,
 		paragraphSpacing: 1.4,
 		theme: "black",
-		font: "Georgia, 'Noto Serif SC', 'Songti SC', serif",
+		font: FONT_PRESETS.serif,
 	},
 	dense: {
 		preset: "dense",
@@ -32,37 +37,9 @@ const ATMOSPHERE_PRESETS = Object.freeze({
 		maxWidth: 760,
 		paragraphSpacing: 0.6,
 		theme: "green",
-		font: "Georgia, 'Noto Serif SC', 'Songti SC', serif",
+		font: FONT_PRESETS.serif,
 	},
 } as const satisfies Record<AtmospherePreset, ReadingAtmosphere>);
-
-const READER_THEME_COLORS = Object.freeze({
-	"warm-white": {
-		bg: "oklch(0.98 0.005 80)",
-		text: "oklch(0.30 0.01 60)",
-		textSecondary: "oklch(0.55 0.01 60)",
-	},
-	black: {
-		bg: "oklch(0.08 0 0)",
-		text: "oklch(0.60 0 0)",
-		textSecondary: "oklch(0.40 0 0)",
-	},
-	green: {
-		bg: "oklch(0.92 0.03 155)",
-		text: "oklch(0.25 0.02 140)",
-		textSecondary: "oklch(0.45 0.02 140)",
-	},
-	sepia: {
-		bg: "oklch(0.25 0.03 60)",
-		text: "oklch(0.75 0.03 70)",
-		textSecondary: "oklch(0.55 0.03 70)",
-	},
-	beige: {
-		bg: "oklch(0.93 0.02 80)",
-		text: "oklch(0.28 0.02 60)",
-		textSecondary: "oklch(0.50 0.02 60)",
-	},
-} as const satisfies Record<ReaderTheme, ReaderThemeColors>);
 
 function toLayoutConfig(
 	atm: ReadingAtmosphere,
@@ -81,13 +58,4 @@ function toLayoutConfig(
 	};
 }
 
-function getThemeColors(theme: ReaderTheme): ReaderThemeColors {
-	return READER_THEME_COLORS[theme];
-}
-
-export {
-	ATMOSPHERE_PRESETS,
-	getThemeColors,
-	READER_THEME_COLORS,
-	toLayoutConfig,
-};
+export { ATMOSPHERE_PRESETS, FONT_PRESETS, toLayoutConfig };

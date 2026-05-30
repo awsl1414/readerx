@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getThemeColors } from "../atmosphere";
 import { useGesture } from "../hooks/use-gesture";
 import { useReaderSession } from "../hooks/use-reader-session";
 import type { AtmospherePreset, GestureMode, SessionDeps } from "../types";
@@ -142,14 +141,11 @@ function ReaderView({
 	}, []);
 
 	if (!session || !state) {
-		return (
-			<div style={{ minHeight: "100vh", background: "oklch(0.12 0 0)" }} />
-		);
+		return <div className="min-h-dvh bg-surface-0" />;
 	}
 
 	const page = session.getPage(state.currentPage);
 	const isLastPage = state.currentPage >= state.pageCount - 1;
-	const colors = getThemeColors(state.atmosphere.theme);
 	const chapterInfo = state.chapters[state.currentChapter];
 	const chapterTitle = chapterInfo?.title ?? "";
 	const hasPrevChapter = state.currentChapter > 0;
@@ -161,30 +157,27 @@ function ReaderView({
 
 	return (
 		<div
-			style={{
-				position: "relative",
-				minHeight: "100vh",
-				background: colors.bg,
-				color: colors.text,
-				overflow: "hidden",
-			}}
+			data-reader-theme={state.atmosphere.theme}
+			className="relative min-h-dvh bg-reader-bg text-reader-text overflow-hidden"
 		>
-			<section
+			<div
+				role="application"
 				aria-label="Reader content"
+				// biome-ignore lint/a11y/noNoninteractiveTabindex: reader viewport with custom keyboard/gesture interaction model
+				tabIndex={0}
 				onClick={handleContentClick}
 				onKeyDown={handleContentKeyDown}
 				onPointerDown={gesture.onPointerDown}
 				onPointerMove={gesture.onPointerMove}
 				onPointerUp={gesture.onPointerUp}
 				onWheel={gesture.onWheel}
+				className="flex min-h-dvh outline-none"
 				style={{
-					display: "flex",
 					transition: "transform 0.3s ease",
 					transform: tocOpen ? "translateX(-24px)" : "none",
-					minHeight: "100vh",
 				}}
 			>
-				<div style={{ flex: 1, padding: "40px 0" }}>
+				<div className="flex-1 py-10">
 					{page && !isLastPage && (
 						<PageRenderer page={page} atmosphere={state.atmosphere} />
 					)}
@@ -199,19 +192,11 @@ function ReaderView({
 						</>
 					)}
 				</div>
-			</section>
+			</div>
 
 			{tocOpen && (
-				<div
-					style={{
-						position: "absolute",
-						top: 0,
-						right: 0,
-						bottom: 0,
-						display: "flex",
-					}}
-				>
-					<div style={{ width: 1, background: "oklch(0.22 0 0)" }} />
+				<div className="absolute top-0 right-0 bottom-0 flex">
+					<div className="w-px bg-reader-divider" />
 					<TocPanel
 						chapters={state.chapters}
 						currentChapter={state.currentChapter}
@@ -237,14 +222,7 @@ function ReaderView({
 			/>
 
 			{controlsVisible && atmosphereOpen && (
-				<div
-					style={{
-						position: "absolute",
-						bottom: 56,
-						left: "50%",
-						transform: "translateX(-50%)",
-					}}
-				>
+				<div className="absolute bottom-14 left-1/2 -translate-x-1/2">
 					<AtmospherePicker
 						current={state.atmosphere.preset}
 						onSelect={handleAtmosphereSelect}

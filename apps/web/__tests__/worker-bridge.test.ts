@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { RuleError, RuleResult } from "@/lib/worker-bridge";
 import { WorkerBridge } from "@/lib/worker-bridge";
+import { sanitizeFetchOptions } from "@/lib/worker-bridge-utils";
 
 /**
  * Minimal mock Worker that satisfies Comlink's wire protocol.
@@ -654,6 +655,95 @@ describe("WorkerBridge: baseUrl option", () => {
 	});
 });
 
-// Provider/Hook tests skipped — @testing-library/react not installed and vitest
-// config lacks JSX transform for .tsx imports. The provider module is tested
-// via browser E2E or after adding @testing-library/react + vitest jsx config.
+// --- sanitizeFetchOptions tests ---
+
+describe("sanitizeFetchOptions", () => {
+	it("allows whitelisted key: method", () => {
+		const result = sanitizeFetchOptions({ method: "POST" });
+		expect(result).toEqual({ method: "POST" });
+	});
+
+	it("allows whitelisted key: headers", () => {
+		const headers = { "Content-Type": "application/json" };
+		const result = sanitizeFetchOptions({ headers });
+		expect(result).toEqual({ headers });
+	});
+
+	it("allows whitelisted key: body", () => {
+		const result = sanitizeFetchOptions({ body: '{"key":"value"}' });
+		expect(result).toEqual({ body: '{"key":"value"}' });
+	});
+
+	it("allows whitelisted key: mode", () => {
+		const result = sanitizeFetchOptions({ mode: "cors" });
+		expect(result).toEqual({ mode: "cors" });
+	});
+
+	it("allows whitelisted key: cache", () => {
+		const result = sanitizeFetchOptions({ cache: "no-cache" });
+		expect(result).toEqual({ cache: "no-cache" });
+	});
+
+	it("allows whitelisted key: redirect", () => {
+		const result = sanitizeFetchOptions({ redirect: "follow" });
+		expect(result).toEqual({ redirect: "follow" });
+	});
+
+	it("removes credentials key", () => {
+		const result = sanitizeFetchOptions({
+			method: "GET",
+			credentials: "include",
+		});
+		expect(result).toEqual({ method: "GET" });
+		expect("credentials" in result).toBe(false);
+	});
+
+	it("removes unknown keys like x-custom", () => {
+		const result = sanitizeFetchOptions({
+			method: "GET",
+			"x-custom": "value",
+		});
+		expect(result).toEqual({ method: "GET" });
+		expect("x-custom" in result).toBe(false);
+	});
+
+	it("returns empty object for empty input", () => {
+		const result = sanitizeFetchOptions({});
+		expect(result).toEqual({});
+	});
+
+	it("preserves header values", () => {
+		const headers = {
+			Authorization: "Bearer token123",
+			"X-Custom-Header": "value",
+		};
+		const result = sanitizeFetchOptions({
+			method: "POST",
+			headers,
+			body: "data",
+		});
+		expect(result).toEqual({ method: "POST", headers, body: "data" });
+	});
+
+	it("removes all unsafe keys while keeping safe ones", () => {
+		const result = sanitizeFetchOptions({
+			method: "POST",
+			credentials: "include",
+			"x-unsafe": "malicious",
+			headers: { Accept: "*/*" },
+			referrerPolicy: "no-referrer",
+		});
+		expect(result).toEqual({
+			method: "POST",
+			headers: { Accept: "*/*" },
+		});
+	});
+
+	it("handles object with only unsafe keys", () => {
+		const result = sanitizeFetchOptions({
+			credentials: "same-origin",
+			"x-extra": true,
+		});
+		expect(result).toEqual({});
+	});
+});

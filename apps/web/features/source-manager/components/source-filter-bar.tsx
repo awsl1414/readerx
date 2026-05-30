@@ -2,7 +2,7 @@
 
 import { Plus, Search } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -33,6 +33,14 @@ function SourceFilterBar({
 			timerRef.current = setTimeout(() => onSearchChange(value), 300);
 		},
 		[onSearchChange],
+	);
+
+	// Cleanup debounce timer on unmount
+	useEffect(
+		() => () => {
+			if (timerRef.current) clearTimeout(timerRef.current);
+		},
+		[],
 	);
 
 	return (

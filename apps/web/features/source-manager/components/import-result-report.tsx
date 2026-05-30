@@ -68,8 +68,9 @@ function ImportResultReport({ result }: ImportResultReportProps) {
 
 			{failures.length > 0 && (
 				<div className="space-y-0.5">
-					{failures.map((f) => (
-						<div key={JSON.stringify(f.raw)}>
+					{/* index is acceptable as key: failures is a stable list from import results */}
+					{failures.map((f, index) => (
+						<div key={index}>
 							<div className="flex items-center gap-1.5 text-sm text-destructive">
 								<XCircle className="size-3 shrink-0" />
 								{typeof f.raw.bookSourceName === "string"

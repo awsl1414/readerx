@@ -1,14 +1,27 @@
-// @vitest-environment jsdom
+// @vitest-environment happy-dom
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { NextIntlClientProvider } from "next-intl";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SourceFilterBar } from "@/features/source-manager/components/source-filter-bar";
+import zhMessages from "@/messages/zh.json";
+
+const messages = zhMessages;
 
 afterEach(cleanup);
 
+function renderWithProviders(ui: React.ReactElement) {
+	return render(
+		<NextIntlClientProvider locale="zh" messages={messages}>
+			{ui}
+		</NextIntlClientProvider>,
+	);
+}
+
 describe("SourceFilterBar", () => {
 	it("renders filter buttons", () => {
-		render(
+		renderWithProviders(
 			<SourceFilterBar
 				filterMode="all"
 				searchQuery=""
@@ -22,9 +35,9 @@ describe("SourceFilterBar", () => {
 		expect(screen.getByText("已禁用")).toBeTruthy();
 	});
 
-	it("calls onFilterChange when clicking a filter", () => {
+	it("calls onFilterChange when clicking a filter", async () => {
 		const onFilterChange = vi.fn();
-		render(
+		renderWithProviders(
 			<SourceFilterBar
 				filterMode="all"
 				searchQuery=""
@@ -33,7 +46,7 @@ describe("SourceFilterBar", () => {
 				onImport={vi.fn()}
 			/>,
 		);
-		fireEvent.click(screen.getByText("已启用"));
+		await userEvent.click(screen.getByText("已启用"));
 		expect(onFilterChange).toHaveBeenCalledWith("enabled");
 	});
 });

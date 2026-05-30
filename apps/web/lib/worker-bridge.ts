@@ -43,6 +43,10 @@ class WorkerUnavailableError extends Error {
 	}
 }
 
+// --- Sandbox option sanitization ---
+
+import { sanitizeFetchOptions } from "./worker-bridge-utils";
+
 // --- WorkerBridge ---
 
 const DEFAULT_TIMEOUT = 10_000;
@@ -97,14 +101,13 @@ class WorkerBridge {
 				url: string,
 				options: Record<string, unknown>,
 			) => {
-				// Options originate from sandboxed JS code via QuickJS, so we trust the
-				// sandbox to produce valid fetch options. The cast is an acceptable trade-off
-				// to avoid reconstructing RequestInit field-by-field.
-				const resp = await fetch(url, options as RequestInit);
+				const safeOptions = sanitizeFetchOptions(options);
+				const resp = await fetch(url, safeOptions);
 				return resp.text();
 			},
 			onLog: (message: string) => {
-				console.log("[QuickJS]", message);
+				if (process.env.NODE_ENV === "development")
+					console.log("[QuickJS]", message);
 			},
 			evalRule: async (rule: string) => {
 				const content = this.#activeContent ?? "";

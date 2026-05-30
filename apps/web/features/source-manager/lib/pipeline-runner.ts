@@ -1,10 +1,6 @@
 // features/source-manager/lib/pipeline-runner.ts
 
-import type {
-	DebugLog,
-	DebugStageResult,
-	NetworkRequest,
-} from "../types";
+import type { DebugLog, DebugStageResult, NetworkRequest } from "../types";
 
 type PipelineContext = {
 	readonly testUrl: string;
@@ -32,9 +28,7 @@ type PipelineResult = {
 };
 
 /** Run the full source debug pipeline (search -> bookInfo -> toc -> content). */
-async function runPipeline(
-	_ctx: PipelineContext,
-): Promise<PipelineResult> {
+async function runPipeline(_ctx: PipelineContext): Promise<PipelineResult> {
 	const stages: DebugStageResult[] = [];
 	const networkRequests: NetworkRequest[] = [];
 	const logs: DebugLog[] = [];
