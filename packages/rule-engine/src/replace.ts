@@ -30,7 +30,12 @@ export async function applyReplaceRules(
 			}
 		} else {
 			const flags = rule.flags ?? "g";
-			const regex = new RegExp(rule.pattern, flags);
+			let regex: RegExp;
+			try {
+				regex = new RegExp(rule.pattern, flags);
+			} catch {
+				continue; // Skip rules with invalid regex patterns
+			}
 			result = result.replace(regex, rule.replacement ?? "");
 		}
 	}

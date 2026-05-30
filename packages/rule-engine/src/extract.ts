@@ -1,5 +1,6 @@
 import { extractCss } from "./css";
-import { parseHTML } from "./dom-parse";
+import { parseHTML, parseXML } from "./dom-parse";
+import { isDomNode } from "./guards";
 import { extractJsonPath } from "./jsonpath";
 import { extractRegex } from "./regex";
 import type { Result } from "./result";
@@ -173,12 +174,6 @@ function resolveDocument(
 		return type === "xml" ? cache.getXML(html) : cache.getHTML(html);
 	}
 	// No cache — parse fresh (caller owns disposal)
-	const parsed = type === "xml" ? parseHTML(html) : parseHTML(html);
+	const parsed = type === "xml" ? parseXML(html) : parseHTML(html);
 	return parsed.document;
-}
-
-function isDomNode(value: RuntimeValue): value is Element | Document {
-	return (
-		typeof value === "object" && value !== null && "querySelectorAll" in value
-	);
 }

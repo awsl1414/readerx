@@ -1,27 +1,5 @@
+import { isDomNode, isElement } from "./guards";
 import type { ExtractOutput, RuntimeResult, RuntimeValue } from "./types";
-
-function isElement(value: unknown): value is Element {
-	return (
-		typeof value === "object" &&
-		value !== null &&
-		"querySelectorAll" in value &&
-		"getAttribute" in value &&
-		!("write" in value)
-	);
-}
-
-function isDocument(value: unknown): value is Document {
-	return (
-		typeof value === "object" &&
-		value !== null &&
-		"querySelectorAll" in value &&
-		"write" in value
-	);
-}
-
-function isDomNode(value: unknown): value is Element | Document {
-	return isElement(value) || isDocument(value);
-}
 
 export function serializeValue(
 	value: RuntimeValue,

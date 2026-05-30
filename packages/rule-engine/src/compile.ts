@@ -47,6 +47,13 @@ function compileStep(step: RuleStep): Result<CompiledStep> {
 			return compileTransform(step);
 		case "script":
 			return ok(step as CompiledStep);
+		default: {
+			const _exhaustive: never = step;
+			return compileError(
+				"unknown",
+				`Unknown step type: ${String(_exhaustive)}`,
+			);
+		}
 	}
 }
 

@@ -1,5 +1,12 @@
 import type { ChapterBoundary, TxtTocRule } from "./types";
 
+type PrecompiledRule = {
+	readonly rule: TxtTocRule;
+	readonly order: number;
+	readonly originalIndex: number;
+	readonly regex: RegExp | null; // null = empty pattern (fallback)
+};
+
 /**
  * Find chapter boundaries in TXT file lines using TOC rules.
  *
@@ -10,14 +17,28 @@ export function findChapterBoundaries(
 	lines: readonly string[],
 	rules: readonly TxtTocRule[],
 ): ChapterBoundary[] {
-	// Sort by order ascending (default 0), then by array position
+	// Precompile regexes and sort by order once, outside the line loop
 	const sorted = rules
 		.filter((r) => r.enabled !== false)
-		.map((rule, originalIndex) => ({
-			rule,
-			order: rule.order ?? 0,
-			originalIndex,
-		}))
+		.map((rule, originalIndex) => {
+			const pattern = rule.pattern;
+			let regex: RegExp | null = null;
+			if (pattern) {
+				try {
+					regex = new RegExp(pattern, rule.flags ?? "");
+				} catch {
+					// Invalid regex — skip this rule
+					return null;
+				}
+			}
+			return {
+				rule,
+				order: rule.order ?? 0,
+				originalIndex,
+				regex,
+			} as const;
+		})
+		.filter((r): r is PrecompiledRule => r !== null)
 		.sort((a, b) => a.order - b.order || a.originalIndex - b.originalIndex);
 
 	const boundaries: ChapterBoundary[] = [];
@@ -26,26 +47,23 @@ export function findChapterBoundaries(
 		const line = lines[lineIndex];
 		if (line === undefined || line.trim() === "") continue;
 
-		for (const { rule } of sorted) {
-			const pattern = rule.pattern;
-			if (!pattern) {
+		for (const { rule, regex } of sorted) {
+			if (!regex) {
 				// Empty pattern = fallback, matches all non-empty lines
 				boundaries.push({
 					lineIndex,
 					title: line.trim(),
-					ruleName: rule.name ?? "fallback",
+					ruleName: rule.name,
 				});
 				break;
 			}
 
-			const flags = rule.flags ?? "";
-			const regex = new RegExp(pattern, flags);
 			const match = regex.exec(line);
 			if (match) {
 				boundaries.push({
 					lineIndex,
 					title: match[1] ?? match[0],
-					ruleName: rule.name ?? "unnamed",
+					ruleName: rule.name,
 				});
 				break; // First match wins
 			}

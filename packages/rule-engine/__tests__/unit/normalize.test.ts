@@ -46,16 +46,14 @@ describe("normalizeRule", () => {
 	it("appends transforms after extract", () => {
 		const obj: RuleObject = {
 			css: ".content",
-			transform: [
-				{ type: "transform", category: "string", action: "trim" },
-			],
+			transform: [{ type: "transform", category: "string", action: "trim" }],
 		};
 		const result = normalizeRule(obj);
 		expect(result.ok).toBe(true);
 		if (!result.ok) return;
 		expect(result.value).toHaveLength(2);
-		expect(result.value[0]!.type).toBe("extract");
-		expect(result.value[1]!.type).toBe("transform");
+		expect(result.value[0]?.type).toBe("extract");
+		expect(result.value[1]?.type).toBe("transform");
 	});
 
 	it("returns error for empty RuleObject", () => {
@@ -83,6 +81,6 @@ describe("toRule", () => {
 		const result = toRule({ jsonpath: "$.data.title" });
 		expect(result.ok).toBe(true);
 		if (!result.ok) return;
-		expect(result.value[0]!.type).toBe("extract");
+		expect(result.value[0]?.type).toBe("extract");
 	});
 });

@@ -1,37 +1,18 @@
 import { describe, expect, it } from "vitest";
 import type {
 	BookSource,
-	ChapterBoundary,
-	CompiledExtractStep,
 	CompiledRule,
-	CompiledTransformStep,
-	ContentModule,
-	DictField,
-	DictRule,
 	DictRuleFile,
 	DomTransformStep,
 	EvalContext,
-	ExploreCategory,
-	ExploreModule,
-	ExtractEngine,
-	ExtractOutput,
 	ExtractStep,
-	FieldSchema,
-	JsEvalContext,
-	JsEvalResult,
-	ReplaceRule,
 	ReplaceRuleFile,
-	RequestConfig,
 	Rule,
 	RuleError,
 	RuleErrorCode,
 	RuleObject,
-	RuleStep,
 	ScriptStep,
-	SearchModule,
 	StringTransformStep,
-	TocModule,
-	TxtTocRule,
 	TxtTocRuleFile,
 } from "../../src/types.js";
 
@@ -43,43 +24,68 @@ describe("types (compile-time verification)", () => {
 
 	it("all error codes are assignable", () => {
 		const codes: RuleErrorCode[] = [
-			"INVALID_SELECTOR", "JSONPATH_ERROR", "XPATH_ERROR", "REGEX_ERROR",
-			"SCRIPT_ERROR", "SCRIPT_DISABLED", "NO_JS_EXECUTOR",
-			"CONTENT_TYPE_MISMATCH", "DOM_PARSE_ERROR", "TYPE_MISMATCH",
+			"INVALID_SELECTOR",
+			"JSONPATH_ERROR",
+			"XPATH_ERROR",
+			"REGEX_ERROR",
+			"SCRIPT_ERROR",
+			"SCRIPT_DISABLED",
+			"NO_JS_EXECUTOR",
+			"CONTENT_TYPE_MISMATCH",
+			"DOM_PARSE_ERROR",
+			"TYPE_MISMATCH",
 		];
 		expect(codes).toHaveLength(10);
 	});
 
 	it("ExtractStep with minimal fields", () => {
-		const step: ExtractStep = { type: "extract", engine: "css", selector: "div.content" };
+		const step: ExtractStep = {
+			type: "extract",
+			engine: "css",
+			selector: "div.content",
+		};
 		expect(step.type).toBe("extract");
 	});
 
 	it("ExtractStep with all fields including scope", () => {
 		const step: ExtractStep = {
-			type: "extract", engine: "xpath", selector: "//div",
-			scope: "root", output: "outerHtml", attr: "href",
+			type: "extract",
+			engine: "xpath",
+			selector: "//div",
+			scope: "root",
+			output: "outerHtml",
+			attr: "href",
 		};
 		expect(step.scope).toBe("root");
 	});
 
 	it("StringTransformStep", () => {
 		const step: StringTransformStep = {
-			type: "transform", category: "string", action: "replace",
-			pattern: "\\d+", replacement: "NUM", flags: "g",
+			type: "transform",
+			category: "string",
+			action: "replace",
+			pattern: "\\d+",
+			with: "NUM",
+			flags: "g",
 		};
 		expect(step.action).toBe("replace");
 	});
 
 	it("DomTransformStep", () => {
 		const step: DomTransformStep = {
-			type: "transform", category: "dom", action: "remove", selector: ".ad",
+			type: "transform",
+			category: "dom",
+			action: "remove",
+			selector: ".ad",
 		};
 		expect(step.category).toBe("dom");
 	});
 
 	it("ScriptStep", () => {
-		const step: ScriptStep = { type: "script", code: "return result.toUpperCase();" };
+		const step: ScriptStep = {
+			type: "script",
+			code: "return result.toUpperCase();",
+		};
 		expect(step.type).toBe("script");
 	});
 
@@ -99,8 +105,19 @@ describe("types (compile-time verification)", () => {
 	it("CompiledRule with compiled steps", () => {
 		const compiled: CompiledRule = {
 			steps: [
-				{ type: "extract", engine: "css", selector: "div", compiledSelector: "div" },
-				{ type: "transform", category: "string", action: "replace", pattern: "a", compiledRegex: /a/g },
+				{
+					type: "extract",
+					engine: "css",
+					selector: "div",
+					compiledSelector: "div",
+				},
+				{
+					type: "transform",
+					category: "string",
+					action: "replace",
+					pattern: "a",
+					compiledRegex: /a/g,
+				},
 			],
 		};
 		expect(compiled.steps).toHaveLength(2);
@@ -108,21 +125,28 @@ describe("types (compile-time verification)", () => {
 
 	it("BookSource minimal", () => {
 		const src: BookSource = {
-			$schema: "readerx/book-source-rule/v1", id: "test", name: "Test",
-			type: "novel", baseUrl: "https://example.com",
+			$schema: "readerx/book-source-rule/v1",
+			id: "test",
+			name: "Test",
+			type: "novel",
+			baseUrl: "https://example.com",
 		};
 		expect(src.type).toBe("novel");
 	});
 
 	it("DictRuleFile", () => {
-		const file: DictRuleFile = { $schema: "readerx/dict-rule/v1", authors: ["test"], rules: [] };
+		const file: DictRuleFile = {
+			$schema: "readerx/dict-rule/v1",
+			authors: ["test"],
+			rules: [],
+		};
 		expect(file.rules).toHaveLength(0);
 	});
 
 	it("ReplaceRuleFile", () => {
 		const file: ReplaceRuleFile = {
 			$schema: "readerx/replace-rule/v1",
-			rules: [{ pattern: "\\s+", replacement: " " }],
+			rules: [{ name: "test", pattern: "\\s+", replacement: " " }],
 		};
 		expect(file.rules).toHaveLength(1);
 	});
@@ -136,7 +160,10 @@ describe("types (compile-time verification)", () => {
 	});
 
 	it("EvalContext", () => {
-		const ctx: EvalContext = { baseUrl: "https://example.com", allowScript: true };
+		const ctx: EvalContext = {
+			baseUrl: "https://example.com",
+			allowScript: true,
+		};
 		expect(ctx.baseUrl).toBe("https://example.com");
 	});
 });

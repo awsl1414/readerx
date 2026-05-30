@@ -10,7 +10,7 @@ describe("applyStringTransform", () => {
 				category: "string",
 				action: "replace",
 				pattern: "\\s+",
-				replacement: " ",
+				with: " ",
 				compiledRegex: /\s+/g,
 			};
 			const result = applyStringTransform(step, ["  hello   world  "]);

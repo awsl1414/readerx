@@ -103,6 +103,14 @@ async function executeStep(
 
 		case "script":
 			return executeScript(step as CompiledScriptStep, current, ctx, stepIndex);
+		default: {
+			const _exhaustive: never = step;
+			return err({
+				code: "COMPILE_ERROR",
+				message: `Unknown step type: ${String(_exhaustive)}`,
+				step: stepIndex,
+			});
+		}
 	}
 }
 

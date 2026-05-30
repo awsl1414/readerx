@@ -27,11 +27,15 @@ describe("result", () => {
 	describe("isOk / isErr", () => {
 		it("isOk returns true for ok results", () => {
 			expect(isOk(ok(1))).toBe(true);
-			expect(isOk(err({ code: "REGEX_ERROR" as const, message: "" }))).toBe(false);
+			expect(isOk(err({ code: "REGEX_ERROR" as const, message: "" }))).toBe(
+				false,
+			);
 		});
 
 		it("isErr returns true for err results", () => {
-			expect(isErr(err({ code: "REGEX_ERROR" as const, message: "" }))).toBe(true);
+			expect(isErr(err({ code: "REGEX_ERROR" as const, message: "" }))).toBe(
+				true,
+			);
 			expect(isErr(ok(1))).toBe(false);
 		});
 	});

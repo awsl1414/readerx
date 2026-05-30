@@ -4,14 +4,16 @@ import type { ReplaceRule, ReplaceScope } from "../../src/types.js";
 
 describe("applyReplaceRules", () => {
 	it("applies regex replacement", async () => {
-		const rules: ReplaceRule[] = [{ pattern: "foo", replacement: "bar" }];
+		const rules: ReplaceRule[] = [
+			{ name: "test", pattern: "foo", replacement: "bar" },
+		];
 		const result = await applyReplaceRules("foo baz foo", rules);
 		expect(result).toBe("bar baz bar");
 	});
 
 	it("skips disabled rules", async () => {
 		const rules: ReplaceRule[] = [
-			{ pattern: "foo", replacement: "bar", enabled: false },
+			{ name: "test", pattern: "foo", replacement: "bar", enabled: false },
 		];
 		const result = await applyReplaceRules("foo baz", rules);
 		expect(result).toBe("foo baz");
@@ -19,7 +21,7 @@ describe("applyReplaceRules", () => {
 
 	it("applies literal replacement", async () => {
 		const rules: ReplaceRule[] = [
-			{ pattern: "[ad]", replacement: "", literal: true },
+			{ name: "test", pattern: "[ad]", replacement: "", literal: true },
 		];
 		const result = await applyReplaceRules("text [ad] more", rules);
 		expect(result).toBe("text  more");
@@ -28,7 +30,7 @@ describe("applyReplaceRules", () => {
 	it("respects scope matching", async () => {
 		const scope: ReplaceScope = { target: "title" };
 		const rules: ReplaceRule[] = [
-			{ pattern: "bad", replacement: "good", scope },
+			{ name: "test", pattern: "bad", replacement: "good", scope },
 		];
 		// target=content should NOT match scope.target=title
 		const r1 = await applyReplaceRules("bad text", rules, {
@@ -43,8 +45,8 @@ describe("applyReplaceRules", () => {
 
 	it("applies multiple rules in order", async () => {
 		const rules: ReplaceRule[] = [
-			{ pattern: "a", replacement: "b" },
-			{ pattern: "b", replacement: "c" },
+			{ name: "a", pattern: "a", replacement: "b" },
+			{ name: "b", pattern: "b", replacement: "c" },
 		];
 		const result = await applyReplaceRules("a", rules);
 		expect(result).toBe("c");

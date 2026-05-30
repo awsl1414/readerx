@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compileRule, compileSteps } from "../../src/compile.js";
-import type { RuleStep, RuleObject } from "../../src/types.js";
 import { normalizeRule } from "../../src/normalize.js";
+import type { RuleObject, RuleStep } from "../../src/types.js";
 
 describe("compileRule", () => {
 	it("compiles CSS extract step", () => {
@@ -12,7 +12,7 @@ describe("compileRule", () => {
 		expect(result.ok).toBe(true);
 		if (!result.ok) return;
 		expect(result.value.steps).toHaveLength(1);
-		expect(result.value.steps[0]!.type).toBe("extract");
+		expect(result.value.steps[0]?.type).toBe("extract");
 	});
 
 	it("compiles regex extract step", () => {
@@ -52,7 +52,7 @@ describe("compileRule", () => {
 				category: "string",
 				action: "replace",
 				pattern: "\\d+",
-				replacement: "NUM",
+				with: "NUM",
 			},
 		];
 		const result = compileRule(steps);
@@ -87,7 +87,7 @@ describe("compileRule", () => {
 		const result = compileRule(steps);
 		expect(result.ok).toBe(true);
 		if (!result.ok) return;
-		expect(result.value.steps[0]!.type).toBe("script");
+		expect(result.value.steps[0]?.type).toBe("script");
 	});
 });
 
@@ -95,9 +95,7 @@ describe("compileSteps (full pipeline from RuleObject)", () => {
 	it("normalizes then compiles a RuleObject", () => {
 		const obj: RuleObject = {
 			css: ".title",
-			transform: [
-				{ type: "transform", category: "string", action: "trim" },
-			],
+			transform: [{ type: "transform", category: "string", action: "trim" }],
 		};
 		const normalized = normalizeRule(obj);
 		expect(normalized.ok).toBe(true);

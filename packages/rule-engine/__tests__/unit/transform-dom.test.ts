@@ -7,7 +7,8 @@ describe("applyDomTransform", () => {
 	describe("remove", () => {
 		it("removes elements matching selector", () => {
 			const container = document.createElement("div");
-			container.innerHTML = "<p>hello</p><span class='ad'>ad content</span><p>world</p>";
+			container.innerHTML =
+				"<p>hello</p><span class='ad'>ad content</span><p>world</p>";
 
 			const step: DomTransformStep = {
 				type: "transform",

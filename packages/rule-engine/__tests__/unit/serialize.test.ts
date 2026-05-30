@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { serializeValue, serializeResult, elementToText } from "../../src/serialize";
+import {
+	elementToText,
+	serializeResult,
+	serializeValue,
+} from "../../src/serialize";
 
 describe("serializeValue", () => {
 	it("passes string through unchanged", () => {

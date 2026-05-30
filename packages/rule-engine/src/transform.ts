@@ -1,3 +1,4 @@
+import { isElement } from "./guards";
 import type { Result } from "./result";
 import { err, ok } from "./result";
 import { elementToText } from "./serialize";
@@ -34,7 +35,7 @@ export function applyStringTransform(
 		case "replace": {
 			const re =
 				step.compiledRegex ?? new RegExp(def.pattern ?? "", def.flags ?? "g");
-			return ok(strings.map((s) => s.replaceAll(re, def.replacement ?? "")));
+			return ok(strings.map((s) => s.replaceAll(re, def.with ?? "")));
 		}
 		case "match": {
 			const re =
@@ -59,16 +60,6 @@ export function applyStringTransform(
 		case "trim":
 			return ok(strings.map((s) => s.trim()));
 	}
-}
-
-function isElement(value: unknown): value is Element {
-	return (
-		typeof value === "object" &&
-		value !== null &&
-		"querySelectorAll" in value &&
-		"getAttribute" in value &&
-		!("write" in value)
-	);
 }
 
 export function applyDomTransform(

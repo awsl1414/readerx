@@ -55,7 +55,7 @@ export type TxtTocRuleFileOutput = z.output<typeof txtTocRuleFileSchema>;
 // ---- Dict Rule Schema ----
 
 const dictFieldSchema = z.strictObject({
-	schema: z.enum(["html", "string", "html[]", "string[]"]).optional(),
+	schema: z.enum(["html", "string", "html[]", "string[]"]).default("html"),
 	pipeline: z.array(
 		z.discriminatedUnion("type", [
 			z.strictObject({

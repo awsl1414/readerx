@@ -52,7 +52,7 @@ export type StringTransformStep = {
 	readonly category: "string";
 	readonly action: "replace" | "match" | "split" | "template" | "trim";
 	readonly pattern?: string;
-	readonly replacement?: string;
+	readonly with?: string;
 	readonly flags?: string;
 	readonly group?: number;
 	readonly template?: string;
@@ -156,67 +156,80 @@ export type BookSource = {
 	readonly content?: ContentModule;
 };
 
+export type SearchRules = {
+	readonly list?: Rule;
+	readonly name?: Rule;
+	readonly url?: Rule;
+	readonly author?: Rule;
+	readonly cover?: Rule;
+	readonly intro?: Rule;
+	readonly kind?: Rule;
+	readonly lastChapter?: Rule;
+	readonly wordCount?: Rule;
+};
+
 export type SearchModule = RequestConfig & {
 	readonly url: string;
-	readonly list: Rule;
-	readonly name: Rule;
-	readonly author?: Rule;
-	readonly coverUrl?: Rule;
-	readonly bookUrl?: Rule;
-	readonly kind?: Rule;
-	readonly intro?: Rule;
-	readonly wordCount?: Rule;
-	readonly lastChapter?: Rule;
+	readonly checkKeyWord?: string;
+	readonly rules?: SearchRules;
 };
 
 export type ExploreCategory = {
 	readonly title: string;
-	readonly url: string;
+	readonly url?: string;
 };
 
 export type ExploreModule = RequestConfig & {
 	readonly categories: readonly ExploreCategory[];
-	readonly list: Rule;
-	readonly name: Rule;
-	readonly author?: Rule;
-	readonly coverUrl?: Rule;
-	readonly bookUrl?: Rule;
-	readonly kind?: Rule;
-	readonly intro?: Rule;
-	readonly wordCount?: Rule;
-	readonly lastChapter?: Rule;
+	readonly rules?: SearchRules;
 };
 
-export type BookInfoModule = RequestConfig & {
+export type BookInfoRules = {
+	readonly init?: Rule;
 	readonly name?: Rule;
 	readonly author?: Rule;
-	readonly coverUrl?: Rule;
+	readonly cover?: Rule;
 	readonly intro?: Rule;
 	readonly kind?: Rule;
 	readonly lastChapter?: Rule;
 	readonly wordCount?: Rule;
 	readonly tocUrl?: Rule;
+	readonly [key: string]: Rule | undefined;
 };
 
-export type TocModule = RequestConfig & {
-	readonly list: Rule;
-	readonly name: Rule;
-	readonly url: Rule;
+export type BookInfoModule = RequestConfig & {
+	readonly rules?: BookInfoRules;
+};
+
+export type TocRules = {
+	readonly list?: Rule;
+	readonly name?: Rule;
+	readonly url?: Rule;
 	readonly isVip?: Rule;
 	readonly isVolume?: Rule;
 	readonly updateTime?: Rule;
+	readonly [key: string]: Rule | undefined;
+};
+
+export type TocModule = RequestConfig & {
 	readonly nextUrl?: Rule;
+	readonly rules?: TocRules;
+};
+
+export type ContentRules = {
+	readonly text?: Rule;
+	readonly [key: string]: Rule | undefined;
 };
 
 export type ContentModule = RequestConfig & {
-	readonly content: Rule;
 	readonly nextUrl?: Rule;
 	readonly replaceRegex?: readonly ReplacePair[];
+	readonly rules?: ContentRules;
 };
 
 export type ReplacePair = {
 	readonly pattern: string;
-	readonly replacement: string;
+	readonly with: string;
 };
 
 // ---- Dict Rule ----
@@ -232,6 +245,7 @@ export type DictRuleFile = {
 export type DictRule = {
 	readonly id: string;
 	readonly name: string;
+	readonly description?: string;
 	readonly tags?: readonly string[];
 	readonly enabled?: boolean;
 	readonly weight?: number;
@@ -251,8 +265,8 @@ export type DictRequest = {
 export type FieldSchema = "html" | "string" | "html[]" | "string[]";
 
 export type DictField = {
-	readonly schema: FieldSchema;
-	readonly steps: readonly RuleStep[];
+	readonly schema?: FieldSchema;
+	readonly pipeline: readonly RuleStep[];
 };
 
 // ---- Replace Rule ----
@@ -263,7 +277,7 @@ export type ReplaceRuleFile = {
 };
 
 export type ReplaceRule = {
-	readonly name?: string;
+	readonly name: string;
 	readonly description?: string;
 	readonly tags?: readonly string[];
 	readonly enabled?: boolean;
@@ -290,7 +304,7 @@ export type TxtTocRuleFile = {
 };
 
 export type TxtTocRule = {
-	readonly name?: string;
+	readonly name: string;
 	readonly description?: string;
 	readonly tags?: readonly string[];
 	readonly enabled?: boolean;

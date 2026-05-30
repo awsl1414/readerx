@@ -18,33 +18,35 @@ describe("findChapterBoundaries", () => {
 	];
 
 	it("finds chapters matching pattern", () => {
-		const rules: TxtTocRule[] = [{ pattern: "^Chapter (\\d+.*)$" }];
+		const rules: TxtTocRule[] = [
+			{ name: "chapter", pattern: "^Chapter (\\d+.*)$" },
+		];
 		const boundaries = findChapterBoundaries(lines, rules);
 		expect(boundaries).toHaveLength(4);
 		expect(boundaries[0]).toEqual({
 			lineIndex: 2,
 			title: "1: The Beginning",
-			ruleName: "unnamed",
+			ruleName: "chapter",
 		});
 		expect(boundaries[1]).toEqual({
 			lineIndex: 6,
 			title: "2: The Journey",
-			ruleName: "unnamed",
+			ruleName: "chapter",
 		});
 		expect(boundaries[2]).toEqual({
 			lineIndex: 7,
 			title: "2 content",
-			ruleName: "unnamed",
+			ruleName: "chapter",
 		});
 		expect(boundaries[3]).toEqual({
 			lineIndex: 9,
 			title: "3: The End",
-			ruleName: "unnamed",
+			ruleName: "chapter",
 		});
 	});
 
 	it("uses full match when no capture group", () => {
-		const rules: TxtTocRule[] = [{ pattern: "^Chapter \\d+" }];
+		const rules: TxtTocRule[] = [{ name: "chapter", pattern: "^Chapter \\d+" }];
 		const boundaries = findChapterBoundaries(lines, rules);
 		expect(boundaries[0]?.title).toBe("Chapter 1");
 	});
@@ -58,8 +60,8 @@ describe("findChapterBoundaries", () => {
 
 	it("skips disabled rules", () => {
 		const rules: TxtTocRule[] = [
-			{ pattern: "^Chapter \\d+", enabled: false },
-			{ pattern: "^(Preface)" },
+			{ name: "disabled", pattern: "^Chapter \\d+", enabled: false },
+			{ name: "preface", pattern: "^(Preface)" },
 		];
 		const boundaries = findChapterBoundaries(lines, rules);
 		expect(boundaries).toHaveLength(1);
