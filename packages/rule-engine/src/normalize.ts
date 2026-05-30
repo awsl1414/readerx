@@ -16,7 +16,7 @@ export function toRule(rule: RuleObject | Rule): Result<Rule> {
 	if (Array.isArray(rule)) {
 		return ok(rule);
 	}
-	return normalizeRule(rule);
+	return normalizeRule(rule as RuleObject);
 }
 
 /**
@@ -85,13 +85,12 @@ function buildExtractStep(obj: RuleObject): ExtractStep | undefined {
 	// Use the first defined engine
 	for (const e of engines) {
 		if (e.field) {
-			const step: ExtractStep = {
-				type: "extract",
+			const base = {
+				type: "extract" as const,
 				engine: e.engine,
 				selector: e.selector,
 			};
-			if (obj.attr) step.attr = obj.attr;
-			return step;
+			return obj.attr ? { ...base, attr: obj.attr } : base;
 		}
 	}
 

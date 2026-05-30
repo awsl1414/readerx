@@ -26,14 +26,15 @@ function getWgxpathEvaluate() {
 	});
 	wgxpath.install(tempWindow);
 	// wgxpath.install adds evaluate to the Document prototype
-	const fn = (tempWindow.Document.prototype as Record<string, unknown>)
-		.evaluate;
+	const fn = (
+		tempWindow.Document.prototype as unknown as Record<string, unknown>
+	).evaluate;
 	if (typeof fn !== "function") {
 		throw new Error(
 			"wgxpath.install did not add evaluate to Document prototype",
 		);
 	}
-	wgxpathEvaluate = fn as typeof wgxpathEvaluate;
+	wgxpathEvaluate = fn as unknown as typeof wgxpathEvaluate;
 	tempWindow.close();
 	return wgxpathEvaluate;
 }
@@ -54,6 +55,10 @@ export function evaluateXPath(
 		typeof doc.evaluate === "function"
 			? doc.evaluate.bind(doc)
 			: getWgxpathEvaluate();
+
+	if (!evaluate) {
+		throw new Error("No XPath evaluate function available");
+	}
 
 	const result = evaluate.call(doc, expression, contextNode, null, 5, null);
 	const nodes: Node[] = [];

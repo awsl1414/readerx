@@ -12,6 +12,7 @@ import type {
 	CompiledStep,
 	CompiledTransformStep,
 	EvalContext,
+	JsEvalContext,
 	Rule,
 	RuntimeResult,
 	RuntimeValue,
@@ -145,15 +146,18 @@ async function executeScript(
 		.join("\n");
 
 	try {
-		const jsResult = await ctx.jsExecutor.eval(step.code, {
-			result: resultString,
-			baseUrl: ctx.baseUrl,
-			source: ctx.source,
-			book: ctx.book,
-			chapter: ctx.chapter,
-			key: ctx.key,
-			page: ctx.page,
-		});
+		const jsContext: Record<string, unknown> = { result: resultString };
+		if (ctx.baseUrl !== undefined) jsContext.baseUrl = ctx.baseUrl;
+		if (ctx.source !== undefined) jsContext.source = ctx.source;
+		if (ctx.book !== undefined) jsContext.book = ctx.book;
+		if (ctx.chapter !== undefined) jsContext.chapter = ctx.chapter;
+		if (ctx.key !== undefined) jsContext.key = ctx.key;
+		if (ctx.page !== undefined) jsContext.page = ctx.page;
+
+		const jsResult = await ctx.jsExecutor.eval(
+			step.code,
+			jsContext as JsEvalContext,
+		);
 
 		if (!jsResult.success) {
 			return err({

@@ -30,9 +30,8 @@ export function compileSteps(
 ): Result<readonly CompiledStep[]> {
 	const compiled: CompiledStep[] = [];
 
-	for (let i = 0; i < steps.length; i++) {
-		const step = steps[i];
-		const result = compileStep(step, i);
+	for (const step of steps) {
+		const result = compileStep(step);
 		if (!result.ok) return result;
 		compiled.push(result.value);
 	}
@@ -40,58 +39,45 @@ export function compileSteps(
 	return ok(compiled);
 }
 
-function compileStep(step: RuleStep, index: number): Result<CompiledStep> {
+function compileStep(step: RuleStep): Result<CompiledStep> {
 	switch (step.type) {
 		case "extract":
-			return compileExtract(step, index);
+			return compileExtract(step);
 		case "transform":
-			return compileTransform(step, index);
+			return compileTransform(step);
 		case "script":
 			return ok(step as CompiledStep);
 	}
 }
 
-function compileExtract(
-	step: ExtractStep,
-	index: number,
-): Result<CompiledExtractStep> {
+function compileExtract(step: ExtractStep): Result<CompiledExtractStep> {
 	switch (step.engine) {
 		case "css":
-			// Validate CSS selector by attempting to parse
 			if (!step.selector.trim()) {
-				return compileError(index, "css", "Empty CSS selector");
+				return compileError("css", "Empty CSS selector");
 			}
-			// CSS selector validation happens at eval time via querySelectorAll
 			return ok({ ...step });
 
 		case "xpath":
 			if (!step.selector.trim()) {
-				return compileError(index, "xpath", "Empty XPath expression");
+				return compileError("xpath", "Empty XPath expression");
 			}
-			// XPath validation happens at eval time — no pre-parse API available
 			return ok({ ...step });
 
 		case "jsonpath":
 			if (!step.selector.trim()) {
-				return compileError(index, "jsonpath", "Empty JSONPath expression");
+				return compileError("jsonpath", "Empty JSONPath expression");
 			}
-			// JSONPath validation via @swaggerexpert/jsonpath happens at eval time
 			return ok({ ...step });
 
 		case "regex":
 			if (!step.selector.trim()) {
-				return compileError(index, "regex", "Empty regex pattern");
+				return compileError("regex", "Empty regex pattern");
 			}
-			// Pre-compile regex to catch invalid patterns early
 			try {
 				new RegExp(step.selector);
 			} catch (e) {
-				return compileError(
-					index,
-					"regex",
-					`Invalid regex: ${step.selector}`,
-					e,
-				);
+				return compileError("regex", `Invalid regex: ${step.selector}`, e);
 			}
 			return ok({ ...step });
 	}
@@ -99,17 +85,14 @@ function compileExtract(
 
 function compileTransform(
 	step: StringTransformStep | DomTransformStep,
-	index: number,
 ): Result<CompiledStep> {
 	if (step.category === "dom") {
-		// DomTransform — validate selector
 		if (!step.selector.trim()) {
-			return compileError(index, step.action, "Empty DOM transform selector");
+			return compileError(step.action, "Empty DOM transform selector");
 		}
 		return ok({ ...step } as CompiledTransformStep);
 	}
 
-	// StringTransform
 	const def = step as StringTransformStep;
 
 	switch (def.action) {
@@ -118,7 +101,6 @@ function compileTransform(
 		case "split": {
 			if (!def.pattern) {
 				return compileError(
-					index,
 					def.action,
 					`Missing pattern for "${def.action}" transform`,
 				);
@@ -128,10 +110,12 @@ function compileTransform(
 					def.pattern,
 					def.flags ?? (def.action === "replace" ? "g" : ""),
 				);
-				return ok({ ...step, compiledRegex: regex } as CompiledTransformStep);
+				return ok({
+					...step,
+					compiledRegex: regex,
+				} as CompiledTransformStep);
 			} catch (e) {
 				return compileError(
-					index,
 					def.action,
 					`Invalid regex pattern: ${def.pattern}`,
 					e,
@@ -140,7 +124,7 @@ function compileTransform(
 		}
 		case "template": {
 			if (!def.template) {
-				return compileError(index, "template", "Missing template string");
+				return compileError("template", "Missing template string");
 			}
 			return ok({ ...step } as CompiledTransformStep);
 		}
@@ -150,7 +134,6 @@ function compileTransform(
 }
 
 function compileError(
-	index: number,
 	engine: string,
 	message: string,
 	cause?: unknown,
@@ -158,7 +141,6 @@ function compileError(
 	return err({
 		code: "COMPILE_ERROR",
 		message,
-		step: index,
 		rule: engine,
 		cause,
 	});

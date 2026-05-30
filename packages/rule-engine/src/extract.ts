@@ -70,9 +70,11 @@ function runEngine(
 	value: RuntimeValue,
 	ctx: EvalContext,
 ): Result<RuntimeResult> {
-	const options = step.output
-		? { output: step.output as ExtractOutput, attr: step.attr }
-		: undefined;
+	let options: { output: ExtractOutput; attr?: string } | undefined;
+	if (step.output) {
+		options = { output: step.output as ExtractOutput };
+		if (step.attr !== undefined) options.attr = step.attr;
+	}
 
 	switch (step.engine) {
 		case "css":

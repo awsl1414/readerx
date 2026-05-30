@@ -31,7 +31,6 @@ describe("compileRule", () => {
 		expect(result.ok).toBe(false);
 		if (!result.ok) {
 			expect(result.error.code).toBe("COMPILE_ERROR");
-			expect(result.error.step).toBe(0);
 		}
 	});
 
