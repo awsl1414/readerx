@@ -38,16 +38,12 @@ function useVisibleNavItems(): readonly NavItem[] {
 }
 
 export function DesktopNav() {
-	const t = useTranslations("nav");
 	const pathname = usePathname();
 	const items = useVisibleNavItems();
 
 	return (
-		<aside className="hidden w-14 shrink-0 flex-col py-4 md:flex">
-			<Link href="/" className="flex items-center justify-center py-3">
-				<BookOpen className="size-5 text-foreground" />
-			</Link>
-			<nav className="mt-2 flex flex-col items-center gap-1 px-2">
+		<aside className="hidden w-14 shrink-0 flex-col items-center py-4 md:flex">
+			<nav className="flex flex-col items-center gap-1 px-2">
 				{items.map((item) => {
 					const active =
 						item.href === "/"
