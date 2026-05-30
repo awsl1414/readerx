@@ -14,8 +14,13 @@ function Slider({
 	...props
 }: React.ComponentProps<typeof SliderPrimitive.Root>) {
 	const _values = React.useMemo(
-		() => value ?? defaultValue ?? [min],
-		[value, defaultValue, min],
+		() =>
+			Array.isArray(value)
+				? value
+				: Array.isArray(defaultValue)
+					? defaultValue
+					: [min, max],
+		[value, defaultValue, min, max],
 	);
 
 	const conditionalProps = {
@@ -45,7 +50,7 @@ function Slider({
 					className="bg-primary absolute h-full rounded-full"
 				/>
 			</SliderPrimitive.Track>
-			{_values.map((val, index) => (
+			{_values.map((_val, index) => (
 				<SliderPrimitive.Thumb
 					data-slot="slider-thumb"
 					key={index}
