@@ -2,7 +2,7 @@
 
 本文档面向参与 ReaderX 开发的工程师，涵盖环境搭建、项目架构、开发工作流和测试。
 
-编码规范见 [`CLAUDE.md`](../CLAUDE.md)（约束清单）和 [`tech-standards.md`](./tech-standards.md)（各技术栈正确用法）。UI 设计决策见 [`web-design-guide.md`](./web-design-guide.md)。
+编码规范见 [`CLAUDE.md`](../CLAUDE.md)（约束清单）和 [`tech-standards.md`](./tech-standards.md)（各技术栈正确用法）。UI 设计决策见 [`web-design/`](./web-design/)（PRD · IA · Wireframes · Design Tokens · Component Tree）。
 
 ## 环境要求
 

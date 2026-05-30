@@ -10,7 +10,7 @@
 
 **Tech Stack:** Next.js 16 · React 19 · Tailwind CSS v4 · shadcn/ui · next-themes · next-intl · Zustand 5 · TanStack Query 5 · Lucide
 
-**Spec:** [`docs/web-design-guide.md`](../../web-design-guide.md)
+**Spec:** [`docs/web-design/`](../../web-design/)（Wireframes · Design Tokens · Component Tree）
 
 ---
 

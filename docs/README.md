@@ -10,16 +10,30 @@ ReaderX 项目文档索引。
 | [`development-guide.md`](./development-guide.md) | 开发实操 — 环境搭建、Web 架构模式（RSC 边界、ReaderSession、Worker Bridge）、工作流 | 开发者 |
 | [`roadmap.md`](./roadmap.md) | 开发排期 — 模块状态、Step 详细内容、里程碑 | 开发者 / 规划者 |
 | [`tech-standards.md`](./tech-standards.md) | 技术标准 — TypeScript / React / Next.js 等各技术栈的正确用法和注意事项 | 开发者 |
-| [`web-design-guide.md`](./web-design-guide.md) | Web 页面设计指导 — 视觉系统、交互模式、阅读器设计 | 设计 / 前端 |
 | [`rule-engine-changes.md`](./rule-engine-changes.md) | 规则引擎改进记录 — 相对 Legado 的改进、舍弃项和架构变更 | 开发者 |
+
+## Web 设计文档（`web-design/`）
+
+ReaderX 前端设计的完整文档体系，6 个文件形成从产品定义到组件实现的决策链：
+
+| 文档 | 职责 | 读者 |
+|---|---|---|
+| [`web-design/prd.md`](./web-design/prd.md) | 产品需求 — 功能范围、优先级分层、NFR | 全体 |
+| [`web-design/ia.md`](./web-design/ia.md) | 信息架构 — 页面结构、路由映射、导航行为 | 设计 / 前端 |
+| [`web-design/user-flow.md`](./web-design/user-flow.md) | 用户流程 — 核心操作流程、故障降级路径 | 设计 / 前端 |
+| [`web-design/wireframes.md`](./web-design/wireframes.md) | 线框图 — 页面布局、视觉权重、响应式适配 | 设计 / 前端 |
+| [`web-design/design-tokens.yaml`](./web-design/design-tokens.yaml) | 设计令牌 — 颜色、排版、间距、圆角、阴影、动效 | 前端 |
+| [`web-design/component-tree.md`](./web-design/component-tree.md) | 组件树 — 页面组件分解、复用关系、状态管理 | 前端 |
 
 ## 子目录
 
 | 目录 | 内容 |
 |---|---|
+| `web-design/` | Web 前端设计文档（PRD · IA · User Flow · Wireframes · Tokens · Component Tree） |
 | `web/` | Web 前端各模块架构指南（Worker Bridge、阅读器） |
 | `analysis/` | Legado 原版架构分析、ReaderX 改进对比 |
 | `superpowers/` | AI 辅助开发的设计规格和实施计划 |
+| `legado/` | Legado 原版参考文档 |
 
 ## Legado 原版参考文档
 
@@ -41,5 +55,5 @@ ReaderX 项目文档索引。
 - 正确用法 → `tech-standards.md`（怎么做对）
 - 实操指南 → `development-guide.md`（怎么干活）
 - 排期规划 → `roadmap.md`（做什么/什么时候做）
-- 设计指南 → `web-design-guide.md`（页面怎么设计）
+- 设计体系 → `web-design/`（页面怎么设计、UI 长什么样）
 - 修改代码后，检查相关文档是否需要同步更新

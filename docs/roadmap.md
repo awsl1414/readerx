@@ -244,7 +244,7 @@ BookSource.ruleContent
 
 ## Step 6: Web 前端（apps/web）
 
-依赖所有 packages。Web 页面设计指导见 [`docs/web-design-guide.md`](./web-design-guide.md)。
+依赖所有 packages。Web 设计文档见 [`docs/web-design/`](./web-design/)（PRD · IA · Wireframes · Design Tokens · Component Tree）。
 
 ### 架构决策
 

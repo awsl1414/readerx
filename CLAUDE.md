@@ -4,7 +4,7 @@
 
 ## 项目概述
 
-ReaderX 是 [Legado（阅读）](https://github.com/gedoor/legado) 的 Web 重写增强项目。`docs/` 包含 Legado 原版架构文档作为参考。开发路线图见 [`docs/roadmap.md`](./docs/roadmap.md)。Web 页面设计指导见 [`docs/web-design-guide.md`](./docs/web-design-guide.md)。
+ReaderX 是 [Legado（阅读）](https://github.com/gedoor/legado) 的 Web 重写增强项目。`docs/` 包含 Legado 原版架构文档作为参考。开发路线图见 [`docs/roadmap.md`](./docs/roadmap.md)。Web 设计文档见 [`docs/web-design/`](./docs/web-design/)（PRD · IA · User Flow · Wireframes · Design Tokens · Component Tree）。
 
 ## Monorepo 结构
 
