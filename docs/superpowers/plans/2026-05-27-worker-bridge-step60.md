@@ -1011,12 +1011,12 @@ Also update the Step 6.0 sub-task status if they have checkboxes.
 
 - [ ] **Step 3: Update worker-bridge.md architecture guide**
 
-Review `docs/web/worker-bridge.md` and update any details that differ from the actual implementation (e.g., AnalyzeRule integration, host function behavior).
+Review `docs/web-design/worker-bridge.md` and update any details that differ from the actual implementation (e.g., AnalyzeRule integration, host function behavior).
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add docs/roadmap.md docs/web/worker-bridge.md
+git add docs/roadmap.md docs/web-design/worker-bridge.md
 git commit -m "docs(roadmap): update Step 6.0 Worker Bridge completion status"
 ```
 

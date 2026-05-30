@@ -100,7 +100,7 @@ rule-engine  ←  services/api
 | [开发指南](./docs/development-guide.md) | 环境搭建、Web 架构模式（RSC 边界、ReaderSession、Worker Bridge）、工作流 |
 | [开发路线图](./docs/roadmap.md) | 7 阶段开发计划、模块进度、验证里程碑 |
 | [技术标准](./docs/tech-standards.md) | TypeScript / React / Next.js 等各技术栈的正确用法 |
-| [Web 设计指南](./docs/web-design-guide.md) | Web 页面设计指导 — 视觉系统、交互模式、阅读器设计 |
+| [Web 设计文档](./docs/web-design/) | PRD · IA · User Flow · Wireframes · Design Tokens · Component Tree |
 | [规则引擎改进记录](./docs/rule-engine-changes.md) | 相对 Legado 的改进、舍弃项和架构变更 |
 | [完整文档索引](./docs/README.md) | 文档职责表 + Legado 原版参考文档 |
 

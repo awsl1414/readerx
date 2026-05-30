@@ -46,7 +46,7 @@ readerx/
 | [`docs/development-guide.md`](./docs/development-guide.md) | Web 架构模式（RSC 边界、ReaderSession、Worker Bridge） |
 | [`docs/roadmap.md`](./docs/roadmap.md) | 7 阶段开发计划、模块进度 |
 | [`docs/tech-standards.md`](./docs/tech-standards.md) | TypeScript / React / Next.js 技术栈用法 |
-| [`docs/web-design-guide.md`](./docs/web-design-guide.md) | Web 页面设计指导 |
+| [`docs/web-design/`](./docs/web-design/) | Web 设计（PRD · IA · User Flow · Wireframes · Design Tokens · Component Tree） |
 
 ## 规则
 

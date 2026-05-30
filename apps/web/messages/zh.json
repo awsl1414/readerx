@@ -1,35 +1,64 @@
 {
 	"nav": {
-		"home": "首页",
-		"library": "书库",
-		"search": "搜索",
-		"settings": "设置"
+		"bookshelf": "书架",
+		"explore": "发现",
+		"subscriptions": "订阅",
+		"my": "我的"
 	},
-	"home": {
+	"bookshelf": {
 		"continueReading": "继续阅读",
 		"recentBooks": "最近在读",
 		"noBooks": "还没有书籍",
-		"searchToAdd": "搜索添加你的第一本书"
+		"noBooksHint": "搜索添加你的第一本书",
+		"allBooks": "全部",
+		"sortRecentRead": "最近阅读",
+		"sortAddedTime": "添加时间",
+		"sortTitle": "书名",
+		"sortManual": "手动排序",
+		"viewGrid": "网格",
+		"viewList": "列表",
+		"deleteConfirm": "确定删除这本书吗？",
+		"moveToGroup": "移入分组",
+		"bookDetail": "查看详情",
+		"changeSource": "换源",
+		"progress": "{percent}%",
+		"noBookSources": "还没有书源",
+		"noBookSourcesHint": "导入书源后开始阅读"
 	},
-	"library": { "title": "书库" },
 	"search": {
 		"title": "搜索",
-		"placeholder": "搜索书名或作者..."
+		"placeholder": "搜索书名或作者...",
+		"history": "搜索历史",
+		"noResults": "没有找到结果",
+		"sourceStatus": "{success} 个书源已返回 · {failed} 个无响应",
+		"searching": "搜索中..."
 	},
-	"settings": {
-		"title": "设置",
+	"my": {
+		"title": "我的",
 		"sources": "书源管理",
-		"reading": "阅读设置",
-		"system": "系统",
+		"rssSources": "订阅源管理",
+		"replaceRules": "替换净化",
+		"txtRules": "TXT目录规则",
+		"dictRules": "字典规则",
 		"theme": "主题",
-		"themeLight": "亮色",
-		"themeDark": "暗色",
-		"themeSystem": "跟随系统",
-		"language": "语言"
+		"reading": "阅读设置",
+		"backup": "备份恢复",
+		"import": "Legado 数据导入",
+		"downloads": "下载管理",
+		"bookmarks": "全部书签",
+		"readRecord": "阅读记录",
+		"about": "关于",
+		"sectionRules": "规则管理",
+		"sectionPersonal": "个性化",
+		"sectionData": "数据",
+		"sectionStats": "统计",
+		"sectionOther": "其他"
 	},
 	"common": {
 		"loading": "加载中...",
 		"error": "出错了",
-		"retry": "重试"
+		"retry": "重试",
+		"cancel": "取消",
+		"confirm": "确定"
 	}
 }

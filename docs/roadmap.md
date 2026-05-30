@@ -1,21 +1,127 @@
 # ReaderX 开发排期
 
-本文档定义开发的执行顺序和每个步骤的详细内容。不绑定时间，只规定依赖关系和先后顺序。
+本文档定义开发的执行顺序和每个步骤的详细内容。不绑定时间，只规定依赖关系和先后顺序。设计文档见 [`docs/web-design/`](./web-design/)（PRD · IA · Wireframes · Design Tokens · Component Tree）。
 
-## 模块状态
+---
 
-| 模块 | 已完成 | 状态 |
+## 项目总览
+
+### 一、Packages 层
+
+| # | 模块 | 已完成内容 | 测试 | 状态 |
+|---|---|---|---|---|
+| 1 | **infrastructure** | HTTP 客户端、Logger、Config | 21 ✅ | ✅ 完成 |
+| 2 | **rule-engine** | CSS/XPath/JSONPath 解析器、操作符拆分、正则替换、模式检测、URL 分析器管线、完整 Zod Schema、JS 规则（JsExecutor 依赖倒置） | 281 ✅ | ✅ 完成（Step 1 + 2 + 1.5） |
+| 3 | **persistence** | IndexedDB (Dexie) + OPFS + 9 Repositories | 57 ✅ | ✅ 完成 |
+| 4 | **quickjs-runtime** | QuickJS WASM 沙箱、宿主函数注入、async safe settlement、QuickJsExecutor、comlink Worker、peer dep rule-engine | 31 ✅ | ✅ 完成 |
+| 5 | **reader-engine** | Document AST pipeline、ContentProcessor、layout engine、render model（V3） | 114 ✅ | ✅ 完成 |
+
+### 二、Web 前端（apps/web）— Step 6
+
+#### 基础设施
+
+| # | 子项 | 内容 | 状态 |
+|---|---|---|---|
+| 6.0 | **Worker Bridge** | comlink Worker 懒初始化、async API 封装、请求队列、超时处理、crash 恢复、React Context Provider | ✅ 完成 |
+
+#### 功能模块
+
+| # | 子项 | 内容 | 状态 |
+|---|---|---|---|
+| 6.1 | **阅读器** | ReaderSession、RenderScheduler、翻页手势（touch/scroll）、控制层 UI、章节预取、进度保存、氛围主题、5 套阅读器主题 | ✅ 完成 |
+| 6.2 | **书架** | 网格/列表视图、分组管理、排序、继续阅读 Hero、TanStack Query 数据层 | ✅ 完成 |
+| 6.3 | **搜索** | 多源并发搜索、搜索历史、流式结果、书源选择 | ⬜ 脚手架 |
+| 6.4 | **书源管理** | Scraping Workspace（三层 UI：列表 / 编辑器 / 调试器）、导入（URL/文件/粘贴）、Capability Analyzer、Pipeline Runner、调试 Console | ✅ 完成 |
+| 6.5 | **基础 UI** | 命令面板 ⌘K、响应式细化、组件补全 | ⬜ 未开始 |
+
+#### 导航与页面
+
+| # | 子项 | 内容 | 状态 |
+|---|---|---|---|
+| — | **App Shell** | 布局框架（侧边栏 + 顶栏 + 内容区 + 底栏）、主题切换 | ✅ 完成 |
+| — | **导航** | Legado 模式 4 Tab（书架/发现/订阅/我的）+ 智能显隐（MVP 全显示） | ✅ 完成 |
+| — | **路由** | `/` `/search` `/my` `/my/sources` `/explore` `/subscriptions` `/reader/[bookId]` | ✅ 完成 |
+
+### 三、后端服务（services/api）— Step 7
+
+| # | 子项 | 内容 | 状态 |
+|---|---|---|---|
+| 7 | **API 服务** | Hono + Drizzle + PostgreSQL、CORS、日志、路由结构 | 🔴 脚手架 |
+
+### 四、P0 MVP 功能覆盖（对应 PRD §5）
+
+| PRD 功能 | 实现位置 | 状态 |
 |---|---|---|
-| infrastructure | HTTP 客户端、Logger、Config、21 测试通过 | ✅ Step 完成 |
-| rule-engine | CSS/XPath/JSONPath 解析器、操作符拆分、正则替换、模式检测、URL 分析器管线、完整 Zod Schema、JS 规则支持（JsExecutor 依赖倒置）、281 测试通过 | ✅ Step 1+2+1.5 完成 |
-| persistence | IndexedDB(Dexie) + OPFS + 9 Repositories、57 测试通过 | ✅ Step 3 完成 |
-| quickjs-runtime | QuickJS WASM 沙箱、宿主函数注入（evalRule/ajaxWithOption）、async safe settlement、QuickJsExecutor、comlink Worker、peer dep rule-engine（import type only）、31 测试通过 | ✅ Step 4 完成 |
-| reader-engine | V3 完成（Document AST pipeline、ContentProcessor、layout engine、render model）、114 测试通过 | ✅ Step 5 完成 |
-| apps/web | Shell + Worker Bridge + Reader（ReaderSession、RenderScheduler、翻页手势、控制层 UI、章节预取、进度保存、氛围主题）+ 书源管理 Scraping Workspace（Capability Analyzer、数据层 Hooks、导入逻辑、三层 Workspace UI）、134 测试通过 | 🟡 Step 6.1+6.4 完成 |
-| services/api | 路由结构 | 🔴 脚手架 |
-| ai | — | ⬜ 待规划（独立包，可随时启动） |
+| **阅读器**（滚动/分页/手势/进度/预加载/字号·行距·主题/选中菜单） | Step 6.1 `features/reader/` | ✅ 核心完成，待端到端验证 |
+| **书架**（网格/列表/分组/排序/操作） | Step 6.2 `features/bookshelf/` | ✅ 完成 |
+| **搜索**（多源并发/历史/流式/书源选择） | Step 6.3 `features/search/` | ⬜ 脚手架 |
+| **书源管理**（导入/编辑/调试/校验） | Step 6.4 `features/source-manager/` | ✅ 完成 |
+| **目录**（章节列表/搜索跳转） | Step 6.1 `features/reader/toc-panel.tsx` | ✅ 完成 |
+| **进度恢复**（位置保存/恢复/预取） | Step 6.1 `features/reader/session.ts` | ✅ 完成 |
+| **书签**（添加/管理/跳转） | Step 6.1 `features/reader/` | ⬜ 未实现 |
+| **主题**（亮/暗/系统 + 5 阅读器主题） | App Shell + Reader | ✅ 完成 |
+| **换源**（同名搜索/多源去重/保持进度） | 待实现 | ⬜ 未实现 |
+| **离线缓存**（章节缓存/预加载/断网可读） | 待实现 | ⬜ 未实现 |
+| **Legado 迁移**（导入 books/bookSource/replaceRule/rssSource JSON） | 待实现 | ⬜ 未实现 |
+| **多语言**（中/英，next-intl） | `messages/zh.json` + `en.json` | ✅ 基础完成 |
 
-### 整体进度
+### 五、P1 功能（对应 PRD §5）
+
+| PRD 功能 | 实现位置 | 状态 |
+|---|---|---|
+| **WebDAV 同步** | 待实现 | ⬜ 未开始 |
+| **下载管理** | 待实现 | ⬜ 未开始 |
+| **TXT 导入** | 待实现 | ⬜ 未开始 |
+| **规则订阅** | 待实现 | ⬜ 未开始 |
+| **替换净化** | 待实现 | ⬜ 未开始 |
+| **RSS 订阅** | 待实现 | ⬜ 未开始 |
+| **书内搜索** | 待实现 | ⬜ 未开始 |
+| **阅读统计** | 待实现 | ⬜ 未开始 |
+| **规则沙箱** | 待实现 | ⬜ 未开始 |
+
+### 六、P2–P3 / Future（对应 PRD §5）
+
+| PRD 功能 | 优先级 | 状态 |
+|---|---|---|
+| **发现**（书源 exploreUrl 分类浏览） | P2 | ⬜ 未开始 |
+| **换封面** | P2 | ⬜ 未开始 |
+| **字典规则** | P2 | ⬜ 未开始 |
+| **EPUB** | P2 | ⬜ 未开始 |
+| **命令面板 ⌘K** | P2 | ⬜ 未开始 |
+| **漫画模式** | P2 | ⬜ 未开始 |
+| **导入关联** | P2 | ⬜ 未开始 |
+| **简繁转换** | P2 | ⬜ 未开始 |
+| **书籍导出**（TXT + EPUB） | P2 | ⬜ 未开始 |
+| **TTS 朗读** | P3 | ⬜ 未开始 |
+| **有声书** | P3 | ⬜ 未开始 |
+| **云同步**（自有后端） | P3 | ⬜ 未开始 |
+| **插件系统** | P3 | ⬜ 未开始 |
+| **AI 增强** | Future | ⬜ 待规划（独立包 `packages/ai`） |
+
+### 七、设计与架构文档
+
+| 文档 | 路径 | 状态 |
+|---|---|---|
+| PRD（产品需求） | [`docs/web-design/prd.md`](./web-design/prd.md) | ✅ 完成 |
+| IA（信息架构） | [`docs/web-design/ia.md`](./web-design/ia.md) | ✅ 完成 |
+| User Flow（用户流程） | [`docs/web-design/user-flow.md`](./web-design/user-flow.md) | ✅ 完成 |
+| Wireframes（线框图） | [`docs/web-design/wireframes.md`](./web-design/wireframes.md) | ✅ 完成 |
+| Design Tokens（设计令牌） | [`docs/web-design/design-tokens.yaml`](./web-design/design-tokens.yaml) | ✅ 完成 |
+| Component Tree（组件树） | [`docs/web-design/component-tree.md`](./web-design/component-tree.md) | ✅ 完成 |
+| Worker Bridge 架构 | [`docs/web-design/worker-bridge.md`](./web-design/worker-bridge.md) | ✅ 完成 |
+
+### 八、实施计划
+
+| 计划 | 内容 | 状态 |
+|---|---|---|
+| **Phase 1** | 导航重构 + 书架实现（Legado 模式 4 Tab、ContinueReadingHero、BookGrid） | ✅ [已完成](./superpowers/plans/2026-05-30-p0-phase1-navigation-bookshelf.md) |
+| **Phase 2** | 搜索 + 书籍详情 + 换源 | ⬜ 待写计划 |
+| **Phase 3** | 书签 + 阅读进度管理 | ⬜ 待写计划 |
+| **Phase 4** | 我的/设置子页面 | ⬜ 待写计划 |
+| **Phase 5** | 发现 + RSS 订阅 | ⬜ 待写计划 |
+| **Phase 6** | 离线缓存 + Legado 迁移 | ⬜ 待写计划 |
+
+### 九、里程碑
 
 | 里程碑 | 标准 | 状态 |
 |---|---|---|
@@ -244,7 +350,7 @@ BookSource.ruleContent
 
 ## Step 6: Web 前端（apps/web）
 
-依赖所有 packages。Web 页面设计指导见 [`docs/web-design-guide.md`](./web-design-guide.md)。
+依赖所有 packages。Web 设计文档见 [`docs/web-design/`](./web-design/)（PRD · IA · Wireframes · Design Tokens · Component Tree）。
 
 ### 架构决策
 
@@ -257,7 +363,7 @@ BookSource.ruleContent
 
 ### 6.0 Worker Bridge 基础设施
 
-所有 feature 的前置依赖。架构指南见 [`docs/web/worker-bridge.md`](./web/worker-bridge.md)。
+所有 feature 的前置依赖。架构指南见 [`docs/web-design/worker-bridge.md`](./web-design/worker-bridge.md)。
 
 - 6.0.1 **Worker Bridge 模块**（`apps/web/lib/worker-bridge.ts`）
   - comlink Worker 懒初始化（首次调用时创建，单例复用）
@@ -277,7 +383,7 @@ BookSource.ruleContent
 
 ### 6.1 阅读器原型（features/reader/）
 
-技术风险最高的 feature，优先验证可行性。架构指南见 [`docs/web/reader.md`](./web/reader.md)。
+技术风险最高的 feature，优先验证可行性。组件结构见 [`docs/web-design/component-tree.md`](./web-design/component-tree.md) §5。
 
 - 6.1.1 **ReaderSession 类**（`session.ts`）
   - `open(bookId)` — 从 IndexedDB 加载书籍 → Worker Bridge 获取章节内容 → reader-engine 排版 → 返回 session
@@ -373,7 +479,7 @@ BookSource.ruleContent
 
 > 书源管理不是设置表单，而是 Scraping Workspace。基于真实书源分析（`shuyuan.json`），规则包含 XPath/CSS/JSONPath 混用、`@js:` 动态脚本、反爬、多页 Pipeline 等复杂 DSL。设计详见 [`docs/superpowers/specs/2026-05-29-source-manager-design.md`](./superpowers/specs/2026-05-29-source-manager-design.md)。
 
-**路由**: `/settings/sources`
+**路由**: `/my/sources`（原 `/settings/sources`，导航重构后迁移）
 
 **架构: Layered Workspace**
 
