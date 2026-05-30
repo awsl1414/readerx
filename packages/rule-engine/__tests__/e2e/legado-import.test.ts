@@ -11,30 +11,28 @@ import { convertLegadoTxtTocRules } from "../../src/import/converters/txt-toc.js
 import { convertLegadoReplaceRules } from "../../src/import/converters/replace-rule.js";
 import { convertLegadoDictRules } from "../../src/import/converters/dict-rule.js";
 import type {
-	BookSource,
-	DictRule,
-	DictRuleFile,
-	ReplaceRuleFile,
-	TxtTocRuleFile,
-} from "../../src/types.js";
+	LegadoBookSource,
+	LegadoDictRule,
+	LegadoReplaceRule,
+	LegadoTxtTocRule,
+} from "../../src/import/types.js";
 
 const LEGADO_DATA_DIR = join(import.meta.dirname, "../../../../schemas/legado/data");
 
-function loadLegadoData(filename: string): unknown {
+function loadLegadoData<T>(filename: string): readonly T[] {
 	const path = join(LEGADO_DATA_DIR, filename);
-	return JSON.parse(readFileSync(path, "utf-8"));
+	return JSON.parse(readFileSync(path, "utf-8")) as readonly T[];
 }
 
 // ── TXT TOC ──────────────────────────────────────────────────────
 
 describe("E2E Legado Import: txt-toc-rule", () => {
 	it("imports all 26 rules with full conversion", () => {
-		const raw = loadLegadoData("txt-toc-rule.json") as readonly unknown[];
+		const raw = loadLegadoData<LegadoTxtTocRule>("txt-toc-rule.json");
 		const result = convertLegadoTxtTocRules(raw);
 
-		const file: TxtTocRuleFile = result.data;
-		expect(file.rules).toHaveLength(26);
-		expect(file.$schema).toBe("readerx/txt-toc-rule/v1");
+		expect(result.data.rules).toHaveLength(26);
+		expect(result.data.$schema).toBe("readerx/txt-toc-rule/v1");
 
 		expect(result.report.totalRules).toBe(26);
 		expect(result.report.convertedRules).toBe(26);
@@ -45,7 +43,7 @@ describe("E2E Legado Import: txt-toc-rule", () => {
 	});
 
 	it("every rule has name; non-fallback rules have pattern", () => {
-		const raw = loadLegadoData("txt-toc-rule.json") as readonly unknown[];
+		const raw = loadLegadoData<LegadoTxtTocRule>("txt-toc-rule.json");
 		const result = convertLegadoTxtTocRules(raw);
 
 		let nonEmptyPatterns = 0;
@@ -65,12 +63,11 @@ describe("E2E Legado Import: txt-toc-rule", () => {
 
 describe("E2E Legado Import: replace-rule", () => {
 	it("imports all 20 rules", () => {
-		const raw = loadLegadoData("replace-rule.json") as readonly unknown[];
+		const raw = loadLegadoData<LegadoReplaceRule>("replace-rule.json");
 		const result = convertLegadoReplaceRules(raw);
 
-		const file: ReplaceRuleFile = result.data;
-		expect(file.rules).toHaveLength(20);
-		expect(file.$schema).toBe("readerx/replace-rule/v1");
+		expect(result.data.rules).toHaveLength(20);
+		expect(result.data.$schema).toBe("readerx/replace-rule/v1");
 
 		expect(result.report.totalRules).toBe(20);
 		// converted + partial + scriptFallback should sum to 20
@@ -82,7 +79,7 @@ describe("E2E Legado Import: replace-rule", () => {
 	});
 
 	it("handles @js: replacement as replacementJs field", () => {
-		const raw = loadLegadoData("replace-rule.json") as readonly unknown[];
+		const raw = loadLegadoData<LegadoReplaceRule>("replace-rule.json");
 		const result = convertLegadoReplaceRules(raw);
 
 		const jsRules = result.data.rules.filter(
@@ -103,28 +100,27 @@ describe("E2E Legado Import: replace-rule", () => {
 
 describe("E2E Legado Import: dict-rule", () => {
 	it("imports all 3 rules", () => {
-		const raw = loadLegadoData("dict-rule.json") as readonly unknown[];
+		const raw = loadLegadoData<LegadoDictRule>("dict-rule.json");
 		const result = convertLegadoDictRules(raw);
 
-		const file: DictRuleFile = result.data;
-		expect(file.rules).toHaveLength(3);
-		expect(file.$schema).toBe("readerx/dict-rule/v1");
+		expect(result.data.rules).toHaveLength(3);
+		expect(result.data.$schema).toBe("readerx/dict-rule/v1");
 
 		expect(result.report.totalRules).toBe(3);
 	});
 
 	it("at least some rules have request.url", () => {
-		const raw = loadLegadoData("dict-rule.json") as readonly unknown[];
+		const raw = loadLegadoData<LegadoDictRule>("dict-rule.json");
 		const result = convertLegadoDictRules(raw);
 
 		const rulesWithUrl = result.data.rules.filter(
-			(r: DictRule) => r.request?.url && r.request.url !== "",
+			(r) => r.request?.url && r.request.url !== "",
 		);
 		expect(rulesWithUrl.length).toBeGreaterThan(0);
 	});
 
 	it("rules have correct name and enabled state", () => {
-		const raw = loadLegadoData("dict-rule.json") as readonly unknown[];
+		const raw = loadLegadoData<LegadoDictRule>("dict-rule.json");
 		const result = convertLegadoDictRules(raw);
 
 		for (const rule of result.data.rules) {
@@ -139,7 +135,7 @@ describe("E2E Legado Import: dict-rule", () => {
 
 describe("E2E Legado Import: book-source-rule", () => {
 	it("imports all 10 sources", () => {
-		const raw = loadLegadoData("book-source-rule.json") as readonly unknown[];
+		const raw = loadLegadoData<LegadoBookSource>("book-source-rule.json");
 		const result = convertLegadoBookSources(raw);
 
 		expect(result.data).toHaveLength(10);
@@ -147,7 +143,7 @@ describe("E2E Legado Import: book-source-rule", () => {
 	});
 
 	it("each source has id, baseUrl, name, type", () => {
-		const raw = loadLegadoData("book-source-rule.json") as readonly unknown[];
+		const raw = loadLegadoData<LegadoBookSource>("book-source-rule.json");
 		const result = convertLegadoBookSources(raw);
 
 		for (const source of result.data) {
@@ -160,25 +156,25 @@ describe("E2E Legado Import: book-source-rule", () => {
 	});
 
 	it("at least some sources have search module", () => {
-		const raw = loadLegadoData("book-source-rule.json") as readonly unknown[];
+		const raw = loadLegadoData<LegadoBookSource>("book-source-rule.json");
 		const result = convertLegadoBookSources(raw);
 
-		const withSearch = result.data.filter((s: BookSource) => s.search !== undefined);
+		const withSearch = result.data.filter((s) => s.search !== undefined);
 		expect(withSearch.length).toBeGreaterThan(0);
 	});
 
 	it("at least some sources have content module", () => {
-		const raw = loadLegadoData("book-source-rule.json") as readonly unknown[];
+		const raw = loadLegadoData<LegadoBookSource>("book-source-rule.json");
 		const result = convertLegadoBookSources(raw);
 
 		const withContent = result.data.filter(
-			(s: BookSource) => s.content !== undefined,
+			(s) => s.content !== undefined,
 		);
 		expect(withContent.length).toBeGreaterThan(0);
 	});
 
 	it("report has unsupported features from real data", () => {
-		const raw = loadLegadoData("book-source-rule.json") as readonly unknown[];
+		const raw = loadLegadoData<LegadoBookSource>("book-source-rule.json");
 		const result = convertLegadoBookSources(raw);
 
 		// Real data uses @js:, &&, @put, etc.
@@ -186,7 +182,7 @@ describe("E2E Legado Import: book-source-rule", () => {
 	});
 
 	it("report counts are consistent", () => {
-		const raw = loadLegadoData("book-source-rule.json") as readonly unknown[];
+		const raw = loadLegadoData<LegadoBookSource>("book-source-rule.json");
 		const result = convertLegadoBookSources(raw);
 
 		const sum =
@@ -201,30 +197,21 @@ describe("E2E Legado Import: book-source-rule", () => {
 
 describe("E2E Legado Import: round-trip validation", () => {
 	it("preserves field values for a simple book source", () => {
-		const raw = loadLegadoData("book-source-rule.json") as readonly LegadoRawSource[];
+		const raw = loadLegadoData<LegadoBookSource>("book-source-rule.json");
 		const result = convertLegadoBookSources(raw);
 
-		// Find a source with no @js: in searchUrl for simpler validation
-		// Use the first source as a concrete example
 		const originalFirst = raw[0];
 		const convertedFirst = result.data[0];
 
+		expect(originalFirst).toBeDefined();
 		expect(convertedFirst).toBeDefined();
-		expect(convertedFirst.name).toBe(originalFirst?.bookSourceName);
-		expect(convertedFirst.id).toBe(originalFirst?.bookSourceUrl);
-		expect(convertedFirst.baseUrl).toBe(originalFirst?.bookSourceUrl);
+		expect(convertedFirst!.name).toBe(originalFirst!.bookSourceName);
+		expect(convertedFirst!.id).toBe(originalFirst!.bookSourceUrl);
+		expect(convertedFirst!.baseUrl).toBe(originalFirst!.bookSourceUrl);
 
 		// Type mapping: 0 → "novel"
-		if (originalFirst?.bookSourceType === 0) {
-			expect(convertedFirst.type).toBe("novel");
+		if (originalFirst!.bookSourceType === 0) {
+			expect(convertedFirst!.type).toBe("novel");
 		}
 	});
 });
-
-// ── Helper Types ─────────────────────────────────────────────────
-
-type LegadoRawSource = {
-	readonly bookSourceName?: string;
-	readonly bookSourceUrl?: string;
-	readonly bookSourceType?: number;
-};
