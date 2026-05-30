@@ -99,6 +99,24 @@ describe("validateFetchUrl", () => {
 				"Private network addresses are not allowed",
 			);
 		});
+
+		it("rejects localhost", () => {
+			expect(validateFetchUrl("http://localhost/")).toBe(
+				"Private network addresses are not allowed",
+			);
+		});
+
+		it("rejects localhost with port", () => {
+			expect(validateFetchUrl("http://localhost:3000/api")).toBe(
+				"Private network addresses are not allowed",
+			);
+		});
+
+		it("rejects 0.0.0.0", () => {
+			expect(validateFetchUrl("http://0.0.0.0/")).toBe(
+				"Private network addresses are not allowed",
+			);
+		});
 	});
 
 	describe("public IP boundary checks", () => {

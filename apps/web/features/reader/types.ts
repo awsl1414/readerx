@@ -21,12 +21,6 @@ type ReadingAtmosphere = {
 	readonly font: string;
 };
 
-type ReaderThemeColors = {
-	readonly bg: string;
-	readonly text: string;
-	readonly textSecondary: string;
-};
-
 type ChapterInfo = {
 	readonly index: number;
 	readonly title: string;
@@ -93,7 +87,6 @@ export type {
 	ReaderFontPreset,
 	ReaderState,
 	ReaderTheme,
-	ReaderThemeColors,
 	ReadingAtmosphere,
 	SessionDeps,
 };
