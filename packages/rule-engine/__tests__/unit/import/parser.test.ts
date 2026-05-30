@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+	parseJsoupChain,
 	parseLegadoRule,
 	parseSimpleJsoup,
 	wrapAsLegacyScript,
@@ -356,6 +357,236 @@ describe("parseSimpleJsoup", () => {
 
 	it("returns null for empty string", () => {
 		expect(parseSimpleJsoup("")).toBeNull();
+	});
+});
+
+
+// ── JSoup Chain Parsing ──────────────────────────────────────
+
+describe("parseJsoupChain", () => {
+	// ── Single-level with index ───────────────────────────────
+
+	it("parses class.xxx.N (indexed class)", () => {
+		expect(parseJsoupChain("class.book-img-box.0")).toEqual({
+			selector: ".book-img-box:nth-of-type(1)",
+		});
+	});
+
+	it("parses id.xxx.N (indexed id)", () => {
+		expect(parseJsoupChain("id.details-menu.0")).toEqual({
+			selector: "#details-menu:nth-of-type(1)",
+		});
+	});
+
+	it("parses tag.xxx.N (indexed tag)", () => {
+		expect(parseJsoupChain("tag.div.1")).toEqual({
+			selector: "div:nth-of-type(2)",
+		});
+	});
+
+	// ── Chained selectors with output ─────────────────────────
+
+	it("parses class.xxx.N@tag.yyy.M@src (chain with attr output)", () => {
+		const result = parseJsoupChain("class.book-img-box.0@tag.img.0@src");
+		expect(result).toEqual({
+			selector: ".book-img-box:nth-of-type(1) img:nth-of-type(1)",
+			output: "attr",
+			attr: "src",
+		});
+	});
+
+	it("parses class.xxx@tag.h4.N@tag.a.M@text (multi-chain)", () => {
+		const result = parseJsoupChain("class.book-mid-info@tag.h4.0@tag.a.0@text");
+		expect(result).toEqual({
+			selector: ".book-mid-info h4:nth-of-type(1) a:nth-of-type(1)",
+			output: "text",
+		});
+	});
+
+	it("parses id.xxx.N@html", () => {
+		const result = parseJsoupChain("id.content.0@html");
+		expect(result).toEqual({
+			selector: "#content:nth-of-type(1)",
+			output: "html",
+		});
+	});
+
+	it("parses class.xxx@tag.div (descendant chain, no output)", () => {
+		const result = parseJsoupChain("class.result-list@tag.div");
+		expect(result).toEqual({
+			selector: ".result-list div",
+		});
+	});
+
+	it("parses class.xxx@tag.h4@tag.a.N@text (chain with partial index)", () => {
+		const result = parseJsoupChain("class.book-mid-info@tag.h4@tag.a.0@text");
+		expect(result).toEqual({
+			selector: ".book-mid-info h4 a:nth-of-type(1)",
+			output: "text",
+		});
+	});
+
+	it("parses tag.xxx@all as html output", () => {
+		const result = parseJsoupChain("tag.body@all");
+		expect(result).toEqual({
+			selector: "body",
+			output: "html",
+		});
+	});
+
+	// ── Bare CSS selectors ────────────────────────────────────
+
+	it("parses bare a[data-bid]@data-bid (attribute selector)", () => {
+		const result = parseJsoupChain("a[data-bid]@data-bid");
+		expect(result).toEqual({
+			selector: "a[data-bid]",
+			output: "attr",
+			attr: "data-bid",
+		});
+	});
+
+	// ── textNodes output ──────────────────────────────────────
+
+	it("parses class.xxx.N@tag.yyy.M@textNodes as text output", () => {
+		const result = parseJsoupChain("class.zxzj.0@tag.p.0@textNodes");
+		expect(result).toEqual({
+			selector: ".zxzj:nth-of-type(1) p:nth-of-type(1)",
+			output: "text",
+		});
+	});
+
+	// ── Negative index ────────────────────────────────────────
+
+	it("parses negative index as nth-last-of-type", () => {
+		const result = parseJsoupChain("tag.div.-1");
+		expect(result).toEqual({
+			selector: "div:nth-last-of-type(1)",
+		});
+	});
+
+	// ── Unsupported patterns return null ──────────────────────
+
+	it("returns null for @children[N] pattern (unsupported)", () => {
+		expect(parseJsoupChain("class.full_chapters@children[0]@tag.a")).toBeNull();
+	});
+
+	it("returns null for slice notation [N:M] (unsupported)", () => {
+		expect(parseJsoupChain("tag.span[0:1]")).toBeNull();
+	});
+
+	it("returns null for bare output specifier without selector", () => {
+		expect(parseJsoupChain("text")).toBeNull();
+	});
+
+	it("returns null for empty string", () => {
+		expect(parseJsoupChain("")).toBeNull();
+	});
+});
+
+// ── parseLegadoRule with JSoup chains ────────────────────────
+
+describe("parseLegadoRule (JSoup chain integration)", () => {
+	it("converts class.xxx.N@tag.yyy.M@src to css extract", () => {
+		const result = parseLegadoRule("class.book-img-box.0@tag.img.0@src");
+		expect(result.unsupported).toEqual([]);
+		expect(result.steps).toHaveLength(1);
+		expect(result.steps?.[0]).toEqual({
+			type: "extract",
+			engine: "css",
+			selector: ".book-img-box:nth-of-type(1) img:nth-of-type(1)",
+			output: "attr",
+			attr: "src",
+		});
+	});
+
+	it("converts class.xxx@tag.h4.N@tag.a.M@text to css extract", () => {
+		const result = parseLegadoRule("class.book-mid-info@tag.h4.0@tag.a.0@text");
+		expect(result.unsupported).toEqual([]);
+		expect(result.steps?.[0]).toEqual({
+			type: "extract",
+			engine: "css",
+			selector: ".book-mid-info h4:nth-of-type(1) a:nth-of-type(1)",
+			output: "text",
+		});
+	});
+
+	it("converts id.content.0@html to css extract", () => {
+		const result = parseLegadoRule("id.content.0@html");
+		expect(result.unsupported).toEqual([]);
+		expect(result.steps?.[0]).toEqual({
+			type: "extract",
+			engine: "css",
+			selector: "#content:nth-of-type(1)",
+			output: "html",
+		});
+	});
+
+	it("converts a[data-bid]@data-bid to css extract", () => {
+		const result = parseLegadoRule("a[data-bid]@data-bid");
+		expect(result.unsupported).toEqual([]);
+		expect(result.steps?.[0]).toEqual({
+			type: "extract",
+			engine: "css",
+			selector: "a[data-bid]",
+			output: "attr",
+			attr: "data-bid",
+		});
+	});
+
+	it("converts tag.body@all to css extract with html output", () => {
+		const result = parseLegadoRule("tag.body@all");
+		expect(result.unsupported).toEqual([]);
+		expect(result.steps?.[0]).toEqual({
+			type: "extract",
+			engine: "css",
+			selector: "body",
+			output: "html",
+		});
+	});
+
+	it("converts class.result-list@tag.div to css extract", () => {
+		const result = parseLegadoRule("class.result-list@tag.div");
+		expect(result.unsupported).toEqual([]);
+		expect(result.steps?.[0]).toEqual({
+			type: "extract",
+			engine: "css",
+			selector: ".result-list div",
+		});
+	});
+
+	it("handles @children[N] as unknown-engine fallback", () => {
+		const result = parseLegadoRule("class.full_chapters@children[0]@tag.a");
+		expect(result.unsupported).toEqual(["unknown-engine"]);
+		expect(result.legacyScript).toBeDefined();
+	});
+
+	it("handles slice notation [N:M] as unknown-engine fallback", () => {
+		const result = parseLegadoRule("tag.span[0:1]");
+		expect(result.unsupported).toEqual(["unknown-engine"]);
+		expect(result.legacyScript).toBeDefined();
+	});
+
+	it("converts class.zxzj.0@tag.p.0@textNodes to css with text output", () => {
+		const result = parseLegadoRule("class.zxzj.0@tag.p.0@textNodes");
+		expect(result.unsupported).toEqual([]);
+		expect(result.steps?.[0]).toEqual({
+			type: "extract",
+			engine: "css",
+			selector: ".zxzj:nth-of-type(1) p:nth-of-type(1)",
+			output: "text",
+		});
+	});
+
+	it("converts id.details-menu.0@href to css with attr output", () => {
+		const result = parseLegadoRule("id.details-menu.0@href");
+		expect(result.unsupported).toEqual([]);
+		expect(result.steps?.[0]).toEqual({
+			type: "extract",
+			engine: "css",
+			selector: "#details-menu:nth-of-type(1)",
+			output: "attr",
+			attr: "href",
+		});
 	});
 });
 
