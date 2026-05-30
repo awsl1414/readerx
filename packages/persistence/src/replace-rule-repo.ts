@@ -2,9 +2,9 @@ import type { Table } from "dexie";
 import type { ReplaceRule } from "./types";
 
 export class ReplaceRuleRepository {
-	private table: Table<ReplaceRule, number>;
+	private table: Table<ReplaceRule, string>;
 
-	constructor(table: Table<ReplaceRule, number>) {
+	constructor(table: Table<ReplaceRule, string>) {
 		this.table = table;
 	}
 
@@ -12,11 +12,11 @@ export class ReplaceRuleRepository {
 		await this.table.put(rule);
 	}
 
-	async get(id: number): Promise<ReplaceRule | undefined> {
+	async get(id: string): Promise<ReplaceRule | undefined> {
 		return this.table.get(id);
 	}
 
-	async delete(id: number): Promise<void> {
+	async delete(id: string): Promise<void> {
 		await this.table.delete(id);
 	}
 
@@ -27,7 +27,7 @@ export class ReplaceRuleRepository {
 	async getEnabled(): Promise<ReplaceRule[]> {
 		const all = await this.table.toArray();
 		return all
-			.filter((rule) => rule.isEnabled)
+			.filter((rule) => rule.enabled)
 			.sort((a, b) => a.order - b.order);
 	}
 

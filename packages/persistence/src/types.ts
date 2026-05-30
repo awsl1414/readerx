@@ -133,7 +133,7 @@ export type Cookie = {
 
 // ─── Composable Type Traits ─────────────────────────────────
 
-type EnableableEntity = {
+export type EnableableEntity = {
 	enabled: boolean;
 };
 
@@ -148,7 +148,7 @@ type TimestampEntity = {
 
 // ─── RssSource ────────────────────────────────────────────────
 
-type RssSourceRecord = {
+export type RssSourceRecord = {
 	sourceUrl: string;
 	sourceName: string;
 	sourceGroup?: string;
@@ -161,7 +161,7 @@ type RssSourceRecord = {
 
 // ─── TxtTocRule ───────────────────────────────────────────────
 
-type TxtTocRule = EnableableEntity & {
+export type TxtTocRule = EnableableEntity & {
 	id: string;
 	name: string;
 	rule: string;
@@ -169,7 +169,7 @@ type TxtTocRule = EnableableEntity & {
 
 // ─── DictRule ─────────────────────────────────────────────────
 
-type DictRule = EnableableEntity & {
+export type DictRule = EnableableEntity & {
 	id: string;
 	name: string;
 	urlRule?: string;
