@@ -19,19 +19,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 						<Link href="/search">
 							<Button
 								variant="ghost"
-								size="icon-sm"
-								className="text-muted-foreground"
+								size="icon"
+								className="text-muted-foreground focus-visible:ring-primary/60"
 							>
 								<Search className="size-4" />
 							</Button>
 						</Link>
 						<Button
 							variant="ghost"
-							size="icon-sm"
+							size="icon"
 							onClick={() =>
 								setTheme(resolvedTheme === "dark" ? "light" : "dark")
 							}
-							className="text-muted-foreground"
+							className="text-muted-foreground focus-visible:ring-primary/60"
 						>
 							<Sun className="size-4 scale-100 rotate-0 dark:scale-0 dark:-rotate-90 transition-transform" />
 							<Moon className="size-4 scale-0 rotate-90 dark:scale-100 dark:rotate-0 transition-transform" />
