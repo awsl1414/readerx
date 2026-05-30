@@ -31,6 +31,12 @@ import { createReport } from "../report.js";
 
 const SCHEMA_ID = "readerx/book-source-rule/v1" as const;
 
+// ── Mutable Builder Type ──────────────────────────────────────
+
+type BookSourceBuilder = {
+	-readonly [K in keyof BookSource]: BookSource[K];
+};
+
 // ── Type Mapping ──────────────────────────────────────────────
 
 const BOOK_SOURCE_TYPE_MAP: Record<number, BookSourceType> = {
@@ -264,6 +270,23 @@ function parseExploreUrl(exploreUrl: string): ExploreCategory[] {
 		});
 }
 
+// ── Header Parser ─────────────────────────────────────────────
+
+function parseHeader(header?: string): Record<string, string> | undefined {
+	if (!header) return undefined;
+	try {
+		const parsed = JSON.parse(header);
+		if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return undefined;
+		const headers: Record<string, string> = {};
+		for (const [k, v] of Object.entries(parsed)) {
+			if (typeof v === "string") headers[k] = v;
+		}
+		return Object.keys(headers).length > 0 ? headers : undefined;
+	} catch {
+		return undefined;
+	}
+}
+
 // ── Main Converter ────────────────────────────────────────────
 
 export function convertLegadoBookSources(
@@ -281,7 +304,7 @@ export function convertLegadoBookSources(
 		const name = source.bookSourceName ?? "";
 		const type: BookSourceType = BOOK_SOURCE_TYPE_MAP[source.bookSourceType ?? 0] ?? "novel";
 
-		const bookSource: BookSource = {
+		const builder: BookSourceBuilder = {
 			$schema: SCHEMA_ID,
 			id,
 			name,
@@ -296,55 +319,47 @@ export function convertLegadoBookSources(
 				.map((t) => t.trim())
 				.filter((t) => t.length > 0);
 			if (tags.length > 0) {
-				(bookSource as { tags?: readonly string[] }).tags = tags;
+				builder.tags = tags;
 			}
 		}
 
 		// Simple direct mappings
 		if (source.bookSourceComment) {
-			(bookSource as { description?: string }).description = source.bookSourceComment;
+			builder.description = source.bookSourceComment;
 		}
 		if (source.bookUrlPattern) {
-			(bookSource as { urlPattern?: string }).urlPattern = source.bookUrlPattern;
+			builder.urlPattern = source.bookUrlPattern;
 		}
 		if (source.enabled !== undefined) {
-			(bookSource as { enabled?: boolean }).enabled = source.enabled;
+			builder.enabled = source.enabled;
 		}
 		if (source.weight !== undefined) {
-			(bookSource as { weight?: number }).weight = source.weight;
+			builder.weight = source.weight;
 		}
 		if (source.customOrder !== undefined) {
-			(bookSource as { order?: number }).order = source.customOrder;
+			builder.order = source.customOrder;
 		}
 		if (source.loginUrl) {
-			(bookSource as { loginUrl?: string }).loginUrl = source.loginUrl;
+			builder.loginUrl = source.loginUrl;
 		}
 
 		// concurrentRate (string) → rateLimit (int)
 		if (source.concurrentRate !== undefined) {
 			const parsed = Number.parseInt(source.concurrentRate, 10);
 			if (!Number.isNaN(parsed)) {
-				(bookSource as { rateLimit?: number }).rateLimit = parsed;
+				builder.rateLimit = parsed;
 			}
 		}
 
 		// header (JSON string) → headers (object)
-		if (source.header) {
-			try {
-				const parsed = JSON.parse(source.header) as Record<string, string>;
-				if (typeof parsed === "object" && parsed !== null) {
-					(bookSource as { headers?: Readonly<Record<string, string>> }).headers = parsed;
-				}
-			} catch {
-				// Skip invalid JSON
-			}
+		const headers = parseHeader(source.header);
+		if (headers) {
+			builder.headers = headers;
 		}
 
 		// lastUpdateTime (epoch ms) → updatedAt (ISO 8601)
 		if (source.lastUpdateTime !== undefined) {
-			(bookSource as { updatedAt?: string }).updatedAt = new Date(
-				source.lastUpdateTime,
-			).toISOString();
+			builder.updatedAt = new Date(source.lastUpdateTime).toISOString();
 		}
 
 		// ── Unsupported feature warnings ─────────────────────
@@ -380,7 +395,7 @@ export function convertLegadoBookSources(
 					path: "searchUrl",
 				});
 			} else {
-				const searchModule: Record<string, unknown> = {
+				const searchModuleBuilder: Record<string, unknown> = {
 					url: source.searchUrl,
 				};
 
@@ -388,7 +403,7 @@ export function convertLegadoBookSources(
 				if (source.ruleSearch) {
 					// checkKeyWord stays on search module directly
 					if (source.ruleSearch.checkKeyWord) {
-						searchModule["checkKeyWord"] = source.ruleSearch.checkKeyWord;
+						searchModuleBuilder["checkKeyWord"] = source.ruleSearch.checkKeyWord;
 					}
 
 					const { rules, conversions } = convertRuleFields(
@@ -398,12 +413,11 @@ export function convertLegadoBookSources(
 					sourceConversions.push(...conversions);
 
 					if (Object.keys(rules).length > 0) {
-						searchModule["rules"] = rules as SearchRules;
+						searchModuleBuilder["rules"] = rules as SearchRules;
 					}
 				}
 
-				(bookSource as { search?: SearchModule }).search =
-					searchModule as unknown as SearchModule;
+				builder.search = searchModuleBuilder as unknown as SearchModule;
 			}
 		}
 
@@ -411,7 +425,7 @@ export function convertLegadoBookSources(
 		if (source.exploreUrl) {
 			const categories = parseExploreUrl(source.exploreUrl);
 
-			const exploreModule: Record<string, unknown> = {
+			const exploreModuleBuilder: Record<string, unknown> = {
 				categories,
 			};
 
@@ -424,12 +438,11 @@ export function convertLegadoBookSources(
 				sourceConversions.push(...conversions);
 
 				if (Object.keys(rules).length > 0) {
-					exploreModule["rules"] = rules as SearchRules;
+					exploreModuleBuilder["rules"] = rules as SearchRules;
 				}
 			}
 
-			(bookSource as { explore?: ExploreModule }).explore =
-				exploreModule as unknown as ExploreModule;
+			builder.explore = exploreModuleBuilder as unknown as ExploreModule;
 		}
 
 		// ── ruleBookInfo → bookInfo module ────────────────────
@@ -438,8 +451,7 @@ export function convertLegadoBookSources(
 			sourceConversions.push(...conversions);
 
 			if (Object.keys(rules).length > 0) {
-				const bookInfoModule: BookInfoModule = { rules };
-				(bookSource as { bookInfo?: BookInfoModule }).bookInfo = bookInfoModule;
+				builder.bookInfo = { rules } as BookInfoModule;
 			}
 		}
 
@@ -448,16 +460,16 @@ export function convertLegadoBookSources(
 			const { rules, nextUrl, conversions } = convertTocRules(source.ruleToc);
 			sourceConversions.push(...conversions);
 
-			const tocModule: Record<string, unknown> = {};
+			const tocModuleBuilder: Record<string, unknown> = {};
 			if (Object.keys(rules).length > 0) {
-				tocModule["rules"] = rules;
+				tocModuleBuilder["rules"] = rules;
 			}
 			if (nextUrl) {
-				tocModule["nextUrl"] = nextUrl;
+				tocModuleBuilder["nextUrl"] = nextUrl;
 			}
 
-			if (Object.keys(tocModule).length > 0) {
-				(bookSource as { toc?: TocModule }).toc = tocModule as unknown as TocModule;
+			if (Object.keys(tocModuleBuilder).length > 0) {
+				builder.toc = tocModuleBuilder as unknown as TocModule;
 			}
 		}
 
@@ -468,25 +480,24 @@ export function convertLegadoBookSources(
 			);
 			sourceConversions.push(...conversions);
 
-			const contentModule: Record<string, unknown> = {};
+			const contentModuleBuilder: Record<string, unknown> = {};
 			if (Object.keys(rules).length > 0) {
-				contentModule["rules"] = rules;
+				contentModuleBuilder["rules"] = rules;
 			}
 			if (nextUrl) {
-				contentModule["nextUrl"] = nextUrl;
+				contentModuleBuilder["nextUrl"] = nextUrl;
 			}
 			if (replaceRegex) {
-				contentModule["replaceRegex"] = replaceRegex;
+				contentModuleBuilder["replaceRegex"] = replaceRegex;
 			}
 
-			if (Object.keys(contentModule).length > 0) {
-				(bookSource as { content?: ContentModule }).content =
-					contentModule as unknown as ContentModule;
+			if (Object.keys(contentModuleBuilder).length > 0) {
+				builder.content = contentModuleBuilder as unknown as ContentModule;
 			}
 		}
 
 		allConversions.push(...sourceConversions);
-		convertedSources.push(bookSource);
+		convertedSources.push(builder as BookSource);
 	}
 
 	const report = createReport(allConversions);

@@ -341,7 +341,7 @@ describe("convertLegadoReplaceRules", () => {
 		expect(result.report.scriptFallbackRules).toBe(0);
 	});
 
-	it("marks rules with warnings as partial conversions", () => {
+	it("tracks rules with warnings as fully converted (warnings live separately)", () => {
 		const legado: LegadoReplaceRule[] = [
 			{
 				name: "With timeout",
@@ -352,6 +352,10 @@ describe("convertLegadoReplaceRules", () => {
 
 		const result = convertLegadoReplaceRules(legado);
 
-		expect(result.report.partialConvertedRules).toBe(1);
+		// Rules with warnings are still fully converted — warnings are not unsupported features
+		expect(result.report.convertedRules).toBe(1);
+		expect(result.report.partialConvertedRules).toBe(0);
+		expect(result.warnings).toHaveLength(1);
+		expect(result.warnings[0]?.message).toContain("timeoutMillisecond");
 	});
 });

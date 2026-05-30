@@ -67,6 +67,8 @@ export function parseSimpleJsoup(input: string): JsoupResult | null {
 type InferredEngine = {
 	readonly engine: "css" | "xpath" | "jsonpath";
 	readonly selector: string;
+	readonly output?: "text" | "html" | "attr";
+	readonly attr?: string;
 } | null;
 
 function inferEngine(expression: string): InferredEngine {
@@ -95,39 +97,19 @@ function inferEngine(expression: string): InferredEngine {
 		return { engine: "jsonpath", selector: expression };
 	}
 
-	// 6. Simple JSoup match → css
+	// 6. Simple JSoup match → css (carry output/attr directly)
 	const jsoup = parseSimpleJsoup(expression);
 	if (jsoup) {
-		return { engine: "css", selector: jsoup.selector };
+		return {
+			engine: "css",
+			selector: jsoup.selector,
+			...(jsoup.output !== undefined ? { output: jsoup.output } : {}),
+			...(jsoup.attr !== undefined ? { attr: jsoup.attr } : {}),
+		};
 	}
 
 	// 7. Unknown
 	return null;
-}
-
-// ── ExtractStep Builder ───────────────────────────────────────
-
-function buildExtractStep(
-	engine: "css" | "xpath" | "jsonpath",
-	selector: string,
-	jsoupOutput?: JsoupResult,
-): ExtractStep {
-	const step: Record<string, unknown> = {
-		type: "extract",
-		engine,
-		selector,
-	};
-
-	// If the selector was already rewritten by JSoup, carry the output/attr.
-	// Otherwise the jsoupOutput comes from the first part before ##.
-	if (jsoupOutput?.output !== undefined) {
-		step.output = jsoupOutput.output;
-	}
-	if (jsoupOutput?.attr !== undefined) {
-		step.attr = jsoupOutput.attr;
-	}
-
-	return step as unknown as ExtractStep;
 }
 
 // ── Legacy Script Wrapper ─────────────────────────────────────
@@ -168,19 +150,16 @@ export function parseLegadoRule(expression: string): ConversionResult {
 		};
 	}
 
-	// For JSoup, the selector was already rewritten by parseSimpleJsoup.
-	// For prefixed engines (@css:, @xpath:, etc.), the jsoup result won't match,
-	// so output/attr remain unset — which is correct.
-	const jsoup = parseSimpleJsoup(mainExpr);
-
 	const steps: RuleStep[] = [];
 
-	// Build extract step
-	const extractStep = buildExtractStep(
-		inferred.engine,
-		inferred.selector,
-		jsoup ?? undefined,
-	);
+	// Build extract step directly from inferred engine result
+	const extractStep: ExtractStep = {
+		type: "extract",
+		engine: inferred.engine,
+		selector: inferred.selector,
+		...(inferred.output !== undefined ? { output: inferred.output } : {}),
+		...(inferred.attr !== undefined ? { attr: inferred.attr } : {}),
+	};
 	steps.push(extractStep);
 
 	// Build transform steps for each ## replacement

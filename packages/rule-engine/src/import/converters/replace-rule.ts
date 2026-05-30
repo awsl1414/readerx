@@ -117,9 +117,11 @@ export function convertLegadoReplaceRules(
 		const { rule, warnings } = convertOne(legado, i);
 		convertedRules.push(rule);
 		allWarnings.push(...warnings);
+		// Successful conversions use unsupported: [] so they count as converted,
+		// not partial. Warnings live only in the warnings array.
 		conversionResults.push({
 			steps: [],
-			unsupported: warnings.map((w) => w.message),
+			unsupported: [],
 		});
 	}
 
