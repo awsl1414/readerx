@@ -36,6 +36,9 @@ readerx/
 │   └── infrastructure/         # 跨域基础设施（fetch, logger, config）
 ├── services/
 │   └── api/                    # Hono 后端服务（Drizzle + PostgreSQL）
+├── schemas/                    # 规则 Schema 定义（JSON Schema + 示例数据 + Legado 参考）
+│   ├── readerx/                # ReaderX 规则 schema（.schema.json）+ examples/
+│   └── legado/                 # Legado 参考数据 + DDL
 └── docs/                       # 文档（含 Legado 原版参考）
 ```
 
@@ -46,6 +49,7 @@ readerx/
 | [`docs/development-guide.md`](./docs/development-guide.md) | Web 架构模式（RSC 边界、ReaderSession、Worker Bridge） |
 | [`docs/roadmap.md`](./docs/roadmap.md) | 7 阶段开发计划、模块进度 |
 | [`docs/tech-standards.md`](./docs/tech-standards.md) | TypeScript / React / Next.js 技术栈用法 |
+| [`docs/schema/`](./docs/schema/) | 规则 Schema 设计文档（book-source-rule / dict-rule / replace-rule / txt-toc-rule） |
 | [`docs/web-design/`](./docs/web-design/) | Web 设计（PRD · IA · User Flow · Wireframes · Design Tokens · Component Tree） |
 
 ## 规则

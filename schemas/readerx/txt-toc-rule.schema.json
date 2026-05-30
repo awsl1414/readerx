@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "readerx/txt-toc-rule/v1",
+  "title": "ReaderX TXT 目录规则",
+  "description": "TXT 目录规则用于从纯文本文件中识别章节标题行。当用户导入本地 TXT 文件时，引擎按 order 顺序尝试每条规则，匹配到的行即为章节分界点。",
+  "type": "object",
+  "required": ["$schema", "rules"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "readerx/txt-toc-rule/v1",
+      "description": "Schema 标识"
+    },
+    "rules": {
+      "type": "array",
+      "description": "规则列表，按 order 升序逐一匹配",
+      "items": {
+        "$ref": "#/$defs/rule"
+      }
+    }
+  },
+  "$defs": {
+    "rule": {
+      "type": "object",
+      "title": "TxtTocRule",
+      "description": "单条 TXT 目录规则",
+      "required": ["name", "pattern"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "规则名称，用于 UI 展示"
+        },
+        "description": {
+          "type": "string",
+          "description": "示例文本，说明此规则匹配什么样的章节标题"
+        },
+        "tags": {
+          "type": "array",
+          "description": "分组标签，用于 UI 筛选（如 [\"标准\", \"数字\", \"符号\", \"可选\"]）",
+          "items": {
+            "type": "string"
+          }
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "是否启用。部分规则默认关闭（过于激进，可能误匹配正文内容）"
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "执行顺序，越小越先匹配。引擎按此值升序逐一尝试规则，通常由具体到通用排列"
+        },
+        "pattern": {
+          "type": "string",
+          "description": "正则表达式，用于匹配章节标题行。空字符串 \"\" = 兜底规则（匹配所有非空行），仅用于默认兜底"
+        },
+        "flags": {
+          "type": "string",
+          "default": "gm",
+          "description": "正则标志。常用值：\"gm\"（全局+多行，默认）、\"gmi\"（+忽略大小写，英文标题用）、\"g\"（仅全局）"
+        }
+      }
+    }
+  }
+}

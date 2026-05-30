@@ -1,0 +1,287 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "readerx/dict-rule/v1",
+  "title": "ReaderX 字典规则",
+  "description": "字典规则定义如何查询词典网站、提取并清洗释义内容用于展示。",
+  "type": "object",
+  "required": ["$schema", "rules"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "readerx/dict-rule/v1",
+      "description": "Schema 标识"
+    },
+    "authors": {
+      "type": "array",
+      "description": "规则文件制作者",
+      "items": {
+        "type": "string"
+      }
+    },
+    "description": {
+      "type": "string",
+      "description": "规则文件说明"
+    },
+    "updatedAt": {
+      "type": "string",
+      "description": "ISO 8601 最后更新时间"
+    },
+    "rules": {
+      "type": "array",
+      "description": "字典规则列表",
+      "items": {
+        "$ref": "#/$defs/rule"
+      }
+    }
+  },
+  "$defs": {
+    "rule": {
+      "type": "object",
+      "title": "DictRule",
+      "description": "单条字典规则",
+      "required": ["id", "name", "request"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "规则唯一标识"
+        },
+        "name": {
+          "type": "string",
+          "description": "显示名称"
+        },
+        "description": {
+          "type": "string",
+          "description": "字典说明"
+        },
+        "tags": {
+          "type": "array",
+          "description": "标签，用于 UI 分组筛选",
+          "items": {
+            "type": "string"
+          }
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "是否启用"
+        },
+        "weight": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "default": 50,
+          "description": "智能权重 0-100，越大越优先"
+        },
+        "variables": {
+          "type": "object",
+          "description": "可复用变量，在 request / fields 中通过 {{varName}} 引用",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "request": {
+          "$ref": "#/$defs/request"
+        },
+        "fields": {
+          "type": "object",
+          "description": "内容提取字段。预定义字段名：definition（必填）、phonetic、audio、examples、synonyms、extra。也支持自定义字段名",
+          "additionalProperties": {
+            "$ref": "#/$defs/field"
+          }
+        }
+      }
+    },
+    "request": {
+      "type": "object",
+      "description": "请求配置",
+      "required": ["url"],
+      "additionalProperties": false,
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "URL 模板，支持 {{key}} 和自定义变量"
+        },
+        "method": {
+          "type": "string",
+          "enum": ["GET", "POST"],
+          "default": "GET",
+          "description": "HTTP 方法"
+        },
+        "charset": {
+          "type": "string",
+          "description": "非 UTF-8 时指定编码，如 \"gbk\""
+        },
+        "headers": {
+          "type": "object",
+          "description": "自定义请求头",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "body": {
+          "$ref": "#/$defs/body"
+        }
+      }
+    },
+    "body": {
+      "type": "object",
+      "description": "POST 请求体",
+      "required": ["type", "data"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["form", "json", "raw"],
+          "description": "请求体编码格式"
+        },
+        "data": {
+          "description": "请求体数据"
+        }
+      }
+    },
+    "field": {
+      "type": "object",
+      "description": "内容提取字段，由 schema（输出类型）和 pipeline（步骤数组）组成",
+      "required": ["pipeline"],
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "type": "string",
+          "enum": ["html", "string", "html[]", "string[]"],
+          "default": "html",
+          "description": "输出类型"
+        },
+        "pipeline": {
+          "type": "array",
+          "description": "提取/变换步骤数组",
+          "items": {
+            "$ref": "#/$defs/step"
+          }
+        }
+      }
+    },
+    "step": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/extractStep"
+        },
+        {
+          "$ref": "#/$defs/transformStep"
+        },
+        {
+          "$ref": "#/$defs/scriptStep"
+        }
+      ]
+    },
+    "extractStep": {
+      "type": "object",
+      "title": "ExtractStep",
+      "description": "从源中提取内容",
+      "required": ["type", "engine", "selector"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "extract"
+        },
+        "engine": {
+          "type": "string",
+          "enum": ["css", "xpath", "jsonpath", "regex"],
+          "description": "解析引擎"
+        },
+        "selector": {
+          "type": "string",
+          "description": "选择器表达式"
+        },
+        "output": {
+          "description": "提取输出，默认 \"html\"",
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": ["html", "text", "outerHtml"]
+            },
+            {
+              "type": "object",
+              "required": ["type", "name"],
+              "additionalProperties": false,
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "attr"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "HTML 属性名"
+                }
+              }
+            }
+          ]
+        },
+        "baseUrl": {
+          "type": "string",
+          "description": "相对 URL 拼接前缀"
+        }
+      }
+    },
+    "transformStep": {
+      "type": "object",
+      "title": "TransformStep",
+      "description": "变换已提取内容",
+      "required": ["type", "action"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "transform"
+        },
+        "action": {
+          "type": "string",
+          "enum": ["remove", "unwrap", "strip", "replace"],
+          "description": "变换动作"
+        },
+        "selector": {
+          "type": "string",
+          "description": "CSS 选择器（action 为 remove/unwrap 时）"
+        },
+        "attrs": {
+          "type": "array",
+          "description": "要移除的属性名（action 为 strip 时）",
+          "items": {
+            "type": "string"
+          }
+        },
+        "pattern": {
+          "type": "string",
+          "description": "正则或字面量（action 为 replace 时）"
+        },
+        "with": {
+          "type": "string",
+          "description": "替换为（action 为 replace 时）"
+        },
+        "flags": {
+          "type": "string",
+          "description": "正则标志（action 为 replace 时）"
+        }
+      }
+    },
+    "scriptStep": {
+      "type": "object",
+      "title": "ScriptStep",
+      "description": "JS 脚本兜底，运行于 QuickJS 沙箱",
+      "required": ["type", "code"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "script"
+        },
+        "code": {
+          "type": "string",
+          "description": "JS 函数体，接收 html 变量，返回字符串"
+        }
+      }
+    }
+  }
+}

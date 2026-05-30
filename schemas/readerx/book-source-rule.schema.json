@@ -1,0 +1,583 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "readerx/book-source-rule/v1",
+  "title": "ReaderX 书源",
+  "description": "书源描述了一个网站的内容结构——如何搜索书籍、浏览分类、获取详情、提取目录、读取正文。一个文件 = 一个书源。",
+  "type": "object",
+  "required": ["$schema", "id", "name", "type", "baseUrl"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "readerx/book-source-rule/v1",
+      "description": "Schema 标识"
+    },
+
+    "id": {
+      "type": "string",
+      "description": "书源唯一标识，推荐使用源站 origin"
+    },
+    "name": {
+      "type": "string",
+      "description": "显示名称"
+    },
+    "description": {
+      "type": "string",
+      "description": "书源说明 / 使用提示"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["novel", "audio", "comic", "file"],
+      "default": "novel",
+      "description": "内容类型"
+    },
+    "tags": {
+      "type": "array",
+      "description": "标签，用于 UI 筛选分类",
+      "items": {
+        "type": "string"
+      }
+    },
+    "author": {
+      "type": "string",
+      "description": "书源制作者"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1,
+      "description": "书源版本号，制作者每次修改后递增"
+    },
+
+    "baseUrl": {
+      "type": "string",
+      "description": "基础 URL，所有相对路径以此为 origin"
+    },
+    "urlPattern": {
+      "type": "string",
+      "description": "书籍详情页 URL 匹配模式（正则），用于用户直接粘贴 URL 时自动匹配书源"
+    },
+    "headers": {
+      "type": "object",
+      "description": "自定义请求头，浏览器端通过代理层注入",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "loginUrl": {
+      "type": "string",
+      "description": "登录入口地址。Web 环境下用户在弹出窗口中登录源站，浏览器自动管理 Cookie"
+    },
+
+    "enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "是否启用"
+    },
+    "weight": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100,
+      "default": 50,
+      "description": "智能权重 0-100，越大越优先"
+    },
+    "order": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0,
+      "description": "手动排序序号"
+    },
+    "rateLimit": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0,
+      "description": "请求限速（毫秒），同一书源两次请求间的最小间隔。0 = 不限速"
+    },
+
+    "createdAt": {
+      "type": "string",
+      "description": "ISO 8601 创建时间"
+    },
+    "updatedAt": {
+      "type": "string",
+      "description": "ISO 8601 最后更新时间"
+    },
+
+    "search": {
+      "$ref": "#/$defs/searchModule"
+    },
+    "explore": {
+      "$ref": "#/$defs/exploreModule"
+    },
+    "bookInfo": {
+      "$ref": "#/$defs/bookInfoModule"
+    },
+    "toc": {
+      "$ref": "#/$defs/tocModule"
+    },
+    "content": {
+      "$ref": "#/$defs/contentModule"
+    }
+  },
+
+  "$defs": {
+    "requestConfig": {
+      "type": "object",
+      "description": "请求配置，各模块共享",
+      "additionalProperties": false,
+      "properties": {
+        "method": {
+          "type": "string",
+          "enum": ["GET", "POST"],
+          "default": "GET",
+          "description": "HTTP 方法"
+        },
+        "body": {
+          "type": "string",
+          "description": "POST body 模板（仅 method=POST 时有效）"
+        },
+        "charset": {
+          "type": "string",
+          "description": "非 UTF-8 时指定编码（代理层做解码），如 \"gbk\""
+        },
+        "headers": {
+          "type": "object",
+          "description": "覆盖书源级 headers",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "responseType": {
+          "type": "string",
+          "enum": ["html", "json", "xml", "text"],
+          "description": "响应内容类型，不填时引擎根据规则中提取器自动推断"
+        }
+      }
+    },
+
+    "searchModule": {
+      "type": "object",
+      "description": "搜索模块",
+      "required": ["url", "rules"],
+      "additionalProperties": false,
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "请求 URL 模板。占位符：{{key}} = 搜索关键词, {{page}} = 页码(从1开始)"
+        },
+        "method": { "$ref": "#/$defs/requestConfig/properties/method" },
+        "body": { "$ref": "#/$defs/requestConfig/properties/body" },
+        "charset": { "$ref": "#/$defs/requestConfig/properties/charset" },
+        "headers": { "$ref": "#/$defs/requestConfig/properties/headers" },
+        "responseType": {
+          "$ref": "#/$defs/requestConfig/properties/responseType"
+        },
+        "checkKeyWord": {
+          "type": "string",
+          "description": "校验关键词（程序检测书源健康度用）"
+        },
+        "rules": {
+          "$ref": "#/$defs/searchRules"
+        }
+      }
+    },
+
+    "exploreModule": {
+      "type": "object",
+      "description": "发现模块",
+      "required": ["categories"],
+      "additionalProperties": false,
+      "properties": {
+        "categories": {
+          "type": "array",
+          "description": "发现分类列表。无 url 的条目 = UI 分组标题",
+          "items": {
+            "type": "object",
+            "required": ["title"],
+            "additionalProperties": false,
+            "properties": {
+              "title": { "type": "string" },
+              "url": {
+                "type": "string",
+                "description": "分类 URL 模板（支持 {{page}}）"
+              }
+            }
+          }
+        },
+        "method": { "$ref": "#/$defs/requestConfig/properties/method" },
+        "body": { "$ref": "#/$defs/requestConfig/properties/body" },
+        "charset": { "$ref": "#/$defs/requestConfig/properties/charset" },
+        "headers": { "$ref": "#/$defs/requestConfig/properties/headers" },
+        "responseType": {
+          "$ref": "#/$defs/requestConfig/properties/responseType"
+        },
+        "rules": {
+          "$ref": "#/$defs/searchRules"
+        }
+      }
+    },
+
+    "bookInfoModule": {
+      "type": "object",
+      "description": "书籍详情模块（URL 由上游 search 传入）",
+      "additionalProperties": false,
+      "properties": {
+        "method": { "$ref": "#/$defs/requestConfig/properties/method" },
+        "body": { "$ref": "#/$defs/requestConfig/properties/body" },
+        "charset": { "$ref": "#/$defs/requestConfig/properties/charset" },
+        "headers": { "$ref": "#/$defs/requestConfig/properties/headers" },
+        "responseType": {
+          "$ref": "#/$defs/requestConfig/properties/responseType"
+        },
+        "init": {
+          "$ref": "#/$defs/rule",
+          "description": "预处理规则（反爬验证、加密响应解密等，在其他规则之前执行）"
+        },
+        "rules": {
+          "type": "object",
+          "description": "提取规则",
+          "additionalProperties": { "$ref": "#/$defs/rule" },
+          "properties": {
+            "name": { "$ref": "#/$defs/rule" },
+            "author": { "$ref": "#/$defs/rule" },
+            "cover": { "$ref": "#/$defs/rule" },
+            "intro": { "$ref": "#/$defs/rule" },
+            "kind": { "$ref": "#/$defs/rule" },
+            "lastChapter": { "$ref": "#/$defs/rule" },
+            "wordCount": { "$ref": "#/$defs/rule" },
+            "tocUrl": {
+              "$ref": "#/$defs/rule",
+              "description": "目录页 URL（详情页和目录页不同时使用）"
+            }
+          }
+        }
+      }
+    },
+
+    "tocModule": {
+      "type": "object",
+      "description": "目录模块（URL 由 bookInfo.tocUrl 或详情页 URL 传入）",
+      "additionalProperties": false,
+      "properties": {
+        "method": { "$ref": "#/$defs/requestConfig/properties/method" },
+        "body": { "$ref": "#/$defs/requestConfig/properties/body" },
+        "charset": { "$ref": "#/$defs/requestConfig/properties/charset" },
+        "headers": { "$ref": "#/$defs/requestConfig/properties/headers" },
+        "responseType": {
+          "$ref": "#/$defs/requestConfig/properties/responseType"
+        },
+        "nextUrl": {
+          "$ref": "#/$defs/rule",
+          "description": "下一页目录 URL（分页目录用，省略 = 单页）"
+        },
+        "rules": {
+          "type": "object",
+          "description": "提取规则",
+          "additionalProperties": { "$ref": "#/$defs/rule" },
+          "properties": {
+            "list": {
+              "$ref": "#/$defs/rule",
+              "description": "章节列表（支持 reverse: true）"
+            },
+            "name": { "$ref": "#/$defs/rule" },
+            "url": { "$ref": "#/$defs/rule" },
+            "isVip": { "$ref": "#/$defs/rule" },
+            "isVolume": { "$ref": "#/$defs/rule" },
+            "updateTime": { "$ref": "#/$defs/rule" }
+          }
+        }
+      }
+    },
+
+    "contentModule": {
+      "type": "object",
+      "description": "正文模块（URL 由 toc 章节链接传入）",
+      "additionalProperties": false,
+      "properties": {
+        "method": { "$ref": "#/$defs/requestConfig/properties/method" },
+        "body": { "$ref": "#/$defs/requestConfig/properties/body" },
+        "charset": { "$ref": "#/$defs/requestConfig/properties/charset" },
+        "headers": { "$ref": "#/$defs/requestConfig/properties/headers" },
+        "responseType": {
+          "$ref": "#/$defs/requestConfig/properties/responseType"
+        },
+        "nextUrl": {
+          "$ref": "#/$defs/rule",
+          "description": "下一页 URL（多页章节用，省略 = 单页）"
+        },
+        "replaceRegex": {
+          "type": "array",
+          "description": "正文净化规则（模块级配置，独立于 Rule）",
+          "items": {
+            "type": "object",
+            "required": ["pattern", "with"],
+            "additionalProperties": false,
+            "properties": {
+              "pattern": { "type": "string" },
+              "with": { "type": "string" }
+            }
+          }
+        },
+        "rules": {
+          "type": "object",
+          "description": "提取规则",
+          "additionalProperties": { "$ref": "#/$defs/rule" },
+          "properties": {
+            "text": { "$ref": "#/$defs/rule", "description": "正文内容" }
+          }
+        }
+      }
+    },
+
+    "searchRules": {
+      "type": "object",
+      "description": "搜索/发现提取规则",
+      "additionalProperties": { "$ref": "#/$defs/rule" },
+      "properties": {
+        "list": {
+          "$ref": "#/$defs/rule",
+          "description": "从响应中选取书籍元素集合"
+        },
+        "name": { "$ref": "#/$defs/rule" },
+        "url": { "$ref": "#/$defs/rule" },
+        "author": { "$ref": "#/$defs/rule" },
+        "cover": { "$ref": "#/$defs/rule" },
+        "intro": { "$ref": "#/$defs/rule" },
+        "kind": { "$ref": "#/$defs/rule" },
+        "lastChapter": { "$ref": "#/$defs/rule" },
+        "wordCount": { "$ref": "#/$defs/rule" }
+      }
+    },
+
+    "rule": {
+      "description": "规则表达式 = 提取 → 变换的管道。三种写法：string（简写）| RuleObject（结构化）| RuleStep[]（管道数组）",
+      "oneOf": [
+        { "type": "string" },
+        { "$ref": "#/$defs/ruleObject" },
+        {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ruleStep" }
+        }
+      ]
+    },
+
+    "ruleObject": {
+      "type": "object",
+      "title": "RuleObject",
+      "description": "结构化规则：显式声明提取方式 + 可选变换链",
+      "additionalProperties": false,
+      "anyOf": [
+        { "required": ["jsonpath"] },
+        { "required": ["css"] },
+        { "required": ["xpath"] },
+        { "required": ["regex"] },
+        { "required": ["template"] },
+        { "required": ["js"] }
+      ],
+      "properties": {
+        "jsonpath": {
+          "description": "JSONPath 查询表达式",
+          "oneOf": [
+            { "type": "string" },
+            { "type": "array", "items": { "type": "string" } }
+          ]
+        },
+        "css": {
+          "description": "CSS 选择器",
+          "oneOf": [
+            { "type": "string" },
+            { "type": "array", "items": { "type": "string" } }
+          ]
+        },
+        "xpath": {
+          "description": "XPath 查询表达式",
+          "oneOf": [
+            { "type": "string" },
+            { "type": "array", "items": { "type": "string" } }
+          ]
+        },
+        "regex": {
+          "description": "正则表达式匹配",
+          "oneOf": [
+            { "type": "string" },
+            { "type": "array", "items": { "type": "string" } }
+          ]
+        },
+        "template": {
+          "type": "string",
+          "description": "模板字符串（不读响应，从上下文构造）"
+        },
+        "js": {
+          "type": "string",
+          "description": "JS 函数体（沙箱执行，可访问响应和上下文）"
+        },
+        "attr": {
+          "type": "string",
+          "default": "text",
+          "description": "DOM 属性（仅 css/xpath 有效）：text, html, href, src, content, value, 或其他 HTML 属性名"
+        },
+        "reverse": {
+          "type": "boolean",
+          "default": false,
+          "description": "反转 list 提取结果（仅 list 规则）"
+        },
+        "separator": {
+          "type": "string",
+          "default": ",",
+          "description": "多选择器合并分隔符（提取器值为数组时有效）"
+        },
+        "transform": {
+          "type": "array",
+          "description": "变换链",
+          "items": { "$ref": "#/$defs/ruleStep" }
+        }
+      }
+    },
+
+    "ruleStep": {
+      "title": "RuleStep",
+      "description": "管道中的单个步骤：提取或变换",
+      "oneOf": [
+        {
+          "type": "object",
+          "description": "提取步骤",
+          "additionalProperties": false,
+          "properties": {
+            "jsonpath": { "type": "string" },
+            "css": { "type": "string" },
+            "xpath": { "type": "string" },
+            "regex": { "type": "string" },
+            "template": { "type": "string" },
+            "js": { "type": "string" },
+            "attr": { "type": "string" },
+            "separator": { "type": "string" }
+          },
+          "anyOf": [
+            { "required": ["jsonpath"] },
+            { "required": ["css"] },
+            { "required": ["xpath"] },
+            { "required": ["regex"] },
+            { "required": ["template"] },
+            { "required": ["js"] }
+          ]
+        },
+        {
+          "type": "object",
+          "description": "replace 变换",
+          "required": ["replace"],
+          "additionalProperties": false,
+          "properties": {
+            "replace": {
+              "type": "object",
+              "required": ["pattern", "with"],
+              "additionalProperties": false,
+              "properties": {
+                "pattern": { "type": "string" },
+                "with": { "type": "string" },
+                "flags": { "type": "string" }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "description": "match 变换",
+          "required": ["match"],
+          "additionalProperties": false,
+          "properties": {
+            "match": {
+              "type": "object",
+              "required": ["pattern"],
+              "additionalProperties": false,
+              "properties": {
+                "pattern": { "type": "string" },
+                "flags": { "type": "string" }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "description": "split 变换",
+          "required": ["split"],
+          "additionalProperties": false,
+          "properties": {
+            "split": {
+              "type": "object",
+              "required": ["by"],
+              "additionalProperties": false,
+              "properties": {
+                "by": { "type": "string" },
+                "index": { "type": "integer" }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "description": "template 变换",
+          "required": ["template"],
+          "additionalProperties": false,
+          "properties": {
+            "template": { "type": "string" }
+          }
+        },
+        {
+          "type": "object",
+          "description": "trim 变换",
+          "required": ["trim"],
+          "additionalProperties": false,
+          "properties": {
+            "trim": { "type": "boolean", "const": true }
+          }
+        },
+        {
+          "type": "object",
+          "description": "js 变换",
+          "required": ["js"],
+          "additionalProperties": false,
+          "properties": {
+            "js": { "type": "string" }
+          }
+        },
+        {
+          "type": "object",
+          "description": "remove 变换（DOM 级）",
+          "required": ["remove"],
+          "additionalProperties": false,
+          "properties": {
+            "remove": { "type": "string", "description": "CSS 选择器" }
+          }
+        },
+        {
+          "type": "object",
+          "description": "unwrap 变换（DOM 级）",
+          "required": ["unwrap"],
+          "additionalProperties": false,
+          "properties": {
+            "unwrap": { "type": "string", "description": "CSS 选择器" }
+          }
+        },
+        {
+          "type": "object",
+          "description": "strip 变换（DOM 级）",
+          "required": ["strip"],
+          "additionalProperties": false,
+          "properties": {
+            "strip": {
+              "type": "object",
+              "required": ["attrs"],
+              "additionalProperties": false,
+              "properties": {
+                "attrs": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

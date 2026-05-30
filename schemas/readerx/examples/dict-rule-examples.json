@@ -1,0 +1,454 @@
+{
+  "$schema": "readerx/dict-rule/v1",
+  "authors": ["readerx"],
+  "description": "ReaderX 内置字典规则集",
+  "updatedAt": "2026-05-30T19:00:00+08:00",
+  "rules": [
+    {
+      "id": "dict-cn-english",
+      "name": "海词英文",
+      "description": "海词词典英文查询，返回精简释义",
+      "tags": ["英语", "翻译"],
+      "enabled": true,
+      "weight": 50,
+      "request": {
+        "url": "https://apii.dict.cn/mini.php?q={{key}}"
+      },
+      "fields": {
+        "definition": {
+          "pipeline": [
+            { "type": "extract", "engine": "css", "selector": "body" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "dict-cn-hanyu",
+      "name": "海词中文",
+      "description": "海词词典汉语查询",
+      "tags": ["汉语", "中文"],
+      "enabled": true,
+      "weight": 50,
+      "request": {
+        "url": "https://hanyu.dict.cn/{{key}}"
+      },
+      "fields": {
+        "definition": {
+          "pipeline": [
+            { "type": "extract", "engine": "css", "selector": "body" },
+            {
+              "type": "transform",
+              "action": "remove",
+              "selector": "script,#header,#footer,#page-share,.mslide,.title"
+            },
+            { "type": "transform", "action": "unwrap", "selector": "#cy" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "dict-baidu-hanyu",
+      "name": "百度汉语",
+      "description": "百度百科汉语词典，查询汉字、词语释义",
+      "tags": ["汉语", "中文"],
+      "enabled": true,
+      "weight": 60,
+      "variables": {
+        "host": "https://dict.baidu.com"
+      },
+      "request": {
+        "url": "{{host}}/s?wd={{key}}"
+      },
+      "fields": {
+        "definition": {
+          "pipeline": [
+            { "type": "extract", "engine": "css", "selector": "#content" },
+            {
+              "type": "transform",
+              "action": "remove",
+              "selector": "script,#search-bar,#right-panel,#copyright"
+            },
+            {
+              "type": "transform",
+              "action": "strip",
+              "attrs": ["onclick", "data-track", "style"]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "dict-youdao",
+      "name": "有道词典",
+      "description": "有道词典中英互译，包含音标、释义、例句、发音",
+      "tags": ["英语", "翻译", "中英互译"],
+      "enabled": true,
+      "weight": 70,
+      "variables": {
+        "host": "https://www.youdao.com",
+        "audioHost": "https://dict.youdao.com"
+      },
+      "request": {
+        "url": "{{host}}/result?word={{key}}&lang=en",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36"
+        }
+      },
+      "fields": {
+        "definition": {
+          "pipeline": [
+            {
+              "type": "extract",
+              "engine": "css",
+              "selector": ".result-container"
+            },
+            {
+              "type": "transform",
+              "action": "remove",
+              "selector": "script,style,.ad"
+            },
+            {
+              "type": "transform",
+              "action": "strip",
+              "attrs": ["onclick", "data-log"]
+            }
+          ]
+        },
+        "phonetic": {
+          "schema": "string",
+          "pipeline": [
+            {
+              "type": "extract",
+              "engine": "css",
+              "selector": ".phonetic",
+              "output": "text"
+            }
+          ]
+        },
+        "audio": {
+          "schema": "string",
+          "pipeline": [
+            {
+              "type": "extract",
+              "engine": "css",
+              "selector": "audio source",
+              "output": { "type": "attr", "name": "src" },
+              "baseUrl": "{{audioHost}}"
+            }
+          ]
+        },
+        "examples": {
+          "schema": "string[]",
+          "pipeline": [
+            {
+              "type": "extract",
+              "engine": "css",
+              "selector": ".example-sentence",
+              "output": "text"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "dict-zdic",
+      "name": "汉典",
+      "description": "汉典 zdic.net，查询汉字字义、词义",
+      "tags": ["汉语", "中文", "字源"],
+      "enabled": true,
+      "weight": 55,
+      "variables": {
+        "host": "https://www.zdic.net"
+      },
+      "request": {
+        "url": "{{host}}/hans/{{key}}",
+        "headers": {
+          "Referer": "{{host}}/"
+        }
+      },
+      "fields": {
+        "definition": {
+          "pipeline": [
+            { "type": "extract", "engine": "css", "selector": ".zview" },
+            {
+              "type": "transform",
+              "action": "remove",
+              "selector": "script,style,.adsbygoogle"
+            },
+            { "type": "transform", "action": "strip", "attrs": ["onclick"] }
+          ]
+        },
+        "phonetic": {
+          "schema": "string",
+          "pipeline": [
+            {
+              "type": "extract",
+              "engine": "css",
+              "selector": ".z_pinyin",
+              "output": "text"
+            }
+          ]
+        },
+        "etymology": {
+          "pipeline": [
+            { "type": "extract", "engine": "css", "selector": ".z_yt" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "dict-jisho",
+      "name": "Jisho",
+      "description": "Jisho.org 日语词典，返回 JSON API",
+      "tags": ["日语", "日语词典"],
+      "enabled": true,
+      "weight": 65,
+      "request": {
+        "url": "https://jisho.org/api/v1/search/words?keyword={{key}}"
+      },
+      "fields": {
+        "definition": {
+          "schema": "string",
+          "pipeline": [
+            {
+              "type": "extract",
+              "engine": "jsonpath",
+              "selector": "$.data[0].senses[0].english_definitions"
+            },
+            {
+              "type": "transform",
+              "action": "replace",
+              "pattern": "\\[|\\]|\"",
+              "with": "",
+              "flags": "g"
+            }
+          ]
+        },
+        "phonetic": {
+          "schema": "string[]",
+          "pipeline": [
+            {
+              "type": "extract",
+              "engine": "jsonpath",
+              "selector": "$.data[0].japanese[*].reading"
+            }
+          ]
+        },
+        "audio": {
+          "schema": "string",
+          "pipeline": [
+            {
+              "type": "extract",
+              "engine": "jsonpath",
+              "selector": "$.data[0].japanese[0].reading"
+            },
+            {
+              "type": "transform",
+              "action": "replace",
+              "pattern": "^(.+)$",
+              "with": "https://assets.languagepod101.com/dictionary/japanese/audiomp3.php?kana=$1",
+              "flags": ""
+            }
+          ]
+        },
+        "examples": {
+          "schema": "string[]",
+          "pipeline": [
+            {
+              "type": "extract",
+              "engine": "jsonpath",
+              "selector": "$.data[0].senses[0].sentences[*]text"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "dict-iciba",
+      "name": "金山词霸",
+      "description": "金山词霸中英互译，部分接口使用 GBK 编码",
+      "tags": ["英语", "翻译", "中英互译"],
+      "enabled": true,
+      "weight": 45,
+      "request": {
+        "url": "https://www.iciba.com/word?w={{key}}",
+        "method": "GET",
+        "charset": "gbk",
+        "headers": {
+          "Referer": "https://www.iciba.com/"
+        }
+      },
+      "fields": {
+        "definition": {
+          "pipeline": [
+            {
+              "type": "extract",
+              "engine": "css",
+              "selector": ".Mean_part__PP9nI"
+            },
+            {
+              "type": "transform",
+              "action": "remove",
+              "selector": "script,style"
+            },
+            {
+              "type": "transform",
+              "action": "replace",
+              "pattern": "\\s{2,}",
+              "with": " ",
+              "flags": "g"
+            }
+          ]
+        },
+        "phonetic": {
+          "schema": "string",
+          "pipeline": [
+            {
+              "type": "extract",
+              "engine": "css",
+              "selector": ".BaseWord_word__vwGYJ .Prononciation_transcriptions__3Kqhs",
+              "output": "text"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "dict-complete-demo",
+
+      "name": "完整字段演示",
+
+      "description": "展示 DictRule Schema v1 所有字段和能力的演示规则，非真实字典源",
+
+      "tags": ["演示", "英语", "综合"],
+
+      "enabled": true,
+
+      "weight": 1,
+
+      "variables": {
+        "host": "https://example-dict.com",
+        "apiBase": "https://api.example-dict.com",
+        "audioCdn": "https://audio-cdn.example-dict.com"
+      },
+
+      "request": {
+        "url": "{{host}}/search",
+        "method": "POST",
+        "charset": "utf-8",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 ReaderX/1.0",
+          "Referer": "{{host}}/",
+          "X-API-Version": "2"
+        },
+        "body": {
+          "type": "form",
+          "data": {
+            "q": "{{key}}",
+            "lang": "en",
+            "format": "html"
+          }
+        }
+      },
+
+      "fields": {
+        "definition": {
+          "pipeline": [
+            {
+              "type": "extract",
+              "engine": "css",
+              "selector": "#definition-content"
+            },
+            {
+              "type": "transform",
+              "action": "remove",
+              "selector": "script,style,.ad,.social-share"
+            },
+            {
+              "type": "transform",
+              "action": "unwrap",
+              "selector": "span.tooltip,span.annotation"
+            },
+            {
+              "type": "transform",
+              "action": "strip",
+              "attrs": ["onclick", "onmouseover", "data-tracking-id", "style"]
+            },
+            {
+              "type": "transform",
+              "action": "replace",
+              "pattern": "<br\\s*/?>\\s*<br\\s*/?>",
+              "with": "<br>",
+              "flags": "g"
+            }
+          ]
+        },
+
+        "phonetic": {
+          "schema": "string",
+          "pipeline": [
+            {
+              "type": "extract",
+              "engine": "xpath",
+              "selector": "//span[contains(@class,'phonetic')]/text()",
+              "output": "text"
+            }
+          ]
+        },
+
+        "audio": {
+          "schema": "string",
+          "pipeline": [
+            {
+              "type": "extract",
+              "engine": "css",
+              "selector": "audio source[type='audio/mpeg']",
+              "output": { "type": "attr", "name": "src" },
+              "baseUrl": "{{audioCdn}}"
+            }
+          ]
+        },
+
+        "examples": {
+          "schema": "string[]",
+          "pipeline": [
+            {
+              "type": "extract",
+              "engine": "css",
+              "selector": ".example-item .sentence",
+              "output": "text"
+            }
+          ]
+        },
+
+        "synonyms": {
+          "schema": "string[]",
+          "pipeline": [
+            {
+              "type": "extract",
+              "engine": "jsonpath",
+              "selector": "$.meta.synonyms[*]"
+            }
+          ]
+        },
+
+        "extra": {
+          "pipeline": [
+            {
+              "type": "extract",
+              "engine": "regex",
+              "selector": "<div class=\"usage-note\">([\\s\\S]*?)</div>"
+            },
+            {
+              "type": "transform",
+              "action": "replace",
+              "pattern": "^\\s+|\\s+$",
+              "with": "",
+              "flags": "g"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

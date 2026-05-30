@@ -1,0 +1,889 @@
+[
+  {
+    "$schema": "readerx/book-source-rule/v1",
+    "id": "https://www.qidian.com",
+    "name": "起点中文",
+    "description": "搜索需要先通过浏览器访问起点写入 Cookie",
+    "type": "novel",
+    "tags": ["正版"],
+    "baseUrl": "https://www.qidian.com",
+    "headers": {
+      "User-Agent": "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120.0 Mobile Safari/537.36"
+    },
+    "loginUrl": "https://www.qidian.com/all/",
+    "enabled": true,
+    "weight": 99,
+    "order": 0,
+    "updatedAt": "2024-12-17T14:30:54+08:00",
+    "search": {
+      "url": "/so/{{key}}.html",
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/102.0.0.0 Safari/537.36",
+        "Referer": "https://www.qidian.com/"
+      },
+      "checkKeyWord": "斗破苍穹",
+      "rules": {
+        "list": { "css": ".res-book-item" },
+        "name": { "css": ".book-info-title a", "attr": "text" },
+        "url": {
+          "css": "a[data-bid]",
+          "attr": "data-bid",
+          "transform": [{ "template": "https://m.qidian.com/book/{{result}}/" }]
+        },
+        "author": { "css": ".author .name", "attr": "text" },
+        "cover": { "css": ".book-img-box img", "attr": "src" },
+        "intro": { "css": ".intro", "attr": "text" },
+        "kind": { "css": ".author a", "attr": "text" },
+        "lastChapter": {
+          "css": ".update a",
+          "attr": "text",
+          "transform": [{ "replace": { "pattern": "最新更新 ", "with": "" } }]
+        },
+        "wordCount": { "xpath": "//p[text()='总字数']/span/text()" }
+      }
+    },
+    "explore": {
+      "categories": [
+        { "title": "男生榜单" },
+        { "title": "月票榜", "url": "/rank/yuepiao/page{{page}}/" },
+        { "title": "畅销榜", "url": "/rank/hotsales/page{{page}}/" },
+        { "title": "推荐榜", "url": "/rank/recom/page{{page}}/" },
+        { "title": "限时免费", "url": "/free/page{{page}}/" },
+        { "title": "男生频道" },
+        { "title": "最近更新", "url": "/all?update=1&siteid=1&page={{page}}" },
+        { "title": "完本", "url": "/all?action=1&siteid=1&page={{page}}" },
+        { "title": "玄幻", "url": "/all?chanId=21&siteid=1&page={{page}}" },
+        { "title": "奇幻", "url": "/all?chanId=1&siteid=1&page={{page}}" },
+        { "title": "武侠", "url": "/all?chanId=2&siteid=1&page={{page}}" },
+        { "title": "仙侠", "url": "/all?chanId=22&siteid=1&page={{page}}" },
+        { "title": "都市", "url": "/all?chanId=4&siteid=1&page={{page}}" },
+        { "title": "历史", "url": "/all?chanId=5&siteid=1&page={{page}}" },
+        { "title": "科幻", "url": "/all?chanId=9&siteid=1&page={{page}}" },
+        { "title": "女生榜单" },
+        { "title": "月票榜", "url": "/rank/mm/yuepiao/page{{page}}/" },
+        {
+          "title": "古代言情",
+          "url": "/mm/all?chanId=80&siteid=0&page={{page}}"
+        },
+        {
+          "title": "现代言情",
+          "url": "/mm/all?chanId=82&siteid=0&page={{page}}"
+        }
+      ],
+      "rules": {
+        "list": { "css": "#book-img-text li" },
+        "name": { "css": "h2 a", "attr": "text" },
+        "url": {
+          "css": "a[data-bid]",
+          "attr": "data-bid",
+          "transform": [{ "template": "https://m.qidian.com/book/{{result}}/" }]
+        },
+        "author": { "css": ".author .name", "attr": "text" },
+        "cover": { "css": ".book-img-box img", "attr": "src" },
+        "intro": { "css": ".intro", "attr": "text" },
+        "lastChapter": {
+          "css": ".update a",
+          "attr": "text",
+          "transform": [{ "replace": { "pattern": "最新更新 ", "with": "" } }]
+        }
+      }
+    },
+    "bookInfo": {
+      "rules": {
+        "name": { "xpath": "//meta[@property='og:novel:book_name']/@content" },
+        "author": { "xpath": "//meta[@property='og:novel:author']/@content" },
+        "cover": { "xpath": "//meta[@property='og:image']/@content" },
+        "intro": { "xpath": "//meta[@property='og:description']/@content" },
+        "kind": {
+          "xpath": "//meta[@property='og:novel:category' or @property='og:novel:status' or @property='og:novel:update_time']/@content"
+        },
+        "lastChapter": {
+          "xpath": "//meta[@property='og:novel:latest_chapter_name']/@content"
+        },
+        "tocUrl": { "css": "#details-menu a", "attr": "href" },
+        "wordCount": {
+          "css": ".book-meta",
+          "attr": "text",
+          "transform": [{ "replace": { "pattern": "\\|.*$", "with": "" } }]
+        }
+      }
+    },
+    "toc": {
+      "responseType": "html",
+      "rules": {
+        "list": {
+          "regex": ":\"sS\":(\\d),.*?\"cN\":\"(.*?)\",\"id\":(\\d+),.*?\"uT\":\"(.*?)\""
+        },
+        "name": { "regex": "\"cN\":\"(.*?)\"" },
+        "url": {
+          "regex": "\"id\":(\\d+)",
+          "transform": [
+            {
+              "template": "https://vipreader.qidian.com/chapter/{{bookId}}/{{result}}/"
+            }
+          ]
+        },
+        "isVip": { "regex": ":\"sS\":(\\d)" },
+        "updateTime": {
+          "regex": "\"uT\":\"(.*?)\"",
+          "transform": [{ "replace": { "pattern": "\".*", "with": "" } }]
+        }
+      }
+    },
+    "content": {
+      "rules": {
+        "text": { "css": ".read-content", "attr": "html" }
+      }
+    }
+  },
+  {
+    "$schema": "readerx/book-source-rule/v1",
+    "id": "http://appi.kuwo.cn",
+    "name": "酷我小说",
+    "type": "novel",
+    "tags": ["API"],
+    "baseUrl": "http://appi.kuwo.cn",
+    "headers": {
+      "Accept": "*/*",
+      "Connection": "Close",
+      "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 8.0.0)"
+    },
+    "enabled": true,
+    "weight": 50,
+    "order": 4,
+    "updatedAt": "2024-04-23T10:32:03+08:00",
+    "search": {
+      "url": "/novels/api/book/search?keyword={{key}}&pi={{page}}&ps=30",
+      "responseType": "json",
+      "rules": {
+        "list": { "jsonpath": "$.data" },
+        "name": { "jsonpath": "$.title" },
+        "url": { "template": "/novels/api/book/{{$.book_id}}" },
+        "author": { "jsonpath": "$.author_name" },
+        "cover": { "jsonpath": "$.cover_url" },
+        "intro": { "jsonpath": "$.intro" },
+        "kind": {
+          "template": "{{$.category_name}},{{$.status}}",
+          "transform": [
+            { "replace": { "pattern": "30", "with": "连载" } },
+            { "replace": { "pattern": "50", "with": "完结" } }
+          ]
+        },
+        "wordCount": { "jsonpath": "$.all_words" }
+      }
+    },
+    "bookInfo": {
+      "responseType": "json",
+      "init": { "jsonpath": "$.data" },
+      "rules": {
+        "name": { "jsonpath": "$.title" },
+        "author": { "jsonpath": "$.author_name" },
+        "cover": { "jsonpath": "$.cover_url" },
+        "intro": { "jsonpath": "$.intro" },
+        "kind": {
+          "template": "{{$.category_name}},{{$.status}}",
+          "transform": [
+            { "replace": { "pattern": "30", "with": "连载" } },
+            { "replace": { "pattern": "50", "with": "完结" } },
+            { "replace": { "pattern": "\\s..:.*", "with": "" } }
+          ]
+        },
+        "lastChapter": {
+          "jsonpath": "$.new_chapter_name",
+          "transform": [
+            {
+              "replace": {
+                "pattern": "正文卷\\.|正文\\.|VIP卷\\.|默认卷\\.|卷_|VIP章节\\.|免费章节\\.|章节目录\\.",
+                "with": ""
+              }
+            }
+          ]
+        },
+        "tocUrl": {
+          "template": "/novels/api/book/{{$.book_id}}/chapters?paging=0"
+        },
+        "wordCount": { "jsonpath": "$.all_words" }
+      }
+    },
+    "toc": {
+      "responseType": "json",
+      "rules": {
+        "list": { "jsonpath": "$.data" },
+        "name": {
+          "jsonpath": "$.chapter_title",
+          "transform": [
+            {
+              "replace": {
+                "pattern": "正文卷\\.|正文\\.|VIP卷\\.|默认卷\\.|卷_|VIP章节\\.|免费章节\\.|章节目录\\.",
+                "with": ""
+              }
+            }
+          ]
+        },
+        "url": {
+          "template": "/novels/api/book/{{$.book_id}}/chapters/{{$.chapter_id}}"
+        },
+        "updateTime": { "template": "{{$.volume_name}}•{{$.original_words}}字" }
+      }
+    },
+    "content": {
+      "responseType": "json",
+      "rules": {
+        "text": { "jsonpath": "$.data.content" }
+      }
+    }
+  },
+  {
+    "$schema": "readerx/book-source-rule/v1",
+    "id": "https://69shuba.cx",
+    "name": "69书吧",
+    "description": "需要挂代理使用。搜索暂不可用，可先通过发现或直接添加书籍详情页地址。",
+    "type": "novel",
+    "tags": ["需要代理", "人机验证-搜索", "搜索暂不可用"],
+    "baseUrl": "https://69shuba.cx",
+    "enabled": false,
+    "weight": 25,
+    "order": 7,
+    "updatedAt": "2025-04-27T16:47:28+08:00",
+    "search": {
+      "url": "/modules/article/search.php",
+      "method": "POST",
+      "body": "searchkey={{key}}&searchtype=all",
+      "charset": "gbk",
+      "checkKeyWord": "我有一个",
+      "rules": {
+        "list": { "css": ".newbox ul li" },
+        "name": { "css": "h3 a:last-child", "attr": "text" },
+        "url": { "css": "h3 a:last-child", "attr": "href" },
+        "author": { "css": ".label:nth-child(1)", "attr": "text" },
+        "cover": { "css": "img", "attr": "src" },
+        "intro": { "css": ".ellipsis_2", "attr": "text" },
+        "kind": {
+          "css": [".label:nth-child(2)", ".label:nth-child(3)"],
+          "separator": ","
+        },
+        "lastChapter": { "css": ".zxzj p", "attr": "text" }
+      }
+    },
+    "explore": {
+      "categories": [
+        { "title": "全部分类", "url": "/blist/class/0/{{page}}.htm" },
+        { "title": "玄幻魔法", "url": "/blist/class/1/{{page}}.htm" },
+        { "title": "修真武侠", "url": "/blist/class/2/{{page}}.htm" },
+        { "title": "言情小说", "url": "/blist/class/3/{{page}}.htm" },
+        { "title": "历史军事", "url": "/blist/class/4/{{page}}.htm" },
+        { "title": "科幻空间", "url": "/blist/class/6/{{page}}.htm" },
+        { "title": "完本-全部分类", "url": "/blist/full/0/{{page}}.htm" },
+        { "title": "完本-玄幻魔法", "url": "/blist/full/1/{{page}}.htm" },
+        { "title": "完本-修真武侠", "url": "/blist/full/2/{{page}}.htm" }
+      ],
+      "rules": {
+        "list": { "css": ".newlistbox ul li" },
+        "name": { "css": "h3 a", "attr": "text" },
+        "url": { "css": "h3 a", "attr": "href" },
+        "author": { "css": ".label:nth-child(1)", "attr": "text" },
+        "cover": { "css": "img", "attr": "src" },
+        "intro": { "css": ".ellipsis_2", "attr": "text" },
+        "kind": { "css": ".label:nth-child(2)", "attr": "text" },
+        "wordCount": { "css": ".label:nth-child(3)", "attr": "text" }
+      }
+    },
+    "bookInfo": {
+      "rules": {
+        "name": { "xpath": "//meta[@property='og:novel:book_name']/@content" },
+        "author": { "xpath": "//meta[@property='og:novel:author']/@content" },
+        "cover": { "xpath": "//meta[@property='og:image']/@content" },
+        "intro": { "css": ".content p", "attr": "html" },
+        "kind": {
+          "xpath": "//meta[@property='og:novel:category' or @property='og:novel:status' or @property='og:novel:update_time']/@content"
+        },
+        "lastChapter": {
+          "css": ".qustime span",
+          "attr": "text",
+          "transform": [{ "replace": { "pattern": "^\\d+\\.", "with": "" } }]
+        },
+        "tocUrl": { "js": "baseUrl.replace('/txt','').replace('.htm','/')" },
+        "wordCount": {
+          "css": ".booknav2 p:nth-child(5)",
+          "attr": "text",
+          "transform": [{ "replace": { "pattern": " \\|.+", "with": "" } }]
+        }
+      }
+    },
+    "toc": {
+      "rules": {
+        "list": { "css": "#catalog ul a", "reverse": true },
+        "name": { "css": "a", "attr": "text" },
+        "url": { "css": "a", "attr": "href" }
+      }
+    },
+    "content": {
+      "replaceRegex": [
+        {
+          "pattern": "(^(.+\\n){2}({{book.durChapterTitle}}.*\\n)?)",
+          "with": ""
+        },
+        { "pattern": "(\\n.*\\(本章完\\)$)", "with": "" }
+      ],
+      "rules": {
+        "text": { "css": ".txtnav", "attr": "html" }
+      }
+    }
+  },
+  {
+    "$schema": "readerx/book-source-rule/v1",
+    "id": "https://anduril.xmkanshu.com",
+    "name": "熊猫看书",
+    "type": "novel",
+    "tags": ["API"],
+    "baseUrl": "https://anduril.xmkanshu.com",
+    "headers": {
+      "User-Agent": "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 Chrome/83.0 Mobile Safari/537.36"
+    },
+    "enabled": true,
+    "weight": 50,
+    "order": 5,
+    "updatedAt": "2024-07-28T14:17:04+08:00",
+    "search": {
+      "url": "https://anduril.xmkanshu.com/v3/search/get_result?keyword={{key}}&page_number={{page}}&is_vip_free=0&page_size=20&sub_type=1",
+      "responseType": "json",
+      "rules": {
+        "list": { "jsonpath": "$.result.books" },
+        "name": { "jsonpath": "$.book_name" },
+        "url": {
+          "template": "https://anduril.xmkanshu.com/v3/book/get_book_info?p1=H5&book_id={{$.book_id}}&site_id=0"
+        },
+        "author": { "jsonpath": "$.author_name" },
+        "cover": { "jsonpath": "$.cover_picture" },
+        "intro": { "jsonpath": "$.book_desc" },
+        "kind": { "jsonpath": "$.book_type_name" },
+        "wordCount": { "jsonpath": "$.book_size" }
+      }
+    },
+    "explore": {
+      "categories": [
+        {
+          "title": "男生频道",
+          "url": "/category/getbooklist?columntype=99&pageid={{page}}&pagesize=20&book_size=-1&category_id1=-1&order_type=2&status=-1"
+        },
+        {
+          "title": "都市娱乐",
+          "url": "/category/getbooklist?columntype=99&pageid={{page}}&pagesize=20&book_size=-1&category_id1=1001&order_type=2&status=-1"
+        },
+        {
+          "title": "奇幻玄幻",
+          "url": "/category/getbooklist?columntype=99&pageid={{page}}&pagesize=20&book_size=-1&category_id1=1002&order_type=2&status=-1"
+        },
+        {
+          "title": "女生频道",
+          "url": "/category/getbooklist?columntype=98&pageid={{page}}&pagesize=20&book_size=-1&category_id1=-1&order_type=2&status=-1"
+        },
+        {
+          "title": "出版频道",
+          "url": "/category/getbooklist?columntype=6000&pageid={{page}}&pagesize=20&typeid=-1&order_type=2&status=-1"
+        }
+      ],
+      "responseType": "json",
+      "rules": {
+        "list": { "jsonpath": "$.result.books[*]" },
+        "name": { "jsonpath": "$.bookname" },
+        "url": {
+          "template": "https://anduril.xmkanshu.com/v3/book/get_book_info?p1=H5&book_id={{$.bookid}}&site_id=0"
+        },
+        "author": { "jsonpath": "$.authorname" },
+        "cover": { "jsonpath": "$.frontcover" },
+        "intro": { "jsonpath": "$.bookdesc" },
+        "kind": { "jsonpath": "$.booktypename" },
+        "wordCount": { "template": "{{$.booksize}}万字" }
+      }
+    },
+    "bookInfo": {
+      "responseType": "json",
+      "rules": {
+        "name": { "jsonpath": "$.result.book_name" },
+        "author": { "jsonpath": "$.result.author_name" },
+        "cover": { "jsonpath": "$.result.cover_picture" },
+        "intro": { "jsonpath": "$.result.book_desc" },
+        "lastChapter": {
+          "jsonpath": "$.result.last_chapter_name",
+          "transform": [
+            {
+              "replace": {
+                "pattern": "正文卷\\.|正文\\.|VIP卷\\.|默认卷\\.|卷_|VIP章节\\.|免费章节\\.|章节目录\\.",
+                "with": ""
+              }
+            }
+          ]
+        },
+        "tocUrl": {
+          "template": "https://anduril.xmkanshu.com/v3/book/get_last_chapter_list?bookid={{$.result.book_id}}&page=1&pagesize=100000"
+        },
+        "wordCount": { "jsonpath": "$.result.book_size" }
+      }
+    },
+    "toc": {
+      "responseType": "json",
+      "rules": {
+        "list": { "jsonpath": "$.result.pageList" },
+        "name": {
+          "jsonpath": "$.chapter_name",
+          "transform": [
+            {
+              "replace": {
+                "pattern": "正文卷\\.|正文\\.|VIP卷\\.|默认卷\\.",
+                "with": ""
+              }
+            }
+          ]
+        },
+        "url": {
+          "template": "https://www.xmkanshu.com/service/getContent?bkid={{bookId}}&crid={{$.chapter_id}}&pg=1"
+        },
+        "updateTime": { "jsonpath": "$.createdate" }
+      }
+    },
+    "content": {
+      "responseType": "json",
+      "nextUrl": {
+        "js": "const a = baseUrl.match(/pg=(\\d+)/)[1]; a && Number(a) < {{$.result.pagecount}} ? baseUrl.replace(/pg=.+/, 'pg=' + (Number(a) + 1)) : ''"
+      },
+      "rules": {
+        "text": { "template": "{{$.result.content}}" }
+      }
+    }
+  },
+  {
+    "$schema": "readerx/book-source-rule/v1",
+    "id": "https://www.deqixs.com",
+    "name": "得奇小说网",
+    "type": "novel",
+    "baseUrl": "https://www.deqixs.com",
+    "enabled": true,
+    "weight": 25,
+    "order": 10,
+    "updatedAt": "2024-09-29T10:44:40+08:00",
+    "search": {
+      "url": "/tag/?key={{key}}",
+      "checkKeyWord": "小书生",
+      "rules": {
+        "list": { "css": ".item" },
+        "name": { "css": "h3 a", "attr": "text" },
+        "url": { "css": "a", "attr": "href" },
+        "author": {
+          "css": "p:nth-child(2) a",
+          "attr": "text",
+          "transform": [{ "replace": { "pattern": "作者：", "with": "" } }]
+        },
+        "cover": { "css": "img", "attr": "src" },
+        "kind": { "css": "p span:nth-child(1)", "attr": "text" },
+        "lastChapter": { "css": "li a", "attr": "text" }
+      }
+    },
+    "explore": {
+      "categories": [
+        { "title": "热门小说", "url": "/xiaoshuo/2-{{page}}.html" },
+        { "title": "最新小说", "url": "/xiaoshuo/1-{{page}}.html" }
+      ],
+      "rules": {}
+    },
+    "bookInfo": {
+      "rules": {
+        "name": { "css": ".itemtxt h1 a", "attr": "text" },
+        "author": { "css": ".itemtxt p:nth-child(2) a", "attr": "text" },
+        "cover": { "css": ".item img", "attr": "src" },
+        "intro": { "css": ".des p", "attr": "text" },
+        "kind": {
+          "css": ".itemtxt p:nth-child(1) span:nth-child(1)",
+          "attr": "text"
+        },
+        "lastChapter": { "css": ".itemtxt li a", "attr": "text" },
+        "wordCount": { "css": ".itemtxt h1 i", "attr": "text" }
+      }
+    },
+    "toc": {
+      "nextUrl": { "css": "#pages .gr", "attr": "href" },
+      "rules": {
+        "list": { "css": "#list a" },
+        "name": { "css": "a", "attr": "text" },
+        "url": { "css": "a", "attr": "href" }
+      }
+    },
+    "content": {
+      "nextUrl": { "css": ".prenext span:last-child", "attr": "href" },
+      "rules": {
+        "text": { "css": ".con p", "attr": "text" }
+      }
+    }
+  },
+  {
+    "$schema": "readerx/book-source-rule/v1",
+    "id": "https://cn.ttkan.co",
+    "name": "天天看小说",
+    "description": "搜索功能似乎挂了，可通过浏览器手动搜索后添加书籍详情页地址。",
+    "type": "novel",
+    "tags": ["搜索暂不可用"],
+    "baseUrl": "https://cn.ttkan.co",
+    "enabled": true,
+    "weight": 25,
+    "order": 11,
+    "updatedAt": "2023-06-21T14:58:33+08:00",
+    "search": {
+      "url": "/novel/search?q={{key}}",
+      "checkKeyWord": "我的师兄",
+      "rules": {
+        "list": { "css": ".novel_cell" },
+        "name": { "css": "h3", "attr": "text" },
+        "url": { "css": "a", "attr": "href" },
+        "author": { "css": "li:nth-child(2)", "attr": "text" },
+        "cover": { "css": "amp-img", "attr": "src" },
+        "intro": { "css": "li:nth-child(3)", "attr": "text" }
+      }
+    },
+    "bookInfo": {
+      "rules": {
+        "name": { "xpath": "//meta[@name='og:novel:book_name']/@content" },
+        "author": { "xpath": "//meta[@name='og:novel:author']/@content" },
+        "cover": { "xpath": "//meta[@name='og:image']/@content" },
+        "intro": { "xpath": "//meta[@name='og:description']/@content" },
+        "kind": {
+          "xpath": "//meta[@name='og:novel:category' or @name='og:novel:status' or @name='og:novel:update_time']/@content"
+        },
+        "lastChapter": {
+          "xpath": "//meta[@name='og:novel:latest_chapter_name']/@content"
+        }
+      }
+    },
+    "toc": {
+      "rules": {
+        "list": { "css": ".full_chapters a" },
+        "name": { "css": "a", "attr": "text" },
+        "url": { "css": "a", "attr": "href" }
+      }
+    },
+    "content": {
+      "replaceRegex": [{ "pattern": "\\n.*\\(本章完\\)$", "with": "" }],
+      "rules": {
+        "text": { "css": ".content p", "attr": "text" }
+      }
+    }
+  },
+  {
+    "$schema": "readerx/book-source-rule/v1",
+    "id": "https://www.dxmwx.org",
+    "name": "大熊猫文学网",
+    "type": "novel",
+    "baseUrl": "https://www.dxmwx.org",
+    "enabled": true,
+    "weight": 25,
+    "order": 13,
+    "updatedAt": "2023-06-03T08:32:22+08:00",
+    "search": {
+      "url": "/list/{{key}}.html",
+      "rules": {
+        "list": { "css": "#ListContents > div[style*='margin']" },
+        "name": { "css": ".margin0h5 a:first-child", "attr": "text" },
+        "url": { "css": ".margin0h5 a:first-child", "attr": "href" },
+        "author": { "css": ".margin0h5 a:nth-child(2)", "attr": "text" },
+        "cover": { "css": "img", "attr": "src" },
+        "intro": { "css": ".neirongh5 a", "attr": "text" },
+        "kind": { "css": ".biaoqian a", "attr": "text" },
+        "lastChapter": { "css": "a[href='javascript:void(0)']", "attr": "text" }
+      }
+    },
+    "explore": {
+      "categories": [
+        { "title": "玄幻", "url": "/list/topall_玄幻_{{page}}.html" },
+        { "title": "奇幻", "url": "/list/topall_奇幻_{{page}}.html" },
+        { "title": "武侠", "url": "/list/topall_武侠_{{page}}.html" },
+        { "title": "仙侠", "url": "/list/topall_仙侠_{{page}}.html" },
+        { "title": "都市", "url": "/list/topall_都市_{{page}}.html" },
+        { "title": "科幻", "url": "/list/topall_科幻_{{page}}.html" },
+        { "title": "完本", "url": "/list/topend__{{page}}.html" },
+        { "title": "新书榜", "url": "/list/topnew__{{page}}.html" }
+      ],
+      "rules": {}
+    },
+    "bookInfo": {
+      "rules": {
+        "name": { "xpath": "//meta[@property='og:novel:book_name']/@content" },
+        "author": { "xpath": "//meta[@property='og:novel:author']/@content" },
+        "cover": { "xpath": "//meta[@property='og:image']/@content" },
+        "intro": { "xpath": "//meta[@property='og:description']/@content" },
+        "kind": {
+          "xpath": "//meta[@property='og:novel:category' or @property='og:novel:status' or @property='og:novel:update_time']/@content"
+        },
+        "lastChapter": {
+          "xpath": "//meta[@property='og:novel:latest_chapter_name']/@content"
+        },
+        "tocUrl": { "css": "a[href^='/chapter/']", "attr": "href" }
+      }
+    },
+    "toc": {
+      "rules": {
+        "list": { "css": "a[href^='/read/']:not([title])" },
+        "name": { "css": "a", "attr": "text" },
+        "url": { "css": "a", "attr": "href" }
+      }
+    },
+    "content": {
+      "rules": {
+        "text": { "css": "#Lab_Contents", "attr": "html" }
+      }
+    }
+  },
+  {
+    "$schema": "readerx/book-source-rule/v1",
+    "id": "https://www.wcxsw.org",
+    "name": "大文学无错小说网",
+    "description": "搜索启用了人机验证，使用过程中可能会出现验证码界面。",
+    "type": "novel",
+    "tags": ["人机验证-搜索", "暂不可用"],
+    "baseUrl": "https://www.wcxsw.org",
+    "enabled": false,
+    "weight": 20,
+    "order": 19,
+    "updatedAt": "2024-08-28T20:24:47+08:00",
+    "search": {
+      "url": "https://m.wcxsw.org/search.php",
+      "method": "POST",
+      "body": "submit=搜索&keyword={{key}}&json=1",
+      "responseType": "json",
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 Chrome/115.0 Mobile Safari/537.36",
+        "Referer": "https://m.wcxsw.org/"
+      },
+      "checkKeyWord": "系统",
+      "rules": {
+        "list": { "jsonpath": "$[*]" },
+        "name": { "jsonpath": "$.articlename" },
+        "url": {
+          "jsonpath": "$.index",
+          "transform": [{ "replace": { "pattern": "m\\.", "with": "www." } }]
+        },
+        "author": { "jsonpath": "$.author" },
+        "cover": {
+          "template": "https://www.wcxsw.org/image/{{$.bookid.slice(0,-3)}}/{{$.bookid}}/{{$.bookid}}s.jpg"
+        },
+        "intro": { "jsonpath": "$.intro" },
+        "kind": { "jsonpath": "$.caption" },
+        "lastChapter": { "jsonpath": "$.lastchapter" },
+        "wordCount": { "jsonpath": "$.size_c" }
+      }
+    },
+    "bookInfo": {
+      "rules": {
+        "name": { "xpath": "//meta[@property='og:novel:book_name']/@content" },
+        "author": { "xpath": "//meta[@property='og:novel:author']/@content" },
+        "cover": { "xpath": "//meta[@property='og:image']/@content" },
+        "intro": { "xpath": "//meta[@property='og:description']/@content" },
+        "kind": {
+          "xpath": "//meta[@property='og:novel:category' or @property='og:novel:status' or @property='og:novel:update_time']/@content"
+        },
+        "lastChapter": {
+          "xpath": "//meta[@property='og:novel:latest_chapter_name']/@content"
+        }
+      }
+    },
+    "toc": {
+      "rules": {
+        "list": {
+          "xpath": "//div[@id='list']/dl/dt[last()]/following-sibling::dd/a"
+        },
+        "name": { "css": "a", "attr": "text" },
+        "url": { "css": "a", "attr": "href" }
+      }
+    },
+    "content": {
+      "rules": {
+        "text": {
+          "css": "#content",
+          "attr": "html",
+          "transform": [
+            { "replace": { "pattern": "【.+?咪咪.+?】", "with": "" } },
+            { "replace": { "pattern": "【(话说|讲真|推荐).+?】", "with": "" } }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "$schema": "readerx/book-source-rule/v1",
+    "id": "https://www.shoujix.com",
+    "name": "手机小说",
+    "description": "搜索需要登录，间隔至少 120 秒。",
+    "type": "novel",
+    "baseUrl": "https://www.shoujix.com",
+    "headers": {
+      "Cookie": "PHPSESSID=3820hfq2ikc8khtti2k9p3mqg0; jieqiUserInfo=jieqiUserId%3D21925"
+    },
+    "loginUrl": "https://www.shoujix.com",
+    "enabled": true,
+    "weight": 25,
+    "order": 17,
+    "updatedAt": "2023-02-09T14:21:09+08:00",
+    "search": {
+      "url": "/modules/article/search.php",
+      "method": "POST",
+      "body": "searchkey={{key}}",
+      "charset": "gbk",
+      "rules": {
+        "list": { "css": ".novel-item" },
+        "name": { "css": "img", "attr": "alt" },
+        "url": { "css": "a", "attr": "href" },
+        "author": { "css": ".novel-author", "attr": "text" },
+        "cover": { "css": "img", "attr": "src" },
+        "intro": { "css": ".novel-intro", "attr": "text" }
+      }
+    },
+    "bookInfo": {
+      "rules": {
+        "name": { "xpath": "//meta[@property='og:novel:book_name']/@content" },
+        "author": { "xpath": "//meta[@property='og:novel:author']/@content" },
+        "cover": { "xpath": "//meta[@property='og:image']/@content" },
+        "intro": { "xpath": "//meta[@property='og:description']/@content" },
+        "kind": {
+          "xpath": "//meta[@property='og:novel:category' or @property='og:novel:status' or @property='og:novel:update_time']/@content"
+        },
+        "lastChapter": {
+          "xpath": "//meta[@property='og:novel:latest_chapter_name']/@content"
+        }
+      }
+    },
+    "toc": {
+      "nextUrl": { "css": ".right a:first-child", "attr": "href" },
+      "rules": {
+        "list": {
+          "xpath": "//div[@id='lbks']/dl/dt[last()]/following-sibling::dd/a"
+        },
+        "name": { "css": "a", "attr": "text" },
+        "url": { "css": "a", "attr": "href" }
+      }
+    },
+    "content": {
+      "rules": {
+        "text": { "css": "#zjny", "attr": "html" }
+      }
+    }
+  },
+  {
+    "$schema": "readerx/book-source-rule/v1",
+    "id": "https://www.23qb.com",
+    "name": "铅笔小说",
+    "description": "备用：https://www.23qb.net",
+    "type": "novel",
+    "baseUrl": "https://www.23qb.com",
+    "loginUrl": "https://www.23qb.com/login.php",
+    "enabled": true,
+    "weight": 25,
+    "order": 18,
+    "updatedAt": "2023-04-19T08:29:02+08:00",
+    "search": {
+      "url": "/search.html?searchkey={{key}}",
+      "rules": {
+        "list": { "css": ".module-search-item" },
+        "name": { "css": "a", "attr": "title" },
+        "url": { "css": "a", "attr": "href" },
+        "cover": { "css": "img", "attr": "data-src" },
+        "intro": { "css": ".novel-info-item", "attr": "text" },
+        "kind": {
+          "css": ".tag-link span:first-child",
+          "attr": "text",
+          "transform": [{ "replace": { "pattern": " ", "with": "," } }]
+        }
+      }
+    },
+    "explore": {
+      "categories": [
+        {
+          "title": "最近更新",
+          "url": "/book/lastupdate_0_0_0_0_0_0_0_{{page}}_0.html"
+        },
+        {
+          "title": "最新入库",
+          "url": "/book/postdate_0_0_0_0_0_0_0_{{page}}_0.html"
+        },
+        {
+          "title": "总收藏榜",
+          "url": "/book/goodnum_0_0_0_0_0_0_0_{{page}}_0.html"
+        },
+        {
+          "title": "完本小说",
+          "url": "/book/goodnum_0_0_0_0_0_0_5_{{page}}_0.html"
+        },
+        {
+          "title": "言情小说",
+          "url": "/book/goodnum_0_1_0_0_0_0_0_{{page}}_0.html"
+        },
+        {
+          "title": "都市小说",
+          "url": "/book/goodnum_0_2_0_0_0_0_0_{{page}}_0.html"
+        },
+        {
+          "title": "玄幻魔法",
+          "url": "/book/goodnum_0_6_0_0_0_0_0_{{page}}_0.html"
+        },
+        {
+          "title": "修真武侠",
+          "url": "/book/goodnum_0_7_0_0_0_0_0_{{page}}_0.html"
+        },
+        {
+          "title": "历史军事",
+          "url": "/book/goodnum_0_8_0_0_0_0_0_{{page}}_0.html"
+        },
+        {
+          "title": "科幻空间",
+          "url": "/book/goodnum_0_10_0_0_0_0_0_{{page}}_0.html"
+        }
+      ],
+      "rules": {
+        "list": { "css": ".module-item" },
+        "name": { "css": "a", "attr": "title" },
+        "url": { "css": "a", "attr": "href" },
+        "cover": { "css": "img", "attr": "data-src" },
+        "author": { "css": ".module-item-text", "attr": "text" }
+      }
+    },
+    "bookInfo": {
+      "rules": {
+        "name": { "xpath": "//meta[@property='og:novel:book_name']/@content" },
+        "author": { "xpath": "//meta[@property='og:novel:author']/@content" },
+        "cover": { "xpath": "//meta[@property='og:image']/@content" },
+        "intro": { "xpath": "//meta[@property='og:description']/@content" },
+        "kind": {
+          "xpath": [
+            "//meta[@property='og:novel:tags']/@content",
+            "//meta[@property='og:novel:status']/@content"
+          ],
+          "separator": ",",
+          "transform": [{ "replace": { "pattern": "(\\.| )", "with": "," } }]
+        },
+        "lastChapter": {
+          "xpath": "//meta[@property='og:novel:latest_chapter_name']/@content"
+        },
+        "tocUrl": { "css": ".catalog-more", "attr": "href" },
+        "wordCount": {
+          "css": ".novel-info-aux span:last-child",
+          "attr": "text"
+        }
+      }
+    },
+    "toc": {
+      "rules": {
+        "list": { "css": ".module-row-text" },
+        "name": { "css": "span:first-child", "attr": "text" },
+        "url": { "css": "a", "attr": "href" }
+      }
+    },
+    "content": {
+      "rules": {
+        "text": {
+          "css": ".article-content",
+          "attr": "html",
+          "transform": [
+            { "replace": { "pattern": "\\(本章完\\)", "with": "" } }
+          ]
+        }
+      }
+    }
+  }
+]

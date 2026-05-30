@@ -1,0 +1,142 @@
+{
+  "$schema": "readerx/replace-rule/v1",
+  "rules": [
+    {
+      "name": "去除多余空行",
+      "description": "连续 3 行以上空行压缩为 2 行",
+      "tags": ["格式"],
+      "enabled": true,
+      "order": 1,
+      "scope": { "include": [], "exclude": [], "target": "content" },
+      "pattern": "\\n{3,}",
+      "flags": "g",
+      "replacement": "\\n\\n"
+    },
+    {
+      "name": "修正省略号",
+      "description": "将多个点、句号、省略号统一为标准中文省略号",
+      "tags": ["格式", "标点"],
+      "enabled": true,
+      "order": 2,
+      "scope": { "include": [], "exclude": [], "target": "content" },
+      "pattern": "[\\.。]{2,}|…{1,}|·{2,}",
+      "flags": "g",
+      "replacement": "……"
+    },
+    {
+      "name": "修正破折号",
+      "description": "将多个短横线统一为中文破折号",
+      "tags": ["格式", "标点"],
+      "enabled": true,
+      "order": 3,
+      "scope": { "include": [], "exclude": [], "target": "content" },
+      "pattern": "[-~－～]{2,}",
+      "flags": "g",
+      "replacement": "——"
+    },
+    {
+      "name": "去除网址广告",
+      "description": "移除正文中的 HTTP/HTTPS 链接",
+      "tags": ["净化"],
+      "enabled": true,
+      "order": 4,
+      "scope": { "include": [], "exclude": [], "target": "content" },
+      "pattern": "https?://[^\\s\"'」）】]+",
+      "flags": "gi",
+      "replacement": ""
+    },
+    {
+      "name": "去除本章完标记",
+      "description": "移除章节末尾的「（本章完）」及其后内容",
+      "tags": ["净化"],
+      "enabled": true,
+      "order": 5,
+      "scope": { "include": [], "exclude": [], "target": "content" },
+      "pattern": "（本章完）[\\s\\S]{0,150}$",
+      "flags": "g",
+      "replacement": ""
+    },
+    {
+      "name": "去除公众号推广",
+      "description": "移除微信公众号推广文字",
+      "tags": ["净化"],
+      "enabled": true,
+      "order": 6,
+      "scope": { "include": [], "exclude": [], "target": "content" },
+      "pattern": "请关注微信公众号[^\\n]+|微信搜索关注[^\\n]+|关注公众号[^\\n]+",
+      "flags": "gi",
+      "replacement": ""
+    },
+    {
+      "name": "去除特定网站广告",
+      "description": "针对 69书吧的翻页提示和百度搜索推广",
+      "tags": ["净化"],
+      "enabled": true,
+      "order": 7,
+      "scope": {
+        "include": ["69shuba.cx", "69shuba.com"],
+        "exclude": [],
+        "target": "content"
+      },
+      "pattern": "本章未完.*?点击下一页继续|请百度搜索[^\\n]+",
+      "flags": "gi",
+      "replacement": ""
+    },
+    {
+      "name": "全角转半角",
+      "description": "将全角数字和字母转换为半角",
+      "tags": ["格式"],
+      "enabled": true,
+      "order": 8,
+      "scope": { "include": [], "exclude": [], "target": "content" },
+      "pattern": "[０-９Ａ-Ｚａ-ｚ＜／＞［］｛｝＋＝]",
+      "flags": "g",
+      "replacementJs": "const map = {'０':'0','１':'1','２':'2','３':'3','４':'4','５':'5','６':'6','７':'7','８':'8','９':'9','Ａ':'A','Ｂ':'B','Ｃ':'C','Ｄ':'D','Ｅ':'E','Ｆ':'F','Ｇ':'G','Ｈ':'H','Ｉ':'I','Ｊ':'J','Ｋ':'K','Ｌ':'L','Ｍ':'M','Ｎ':'N','Ｏ':'O','Ｐ':'P','Ｑ':'Q','Ｒ':'R','Ｓ':'S','Ｔ':'T','Ｕ':'U','Ｖ':'V','Ｗ':'W','Ｘ':'X','Ｙ':'Y','Ｚ':'Z','ａ':'a','ｂ':'b','ｃ':'c','ｄ':'d','ｅ':'e','ｆ':'f','ｇ':'g','ｈ':'h','ｉ':'i','ｊ':'j','ｋ':'k','ｌ':'l','ｍ':'m','ｎ':'n','ｏ':'o','ｐ':'p','ｑ':'q','ｒ':'r','ｓ':'s','ｔ':'t','ｕ':'u','ｖ':'v','ｗ':'w','ｘ':'x','ｙ':'y','ｚ':'z','＜':'<','／':'/','＞':'>','［':'[','］':']','｛':'{','｝':'}','＋':'+','＝':'='}; return map[result] || result;"
+    },
+    {
+      "name": "去除HTML残留标签",
+      "description": "移除常见的 HTML 残留标签和实体",
+      "tags": ["净化"],
+      "enabled": true,
+      "order": 9,
+      "scope": { "include": [], "exclude": [], "target": "content" },
+      "pattern": "<(center|font|div|span)[^>]*>.*?</\\1>|<br\\s*/?>|&\\w+;",
+      "flags": "gi",
+      "replacement": ""
+    },
+    {
+      "name": "常见错别字修正",
+      "description": "示例：字面量文本替换（literal 模式）",
+      "tags": ["可选"],
+      "enabled": false,
+      "order": 10,
+      "scope": { "include": [], "exclude": [], "target": "both" },
+      "pattern": "的地得",
+      "flags": "g",
+      "literal": true,
+      "replacement": "的地得"
+    },
+    {
+      "name": "去除重复段落",
+      "description": "移除相邻的重复段落",
+      "tags": ["可选"],
+      "enabled": false,
+      "order": 11,
+      "scope": { "include": [], "exclude": [], "target": "content" },
+      "pattern": "(^[^\\n]{1,50}$)\\n\\1",
+      "flags": "gm",
+      "replacement": "$1"
+    },
+    {
+      "name": "去除来源标记",
+      "description": "移除「本书首发」「本站仅供」等来源/免责声明",
+      "tags": ["净化"],
+      "enabled": true,
+      "order": 12,
+      "scope": { "include": [], "exclude": [], "target": "content" },
+      "pattern": "(?:本书|本站|本作).*(?:首发|来源|转自|仅供).*\\n?|^(?:更多精校|本书由)[^\\n]+",
+      "flags": "gmi",
+      "replacement": ""
+    }
+  ]
+}

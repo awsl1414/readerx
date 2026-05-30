@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "readerx/replace-rule/v1",
+  "title": "ReaderX 净化规则",
+  "description": "净化规则用于阅读时对正文/标题进行文本替换和过滤：去除广告、修正排版、修正错别字、替换屏蔽词。全局规则，可按作用域匹配多个书源。",
+  "type": "object",
+  "required": ["$schema", "rules"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "readerx/replace-rule/v1",
+      "description": "Schema 标识"
+    },
+    "rules": {
+      "type": "array",
+      "description": "净化规则列表，按 order 升序执行",
+      "items": {
+        "$ref": "#/$defs/rule"
+      }
+    }
+  },
+  "$defs": {
+    "rule": {
+      "type": "object",
+      "title": "ReplaceRule",
+      "description": "单条净化规则",
+      "required": ["name", "pattern"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "规则名称，用于 UI 展示"
+        },
+        "description": {
+          "type": "string",
+          "description": "规则说明，描述此规则的作用和匹配内容"
+        },
+        "tags": {
+          "type": "array",
+          "description": "分组标签，用于 UI 筛选（如 [\"格式\", \"标点\"]）",
+          "items": {
+            "type": "string"
+          }
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "是否启用"
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "执行顺序，越小越先执行。规则按此值升序排列后依次对文本执行替换"
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "pattern": {
+          "type": "string",
+          "description": "匹配模式。默认为正则表达式；设置 literal: true 时为字面量文本"
+        },
+        "flags": {
+          "type": "string",
+          "default": "g",
+          "description": "正则标志。常用值：\"g\"（全局）、\"gi\"（+忽略大小写）、\"gm\"（+多行）、\"gmi\"（+多行+忽略大小写）。literal: true 时无效"
+        },
+        "literal": {
+          "type": "boolean",
+          "default": false,
+          "description": "是否为字面量匹配。true = pattern 作为纯文本直接匹配，不解析为正则。适用于简单文本替换（如错别字修正），无需转义特殊字符"
+        },
+        "replacement": {
+          "type": "string",
+          "default": "",
+          "description": "替换文本。正则模式下支持捕获组引用：$1, $2, $3 ...。默认 \"\"（删除匹配内容）"
+        },
+        "replacementJs": {
+          "type": "string",
+          "description": "JS 函数体，输入 match/result，返回替换字符串。运行在 QuickJS 沙箱（Web Worker），无 DOM / fetch / localStorage。与 replacement 互斥，同时存在时 replacementJs 优先"
+        }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "description": "作用域，控制规则对哪些书源/哪些内容生效。include 为空 = 全局规则",
+      "additionalProperties": false,
+      "properties": {
+        "include": {
+          "type": "array",
+          "description": "适用的书源 URL 或书名（空数组 = 全部）。支持通配符",
+          "items": {
+            "type": "string"
+          }
+        },
+        "exclude": {
+          "type": "array",
+          "description": "排除的书源 URL 或书名（优先级高于 include）",
+          "items": {
+            "type": "string"
+          }
+        },
+        "target": {
+          "type": "string",
+          "enum": ["content", "title", "both"],
+          "default": "content",
+          "description": "作用目标：content（仅正文）、title（仅标题）、both（正文和标题都生效）"
+        }
+      }
+    }
+  }
+}
