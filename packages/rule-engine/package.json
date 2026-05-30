@@ -24,6 +24,7 @@
 	"dependencies": {
 		"@swaggerexpert/jsonpath": "^4.0.4",
 		"happy-dom": "^20.9.0",
+		"wicked-good-xpath": "^1.3.0",
 		"zod": "^4.4.3"
 	}
 }

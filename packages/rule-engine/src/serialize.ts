@@ -1,14 +1,22 @@
 import type { RuntimeResult, RuntimeValue, ExtractOutput } from "./types";
 
-const hasElement = typeof Element !== "undefined";
-const hasDocument = typeof Document !== "undefined";
-
 function isElement(value: unknown): value is Element {
-	return hasElement && value instanceof Element;
+	return (
+		typeof value === "object" &&
+		value !== null &&
+		"querySelectorAll" in value &&
+		"getAttribute" in value &&
+		!("write" in value)
+	);
 }
 
 function isDocument(value: unknown): value is Document {
-	return hasDocument && value instanceof Document;
+	return (
+		typeof value === "object" &&
+		value !== null &&
+		"querySelectorAll" in value &&
+		"write" in value
+	);
 }
 
 function isDomNode(value: unknown): value is Element | Document {
