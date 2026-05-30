@@ -29,7 +29,7 @@
 | # | 子项 | 内容 | 状态 |
 |---|---|---|---|
 | 6.1 | **阅读器** | ReaderSession、RenderScheduler、翻页手势（touch/scroll）、控制层 UI、章节预取、进度保存、氛围主题、5 套阅读器主题 | ✅ 完成 |
-| 6.2 | **书架** | 网格/列表视图、分组管理、排序、继续阅读 Hero、TanStack Query 数据层 | ⬜ 脚手架（[实施计划已写](./superpowers/plans/2026-05-30-p0-phase1-navigation-bookshelf.md)） |
+| 6.2 | **书架** | 网格/列表视图、分组管理、排序、继续阅读 Hero、TanStack Query 数据层 | ✅ 完成 |
 | 6.3 | **搜索** | 多源并发搜索、搜索历史、流式结果、书源选择 | ⬜ 脚手架 |
 | 6.4 | **书源管理** | Scraping Workspace（三层 UI：列表 / 编辑器 / 调试器）、导入（URL/文件/粘贴）、Capability Analyzer、Pipeline Runner、调试 Console | ✅ 完成 |
 | 6.5 | **基础 UI** | 命令面板 ⌘K、响应式细化、组件补全 | ⬜ 未开始 |
@@ -39,8 +39,8 @@
 | # | 子项 | 内容 | 状态 |
 |---|---|---|---|
 | — | **App Shell** | 布局框架（侧边栏 + 顶栏 + 内容区 + 底栏）、主题切换 | ✅ 完成 |
-| — | **导航** | 当前：4 Tab（首页/书库/搜索/设置）→ 目标：Legado 模式 4 Tab（书架/发现/订阅/我的）+ 智能显隐 | 🟡 待重构（[实施计划已写](./superpowers/plans/2026-05-30-p0-phase1-navigation-bookshelf.md)） |
-| — | **路由** | 当前：`/` `/library` `/search` `/settings` `/settings/sources` `/reader/[bookId]` → 目标：`/` `/search` `/my` `/my/sources` `/explore` `/rss` `/reader/[bookId]` 等 | 🟡 待重构 |
+| — | **导航** | Legado 模式 4 Tab（书架/发现/订阅/我的）+ 智能显隐（MVP 全显示） | ✅ 完成 |
+| — | **路由** | `/` `/search` `/my` `/my/sources` `/explore` `/subscriptions` `/reader/[bookId]` | ✅ 完成 |
 
 ### 三、后端服务（services/api）— Step 7
 
@@ -53,7 +53,7 @@
 | PRD 功能 | 实现位置 | 状态 |
 |---|---|---|
 | **阅读器**（滚动/分页/手势/进度/预加载/字号·行距·主题/选中菜单） | Step 6.1 `features/reader/` | ✅ 核心完成，待端到端验证 |
-| **书架**（网格/列表/分组/排序/操作） | Step 6.2 `features/bookshelf/` | ⬜ 脚手架 |
+| **书架**（网格/列表/分组/排序/操作） | Step 6.2 `features/bookshelf/` | ✅ 完成 |
 | **搜索**（多源并发/历史/流式/书源选择） | Step 6.3 `features/search/` | ⬜ 脚手架 |
 | **书源管理**（导入/编辑/调试/校验） | Step 6.4 `features/source-manager/` | ✅ 完成 |
 | **目录**（章节列表/搜索跳转） | Step 6.1 `features/reader/toc-panel.tsx` | ✅ 完成 |
@@ -114,7 +114,7 @@
 
 | 计划 | 内容 | 状态 |
 |---|---|---|
-| **Phase 1** | 导航重构 + 书架实现（Legado 模式 4 Tab、ContinueReadingHero、BookGrid） | 📝 [计划已写](./superpowers/plans/2026-05-30-p0-phase1-navigation-bookshelf.md)，待执行 |
+| **Phase 1** | 导航重构 + 书架实现（Legado 模式 4 Tab、ContinueReadingHero、BookGrid） | ✅ [已完成](./superpowers/plans/2026-05-30-p0-phase1-navigation-bookshelf.md) |
 | **Phase 2** | 搜索 + 书籍详情 + 换源 | ⬜ 待写计划 |
 | **Phase 3** | 书签 + 阅读进度管理 | ⬜ 待写计划 |
 | **Phase 4** | 我的/设置子页面 | ⬜ 待写计划 |
