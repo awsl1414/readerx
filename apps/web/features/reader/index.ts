@@ -2,7 +2,7 @@
 
 export {
 	ATMOSPHERE_PRESETS,
-	getThemeColors,
+	FONT_PRESETS,
 	toLayoutConfig,
 } from "./atmosphere";
 export { AtmospherePicker } from "./components/atmosphere-picker";

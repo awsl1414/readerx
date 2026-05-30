@@ -9,6 +9,8 @@ type AtmospherePreset = "novel" | "focus" | "dense";
 
 type ReaderTheme = "warm-white" | "black" | "green" | "sepia" | "beige";
 
+type ReaderFontPreset = "system" | "serif" | "sans";
+
 type ReadingAtmosphere = {
 	readonly preset: AtmospherePreset;
 	readonly fontSize: number;
@@ -88,6 +90,7 @@ export type {
 	CachedChapter,
 	ChapterInfo,
 	GestureMode,
+	ReaderFontPreset,
 	ReaderState,
 	ReaderTheme,
 	ReaderThemeColors,

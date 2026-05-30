@@ -1,4 +1,5 @@
 import type { AtmospherePreset } from "../types";
+import { cn } from "@/lib/cn";
 
 type AtmospherePickerProps = {
 	readonly current: AtmospherePreset;
@@ -17,30 +18,19 @@ const PRESETS: readonly {
 
 function AtmospherePicker({ current, onSelect }: AtmospherePickerProps) {
 	return (
-		<div
-			style={{
-				display: "flex",
-				gap: 12,
-				justifyContent: "center",
-				fontSize: 16,
-			}}
-		>
+		<div className="flex gap-3 justify-center text-base">
 			{PRESETS.map((p) => (
 				<button
 					key={p.key}
 					type="button"
 					onClick={() => onSelect(p.key)}
 					title={p.label}
-					style={{
-						background: "none",
-						border: "none",
-						cursor: "pointer",
-						opacity: current === p.key ? 1 : 0.3,
-						borderBottom: current === p.key ? "1px solid currentColor" : "none",
-						paddingBottom: 2,
-						fontSize: "inherit",
-						color: "inherit",
-					}}
+					className={cn(
+						"bg-transparent border-none cursor-pointer pb-0.5 text-inherit transition-opacity",
+						current === p.key
+							? "opacity-100 border-b border-current"
+							: "opacity-30",
+					)}
 				>
 					{p.icon}
 				</button>

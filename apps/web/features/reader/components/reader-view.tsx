@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getThemeColors } from "../atmosphere";
 import { useGesture } from "../hooks/use-gesture";
 import { useReaderSession } from "../hooks/use-reader-session";
 import type { AtmospherePreset, GestureMode, SessionDeps } from "../types";
@@ -143,13 +142,12 @@ function ReaderView({
 
 	if (!session || !state) {
 		return (
-			<div style={{ minHeight: "100vh", background: "oklch(0.12 0 0)" }} />
+			<div className="min-h-dvh bg-surface-0" />
 		);
 	}
 
 	const page = session.getPage(state.currentPage);
 	const isLastPage = state.currentPage >= state.pageCount - 1;
-	const colors = getThemeColors(state.atmosphere.theme);
 	const chapterInfo = state.chapters[state.currentChapter];
 	const chapterTitle = chapterInfo?.title ?? "";
 	const hasPrevChapter = state.currentChapter > 0;
@@ -161,13 +159,8 @@ function ReaderView({
 
 	return (
 		<div
-			style={{
-				position: "relative",
-				minHeight: "100vh",
-				background: colors.bg,
-				color: colors.text,
-				overflow: "hidden",
-			}}
+			data-reader-theme={state.atmosphere.theme}
+			className="relative min-h-dvh bg-reader-bg text-reader-text overflow-hidden"
 		>
 			<section
 				aria-label="Reader content"
@@ -177,11 +170,10 @@ function ReaderView({
 				onPointerMove={gesture.onPointerMove}
 				onPointerUp={gesture.onPointerUp}
 				onWheel={gesture.onWheel}
+				className="flex min-h-dvh"
 				style={{
-					display: "flex",
 					transition: "transform 0.3s ease",
 					transform: tocOpen ? "translateX(-24px)" : "none",
-					minHeight: "100vh",
 				}}
 			>
 				<div style={{ flex: 1, padding: "40px 0" }}>
@@ -211,7 +203,7 @@ function ReaderView({
 						display: "flex",
 					}}
 				>
-					<div style={{ width: 1, background: "oklch(0.22 0 0)" }} />
+					<div className="w-px bg-reader-divider" />
 					<TocPanel
 						chapters={state.chapters}
 						currentChapter={state.currentChapter}
