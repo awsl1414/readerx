@@ -326,7 +326,7 @@ export function ThemeSettings() {
 				</h2>
 				<div
 					data-reader-theme={settings.theme}
-					className="h-48 overflow-auto rounded-lg border border-border p-4"
+					className="h-48 overflow-auto rounded-lg border border-border bg-reader-bg text-reader-text p-4"
 					style={{
 						fontFamily,
 						fontSize: `${settings.fontSize}px`,
