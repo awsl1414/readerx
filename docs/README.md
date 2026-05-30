@@ -14,7 +14,7 @@ ReaderX 项目文档索引。
 
 ## Web 设计文档（`web-design/`）
 
-ReaderX 前端设计的完整文档体系，6 个文件形成从产品定义到组件实现的决策链：
+ReaderX 前端设计与架构文档体系，8 个文件覆盖从产品定义到技术实现：
 
 | 文档 | 职责 | 读者 |
 |---|---|---|
@@ -24,13 +24,14 @@ ReaderX 前端设计的完整文档体系，6 个文件形成从产品定义到�
 | [`web-design/wireframes.md`](./web-design/wireframes.md) | 线框图 — 页面布局、视觉权重、响应式适配 | 设计 / 前端 |
 | [`web-design/design-tokens.yaml`](./web-design/design-tokens.yaml) | 设计令牌 — 颜色、排版、间距、圆角、阴影、动效 | 前端 |
 | [`web-design/component-tree.md`](./web-design/component-tree.md) | 组件树 — 页面组件分解、复用关系、状态管理 | 前端 |
+| [`web-design/reader.md`](./web-design/reader.md) | 阅读器架构 — ReaderSession 模式、渲染管线、手势、调度器 | 前端 |
+| [`web-design/worker-bridge.md`](./web-design/worker-bridge.md) | Worker Bridge — QuickJS Worker 通信层、API、生命周期、并发 | 前端 |
 
 ## 子目录
 
 | 目录 | 内容 |
 |---|---|
-| `web-design/` | Web 前端设计文档（PRD · IA · User Flow · Wireframes · Tokens · Component Tree） |
-| `web/` | Web 前端各模块架构指南（Worker Bridge、阅读器） |
+| `web-design/` | Web 前端设计与架构文档（PRD · IA · User Flow · Wireframes · Tokens · Component Tree · Reader · Worker Bridge） |
 | `analysis/` | Legado 原版架构分析、ReaderX 改进对比 |
 | `superpowers/` | AI 辅助开发的设计规格和实施计划 |
 | `legado/` | Legado 原版参考文档 |

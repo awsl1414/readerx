@@ -98,7 +98,7 @@
 | **插件系统** | P3 | ⬜ 未开始 |
 | **AI 增强** | Future | ⬜ 待规划（独立包 `packages/ai`） |
 
-### 七、设计文档
+### 七、设计与架构文档
 
 | 文档 | 路径 | 状态 |
 |---|---|---|
@@ -108,6 +108,8 @@
 | Wireframes（线框图） | [`docs/web-design/wireframes.md`](./web-design/wireframes.md) | ✅ 完成 |
 | Design Tokens（设计令牌） | [`docs/web-design/design-tokens.yaml`](./web-design/design-tokens.yaml) | ✅ 完成 |
 | Component Tree（组件树） | [`docs/web-design/component-tree.md`](./web-design/component-tree.md) | ✅ 完成 |
+| 阅读器架构 | [`docs/web-design/reader.md`](./web-design/reader.md) | ✅ 完成 |
+| Worker Bridge 架构 | [`docs/web-design/worker-bridge.md`](./web-design/worker-bridge.md) | ✅ 完成 |
 
 ### 八、实施计划
 
@@ -362,7 +364,7 @@ BookSource.ruleContent
 
 ### 6.0 Worker Bridge 基础设施
 
-所有 feature 的前置依赖。架构指南见 [`docs/web/worker-bridge.md`](./web/worker-bridge.md)。
+所有 feature 的前置依赖。架构指南见 [`docs/web-design/worker-bridge.md`](./web-design/worker-bridge.md)。
 
 - 6.0.1 **Worker Bridge 模块**（`apps/web/lib/worker-bridge.ts`）
   - comlink Worker 懒初始化（首次调用时创建，单例复用）
@@ -382,7 +384,7 @@ BookSource.ruleContent
 
 ### 6.1 阅读器原型（features/reader/）
 
-技术风险最高的 feature，优先验证可行性。架构指南见 [`docs/web/reader.md`](./web/reader.md)。
+技术风险最高的 feature，优先验证可行性。架构指南见 [`docs/web-design/reader.md`](./web-design/reader.md)。
 
 - 6.1.1 **ReaderSession 类**（`session.ts`）
   - `open(bookId)` — 从 IndexedDB 加载书籍 → Worker Bridge 获取章节内容 → reader-engine 排版 → 返回 session
