@@ -1,8 +1,8 @@
 "use client";
 
+import type { BookForList } from "../hooks/use-books";
 import { BookCard } from "./book-card";
 import { EmptyBookshelf } from "./empty-bookshelf";
-import type { BookForList } from "../hooks/use-books";
 
 type BookGridProps = {
 	readonly books: readonly BookForList[];

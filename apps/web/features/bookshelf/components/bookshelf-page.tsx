@@ -1,11 +1,11 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useBookshelfStore } from "../store";
 import { useBooks } from "../hooks/use-books";
+import { useBookshelfStore } from "../store";
+import { BookGrid } from "./book-grid";
 import { ContinueReadingHero } from "./continue-reading-hero";
 import { GroupChips } from "./group-chips";
-import { BookGrid } from "./book-grid";
 
 export function BookshelfPage() {
 	const t = useTranslations("bookshelf");
@@ -13,8 +13,7 @@ export function BookshelfPage() {
 	const sortBy = useBookshelfStore((s) => s.sortBy);
 	const selectedGroupId = useBookshelfStore((s) => s.selectedGroupId);
 
-	const groupIdNum =
-		selectedGroupId !== null ? Number(selectedGroupId) : null;
+	const groupIdNum = selectedGroupId !== null ? Number(selectedGroupId) : null;
 	const { data: books, isLoading } = useBooks(groupIdNum, sortBy);
 
 	if (isLoading) {
@@ -27,9 +26,7 @@ export function BookshelfPage() {
 
 	const allBooks = books ?? [];
 	const lastReadBook =
-		allBooks.length > 0 && sortBy === "recentRead"
-			? allBooks[0]
-			: undefined;
+		allBooks.length > 0 && sortBy === "recentRead" ? allBooks[0] : undefined;
 
 	return (
 		<div className="space-y-6">

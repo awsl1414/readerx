@@ -16,7 +16,12 @@ type NavItem = {
 const navItems: readonly NavItem[] = [
 	{ href: "/", label: "bookshelf", icon: BookOpen, alwaysVisible: true },
 	{ href: "/explore", label: "explore", icon: Compass, alwaysVisible: false },
-	{ href: "/subscriptions", label: "subscriptions", icon: Rss, alwaysVisible: false },
+	{
+		href: "/subscriptions",
+		label: "subscriptions",
+		icon: Rss,
+		alwaysVisible: false,
+	},
 	{ href: "/my", label: "my", icon: User, alwaysVisible: true },
 ] as const;
 

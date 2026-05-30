@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { BookOpen } from "lucide-react";
+import Link from "next/link";
 import type { BookForList } from "../hooks/use-books";
 
 type ContinueReadingHeroProps = {
@@ -21,6 +21,7 @@ export function ContinueReadingHero({ book }: ContinueReadingHeroProps) {
 		>
 			<div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-surface-3">
 				{book.coverUrl ? (
+					// eslint-disable-next-line @next/next/no-img-element
 					<img
 						src={book.coverUrl}
 						alt={book.name}

@@ -1,8 +1,8 @@
 "use client";
 
-import { Moon, Sun, Search } from "lucide-react";
-import { useTheme } from "next-themes";
+import { Moon, Search, Sun } from "lucide-react";
 import Link from "next/link";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { DesktopNav, MobileNav } from "./nav-items";
 

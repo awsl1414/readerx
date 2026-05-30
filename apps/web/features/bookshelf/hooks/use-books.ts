@@ -1,8 +1,8 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { createDB } from "@readerx/persistence";
 import type { Book } from "@readerx/persistence";
+import { createDB } from "@readerx/persistence";
+import { useQuery } from "@tanstack/react-query";
 
 type BookForList = {
 	readonly bookUrl: string;

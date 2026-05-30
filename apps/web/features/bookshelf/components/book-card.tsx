@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { BookOpen } from "lucide-react";
+import Link from "next/link";
 import { cn } from "@/lib/cn";
 
 type BookCardProps = {
@@ -31,6 +31,7 @@ export function BookCard({
 				)}
 			>
 				{coverUrl ? (
+					// eslint-disable-next-line @next/next/no-img-element
 					<img
 						src={coverUrl}
 						alt={name}

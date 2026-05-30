@@ -1,21 +1,21 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import Link from "next/link";
 import {
-	BookOpen,
-	Rss,
-	Regex,
-	FileText,
+	BarChart3,
 	BookA,
-	Palette,
 	BookMarked,
+	Bookmark,
+	BookOpen,
 	Database,
 	Download,
-	Bookmark,
-	BarChart3,
+	FileText,
 	Info,
+	Palette,
+	Regex,
+	Rss,
 } from "lucide-react";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/cn";
 
 type SettingSection = {
@@ -64,9 +64,7 @@ const sections: readonly SettingSection[] = [
 	},
 	{
 		titleKey: "sectionOther",
-		items: [
-			{ href: "/my/about", icon: Info, labelKey: "about" },
-		],
+		items: [{ href: "/my/about", icon: Info, labelKey: "about" }],
 	},
 ];
 

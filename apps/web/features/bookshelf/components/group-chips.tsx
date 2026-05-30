@@ -2,8 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/cn";
-import { useBookshelfStore } from "../store";
 import { useBookGroups } from "../hooks/use-book-groups";
+import { useBookshelfStore } from "../store";
 
 export function GroupChips() {
 	const t = useTranslations("bookshelf");
