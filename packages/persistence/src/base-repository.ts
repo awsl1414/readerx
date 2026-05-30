@@ -6,7 +6,11 @@ import type { Table } from "dexie";
  * Concrete repositories extend this and add domain-specific queries.
  */
 class BaseDexieRepository<T extends { id: string }> {
-	constructor(protected table: Table<T, string>) {}
+	protected table: Table<T, string>;
+
+	constructor(table: Table<T, string>) {
+		this.table = table;
+	}
 
 	async getAll(): Promise<T[]> {
 		return this.table.toArray();
