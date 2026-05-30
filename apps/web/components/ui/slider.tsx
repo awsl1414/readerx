@@ -18,11 +18,15 @@ function Slider({
 		[value, defaultValue, min],
 	);
 
+	const conditionalProps = {
+		...(defaultValue !== undefined ? { defaultValue } : {}),
+		...(value !== undefined ? { value } : {}),
+	};
+
 	return (
 		<SliderPrimitive.Root
 			data-slot="slider"
-			defaultValue={defaultValue}
-			value={value}
+			{...conditionalProps}
 			min={min}
 			max={max}
 			className={cn(
