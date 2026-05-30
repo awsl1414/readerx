@@ -5,6 +5,7 @@ import type {
 	Rule,
 	RuleObject,
 	RuleStep,
+	ScriptStep,
 	StringTransformStep,
 } from "./types";
 
@@ -20,10 +21,13 @@ export function toRule(rule: RuleObject | Rule): Result<Rule> {
 }
 
 /**
- * Normalize a RuleObject (shorthand with css/xpath/jsonpath/regex fields)
+ * Normalize a RuleObject (shorthand with css/xpath/jsonpath/regex/js fields)
  * into a canonical RuleStep[] pipeline.
  *
- * Order: extract → template → transforms
+ * Order: extract → js script → template → transforms
+ *
+ * Note: `separator` and `reverse` from RuleObject are recognized but not yet
+ * implemented in the pipeline. They will be added in a future iteration.
  */
 export function normalizeRule(obj: RuleObject): Result<Rule> {
 	const steps: RuleStep[] = [];
@@ -34,8 +38,16 @@ export function normalizeRule(obj: RuleObject): Result<Rule> {
 		steps.push(extractStep);
 	}
 
-	// 2. Template step (if present and no other extract engine)
-	if (obj.template && !extractStep) {
+	// 2. JS script step (if present and no extract engine matched)
+	if (obj.js && !extractStep) {
+		steps.push({
+			type: "script",
+			code: obj.js,
+		} satisfies ScriptStep);
+	}
+
+	// 3. Template step (if present and no extract engine or js)
+	if (obj.template && !extractStep && !obj.js) {
 		steps.push({
 			type: "transform",
 			category: "string",
@@ -44,7 +56,7 @@ export function normalizeRule(obj: RuleObject): Result<Rule> {
 		} satisfies StringTransformStep);
 	}
 
-	// 3. Append explicit transforms
+	// 4. Append explicit transforms
 	if (obj.transform) {
 		for (const t of obj.transform) {
 			steps.push(t);
@@ -55,9 +67,15 @@ export function normalizeRule(obj: RuleObject): Result<Rule> {
 		return err({
 			code: "TYPE_MISMATCH",
 			message:
-				"RuleObject has no extract engine (css/xpath/jsonpath/regex) or template",
+				"RuleObject has no extract engine (css/xpath/jsonpath/regex), js, or template",
 		});
 	}
+
+	// TODO: Apply separator (multi-selector merge) and reverse (list reversal)
+	// These are RuleObject-level modifiers that apply after the pipeline executes.
+	// Implementation deferred to a future iteration.
+	void obj.separator;
+	void obj.reverse;
 
 	return ok(steps as Rule);
 }

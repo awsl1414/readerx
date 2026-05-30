@@ -106,7 +106,7 @@ export function applyDomTransform(
 				elements.map((el) => {
 					const clone = el.cloneNode(true) as Element;
 					clone.querySelectorAll(step.selector).forEach((child) => {
-						for (const attr of step.attributes ?? []) {
+						for (const attr of step.attrs ?? []) {
 							child.removeAttribute(attr);
 						}
 					});

@@ -39,6 +39,8 @@ export type ExtractStep = {
 	readonly type: "extract";
 	readonly engine: ExtractEngine;
 	readonly selector: string;
+	// scope is a runtime-only field, not present in JSON Schema
+	// (JSON Schema validation does not include this field)
 	readonly scope?: "current" | "root";
 	readonly output?: ExtractOutput;
 	readonly attr?: string;
@@ -63,7 +65,7 @@ export type DomTransformStep = {
 	readonly category: "dom";
 	readonly action: "remove" | "unwrap" | "strip";
 	readonly selector: string;
-	readonly attributes?: readonly string[];
+	readonly attrs?: readonly string[];
 };
 
 export type TransformStep = StringTransformStep | DomTransformStep;
@@ -236,7 +238,7 @@ export type ReplacePair = {
 
 export type DictRuleFile = {
 	readonly $schema: string;
-	readonly authors: readonly string[];
+	readonly authors?: readonly string[];
 	readonly description?: string;
 	readonly updatedAt?: string;
 	readonly rules: readonly DictRule[];
@@ -251,7 +253,7 @@ export type DictRule = {
 	readonly weight?: number;
 	readonly variables?: Readonly<Record<string, string>>;
 	readonly request: DictRequest;
-	readonly fields: Readonly<Record<string, DictField>>;
+	readonly fields?: Readonly<Record<string, DictField>>;
 };
 
 export type DictRequest = {
@@ -259,8 +261,13 @@ export type DictRequest = {
 	readonly method?: "GET" | "POST";
 	readonly charset?: string;
 	readonly headers?: Readonly<Record<string, string>>;
-	readonly body?: string;
+	readonly body?: DictRequestBody;
 };
+
+/** Structured POST body for dict-rule requests */
+export type DictRequestBody =
+	| string
+	| { readonly type: "form" | "json" | "raw"; readonly data: unknown };
 
 export type FieldSchema = "html" | "string" | "html[]" | "string[]";
 

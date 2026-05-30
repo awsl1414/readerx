@@ -43,6 +43,43 @@ describe("normalizeRule", () => {
 		});
 	});
 
+	it("converts RuleObject with js only to ScriptStep", () => {
+		const obj: RuleObject = { js: "return result.toUpperCase();" };
+		const result = normalizeRule(obj);
+		expect(result.ok).toBe(true);
+		if (!result.ok) return;
+		expect(result.value).toHaveLength(1);
+		expect(result.value[0]).toEqual({
+			type: "script",
+			code: "return result.toUpperCase();",
+		});
+	});
+
+	it("prefers extract engine over js when both present", () => {
+		const obj: RuleObject = {
+			css: ".title",
+			js: "return result.toUpperCase();",
+		};
+		const result = normalizeRule(obj);
+		expect(result.ok).toBe(true);
+		if (!result.ok) return;
+		// Extract engine takes priority — js is ignored when extract is present
+		expect(result.value).toHaveLength(1);
+		expect(result.value[0]?.type).toBe("extract");
+	});
+
+	it("prefers js over template when both present", () => {
+		const obj: RuleObject = {
+			js: "return result.toUpperCase();",
+			template: "https://example.com/{{result}}",
+		};
+		const result = normalizeRule(obj);
+		expect(result.ok).toBe(true);
+		if (!result.ok) return;
+		expect(result.value).toHaveLength(1);
+		expect(result.value[0]?.type).toBe("script");
+	});
+
 	it("appends transforms after extract", () => {
 		const obj: RuleObject = {
 			css: ".content",
@@ -53,6 +90,19 @@ describe("normalizeRule", () => {
 		if (!result.ok) return;
 		expect(result.value).toHaveLength(2);
 		expect(result.value[0]?.type).toBe("extract");
+		expect(result.value[1]?.type).toBe("transform");
+	});
+
+	it("appends transforms after js", () => {
+		const obj: RuleObject = {
+			js: "return html;",
+			transform: [{ type: "transform", category: "string", action: "trim" }],
+		};
+		const result = normalizeRule(obj);
+		expect(result.ok).toBe(true);
+		if (!result.ok) return;
+		expect(result.value).toHaveLength(2);
+		expect(result.value[0]?.type).toBe("script");
 		expect(result.value[1]?.type).toBe("transform");
 	});
 

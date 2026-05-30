@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type {
 	BookSource,
 	CompiledRule,
+	DictRequestBody,
 	DictRuleFile,
 	DomTransformStep,
 	EvalContext,
@@ -71,7 +72,18 @@ describe("types (compile-time verification)", () => {
 		expect(step.action).toBe("replace");
 	});
 
-	it("DomTransformStep", () => {
+	it("DomTransformStep uses attrs (not attributes)", () => {
+		const step: DomTransformStep = {
+			type: "transform",
+			category: "dom",
+			action: "strip",
+			selector: "div",
+			attrs: ["style", "class"],
+		};
+		expect(step.attrs).toEqual(["style", "class"]);
+	});
+
+	it("DomTransformStep without attrs is valid", () => {
 		const step: DomTransformStep = {
 			type: "transform",
 			category: "dom",
@@ -100,6 +112,11 @@ describe("types (compile-time verification)", () => {
 	it("RuleObject shorthand", () => {
 		const obj: RuleObject = { css: ".title", attr: "text" };
 		expect(obj.css).toBe(".title");
+	});
+
+	it("RuleObject with js", () => {
+		const obj: RuleObject = { js: "return result;" };
+		expect(obj.js).toBe("return result;");
 	});
 
 	it("CompiledRule with compiled steps", () => {
@@ -134,13 +151,31 @@ describe("types (compile-time verification)", () => {
 		expect(src.type).toBe("novel");
 	});
 
-	it("DictRuleFile", () => {
+	it("DictRuleFile without authors is valid", () => {
 		const file: DictRuleFile = {
 			$schema: "readerx/dict-rule/v1",
-			authors: ["test"],
 			rules: [],
 		};
 		expect(file.rules).toHaveLength(0);
+	});
+
+	it("DictRuleFile with authors is valid", () => {
+		const file: DictRuleFile = {
+			$schema: "readerx/dict-rule/v1",
+			authors: ["alice"],
+			rules: [],
+		};
+		expect(file.authors).toEqual(["alice"]);
+	});
+
+	it("DictRequestBody accepts string", () => {
+		const body: DictRequestBody = "key={{key}}";
+		expect(body).toBe("key={{key}}");
+	});
+
+	it("DictRequestBody accepts structured object", () => {
+		const body: DictRequestBody = { type: "json", data: { key: "{{key}}" } };
+		expect(body).toEqual({ type: "json", data: { key: "{{key}}" } });
 	});
 
 	it("ReplaceRuleFile", () => {

@@ -72,8 +72,10 @@ function runEngine(
 	ctx: EvalContext,
 ): Result<RuntimeResult> {
 	let options: { output: ExtractOutput; attr?: string } | undefined;
-	if (step.output) {
-		options = { output: step.output as ExtractOutput };
+	if (step.output || step.attr) {
+		options = {
+			output: (step.output ?? "attr") as ExtractOutput,
+		};
 		if (step.attr !== undefined) options.attr = step.attr;
 	}
 

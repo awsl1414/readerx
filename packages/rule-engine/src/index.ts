@@ -58,6 +58,7 @@ export type {
 	ContentModule,
 	DictField,
 	DictRequest,
+	DictRequestBody,
 	DictRule,
 	DictRuleFile,
 	DocumentCache,

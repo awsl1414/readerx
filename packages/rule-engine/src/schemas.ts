@@ -53,46 +53,93 @@ export type TxtTocRuleFileInput = z.input<typeof txtTocRuleFileSchema>;
 export type TxtTocRuleFileOutput = z.output<typeof txtTocRuleFileSchema>;
 
 // ---- Dict Rule Schema ----
+// Zod schema validates JSON input format and transforms to TS-compatible output:
+// - Infers `category` from `action` (JSON Schema has no `category` field)
+// - Flattens `{type:"attr", name:...}` output object to `{output:"attr", attr:...}`
+
+const DOM_ACTIONS = ["remove", "unwrap", "strip"] as const;
+const STRING_ACTIONS = ["replace"] as const;
+
+const dictExtractStepSchema = z
+	.strictObject({
+		type: z.literal("extract"),
+		engine: z.enum(["css", "xpath", "jsonpath", "regex"]),
+		selector: z.string(),
+		output: z
+			.union([
+				z.enum(["html", "text", "outerHtml"]),
+				z.strictObject({ type: z.literal("attr"), name: z.string() }),
+			])
+			.optional(),
+		baseUrl: z.string().optional(),
+	})
+	.transform((step) => {
+		// Flatten {type:"attr", name:...} → {output:"attr", attr:name}
+		if (
+			typeof step.output === "object" &&
+			step.output !== null &&
+			"type" in step.output
+		) {
+			const { output, ...rest } = step;
+			return {
+				...rest,
+				output: "attr" as const,
+				attr: output.name,
+			};
+		}
+		return step;
+	});
+
+const dictTransformStepSchema = z
+	.strictObject({
+		type: z.literal("transform"),
+		action: z.enum([...DOM_ACTIONS, ...STRING_ACTIONS]),
+		selector: z.string().optional(),
+		attrs: z.array(z.string()).optional(),
+		pattern: z.string().optional(),
+		with: z.string().optional(),
+		flags: z.string().optional(),
+	})
+	.transform((step) => {
+		// Infer category from action
+		const category = DOM_ACTIONS.includes(
+			step.action as (typeof DOM_ACTIONS)[number],
+		)
+			? ("dom" as const)
+			: ("string" as const);
+		return { ...step, category };
+	});
+
+const dictScriptStepSchema = z.strictObject({
+	type: z.literal("script"),
+	code: z.string(),
+});
 
 const dictFieldSchema = z.strictObject({
 	schema: z.enum(["html", "string", "html[]", "string[]"]).default("html"),
 	pipeline: z.array(
-		z.discriminatedUnion("type", [
-			z.strictObject({
-				type: z.literal("extract"),
-				engine: z.enum(["css", "xpath", "jsonpath", "regex"]),
-				selector: z.string(),
-				output: z
-					.union([
-						z.enum(["html", "text", "outerHtml"]),
-						z.strictObject({ type: z.literal("attr"), name: z.string() }),
-					])
-					.optional(),
-				baseUrl: z.string().optional(),
-			}),
-			z.strictObject({
-				type: z.literal("transform"),
-				action: z.enum(["remove", "unwrap", "strip", "replace"]),
-				selector: z.string().optional(),
-				attrs: z.array(z.string()).optional(),
-				pattern: z.string().optional(),
-				with: z.string().optional(),
-				flags: z.string().optional(),
-			}),
-			z.strictObject({
-				type: z.literal("script"),
-				code: z.string(),
-			}),
+		z.union([
+			dictExtractStepSchema,
+			dictTransformStepSchema,
+			dictScriptStepSchema,
 		]),
 	),
 });
+
+const dictRequestBodySchema = z.union([
+	z.string(),
+	z.strictObject({
+		type: z.enum(["form", "json", "raw"]),
+		data: z.unknown(),
+	}),
+]);
 
 const dictRequestSchema = z.strictObject({
 	url: z.string(),
 	method: z.enum(["GET", "POST"]).optional(),
 	charset: z.string().optional(),
 	headers: z.record(z.string(), z.string()).optional(),
-	body: z.unknown().optional(),
+	body: dictRequestBodySchema.optional(),
 });
 
 const dictRuleSchema = z.strictObject({
@@ -119,6 +166,17 @@ export type DictRuleFileInput = z.input<typeof dictRuleFileSchema>;
 export type DictRuleFileOutput = z.output<typeof dictRuleFileSchema>;
 
 // ---- Book Source Schema ----
+// Book-source rules use a different format than dict-rule:
+// - Rule = string shorthand | RuleObject (keyed) | RuleStep[] (keyed-object pipeline)
+// - normalizeRule() handles conversion to internal RuleStep[] format
+// The Zod schema validates the JSON input structure; detailed rule validation
+// happens in normalizeRule() at runtime.
+
+const bookSourceRuleSchema = z.union([
+	z.string(),
+	z.record(z.string(), z.unknown()), // RuleObject or keyed RuleStep
+	z.array(z.unknown()), // RuleStep[] pipeline
+]);
 
 const requestConfigSchema = z.strictObject({
 	url: z.string().optional(),
@@ -129,7 +187,99 @@ const requestConfigSchema = z.strictObject({
 	responseType: z.enum(["html", "json", "xml", "text"]).optional(),
 });
 
-const bookSourceSchema_top = z.strictObject({
+const searchRulesSchema = z
+	.object({
+		list: bookSourceRuleSchema.optional(),
+		name: bookSourceRuleSchema.optional(),
+		url: bookSourceRuleSchema.optional(),
+		author: bookSourceRuleSchema.optional(),
+		cover: bookSourceRuleSchema.optional(),
+		intro: bookSourceRuleSchema.optional(),
+		kind: bookSourceRuleSchema.optional(),
+		lastChapter: bookSourceRuleSchema.optional(),
+		wordCount: bookSourceRuleSchema.optional(),
+	})
+	.passthrough();
+
+const searchModuleSchema = z
+	.strictObject({
+		url: z.string(),
+		checkKeyWord: z.string().optional(),
+		rules: searchRulesSchema,
+	})
+	.merge(requestConfigSchema);
+
+const exploreCategorySchema = z.strictObject({
+	title: z.string(),
+	url: z.string().optional(),
+});
+
+const exploreModuleSchema = z
+	.strictObject({
+		categories: z.array(exploreCategorySchema),
+		rules: searchRulesSchema.optional(),
+	})
+	.merge(requestConfigSchema);
+
+const bookInfoRulesSchema = z
+	.object({
+		init: bookSourceRuleSchema.optional(),
+		name: bookSourceRuleSchema.optional(),
+		author: bookSourceRuleSchema.optional(),
+		cover: bookSourceRuleSchema.optional(),
+		intro: bookSourceRuleSchema.optional(),
+		kind: bookSourceRuleSchema.optional(),
+		lastChapter: bookSourceRuleSchema.optional(),
+		wordCount: bookSourceRuleSchema.optional(),
+		tocUrl: bookSourceRuleSchema.optional(),
+	})
+	.passthrough();
+
+const bookInfoModuleSchema = z
+	.strictObject({
+		init: bookSourceRuleSchema.optional(),
+		rules: bookInfoRulesSchema.optional(),
+	})
+	.merge(requestConfigSchema);
+
+const tocRulesSchema = z
+	.object({
+		list: bookSourceRuleSchema.optional(),
+		name: bookSourceRuleSchema.optional(),
+		url: bookSourceRuleSchema.optional(),
+		isVip: bookSourceRuleSchema.optional(),
+		isVolume: bookSourceRuleSchema.optional(),
+		updateTime: bookSourceRuleSchema.optional(),
+	})
+	.passthrough();
+
+const tocModuleSchema = z
+	.strictObject({
+		nextUrl: bookSourceRuleSchema.optional(),
+		rules: tocRulesSchema.optional(),
+	})
+	.merge(requestConfigSchema);
+
+const replacePairSchema = z.strictObject({
+	pattern: z.string(),
+	with: z.string(),
+});
+
+const contentRulesSchema = z
+	.object({
+		text: bookSourceRuleSchema.optional(),
+	})
+	.passthrough();
+
+const contentModuleSchema = z
+	.strictObject({
+		nextUrl: bookSourceRuleSchema.optional(),
+		replaceRegex: z.array(replacePairSchema).optional(),
+		rules: contentRulesSchema.optional(),
+	})
+	.merge(requestConfigSchema);
+
+export const bookSourceSchema = z.strictObject({
 	$schema: z.string(),
 	id: z.string(),
 	name: z.string(),
@@ -148,29 +298,12 @@ const bookSourceSchema_top = z.strictObject({
 	rateLimit: z.number().int().min(0).optional(),
 	createdAt: z.string().optional(),
 	updatedAt: z.string().optional(),
-	search: z
-		.strictObject({
-			url: z.string(),
-		})
-		.merge(requestConfigSchema)
-		.optional(),
-	explore: z
-		.strictObject({
-			categories: z.array(
-				z.strictObject({
-					title: z.string(),
-					url: z.string().optional(),
-				}),
-			),
-		})
-		.merge(requestConfigSchema)
-		.optional(),
-	bookInfo: z.strictObject({}).merge(requestConfigSchema).optional(),
-	toc: z.strictObject({}).merge(requestConfigSchema).optional(),
-	content: z.strictObject({}).merge(requestConfigSchema).optional(),
+	search: searchModuleSchema.optional(),
+	explore: exploreModuleSchema.optional(),
+	bookInfo: bookInfoModuleSchema.optional(),
+	toc: tocModuleSchema.optional(),
+	content: contentModuleSchema.optional(),
 });
-
-export const bookSourceSchema = bookSourceSchema_top;
 
 export type BookSourceInput = z.input<typeof bookSourceSchema>;
 export type BookSourceOutput = z.output<typeof bookSourceSchema>;
