@@ -144,7 +144,7 @@ const PREVIEW_TEXT =
 /* ─── Main Component ─── */
 export function ThemeSettings() {
 	const t = useTranslations("my");
-	const { theme, setTheme } = useTheme();
+	const { theme, setTheme, mounted: themeMounted } = useTheme();
 	const { settings, updateSettings } = useReaderSettings();
 
 	const fontFamily =
@@ -171,9 +171,9 @@ export function ThemeSettings() {
 							onClick={() => setTheme(value)}
 							className={cn(
 								"flex flex-col items-center gap-1.5 rounded-lg border px-3 py-3 text-sm transition-colors",
-								theme === value
-									? "border-primary bg-primary/10 text-primary"
-									: "border-border bg-surface-1 hover:bg-surface-2",
+								themeMounted && theme === value
+								? "border-primary bg-primary/10 text-primary"
+								: "border-border bg-surface-1 hover:bg-surface-2",
 							)}
 						>
 							<Icon className="size-5" />

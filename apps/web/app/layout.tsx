@@ -18,6 +18,8 @@ export const metadata: Metadata = {
 	description: "私人阅读空间",
 };
 
+const THEME_SCRIPT = `(function(){try{var t=localStorage.getItem("theme");var d=t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme:dark)").matches);document.documentElement.classList.add(d?"dark":"light")}catch(e){}})()`;
+
 export default async function RootLayout({
 	children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -31,6 +33,7 @@ export default async function RootLayout({
 			className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
 		>
 			<body className="min-h-dvh">
+				<script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
 				<NextIntlClientProvider messages={messages}>
 					<ThemeProvider defaultTheme="system">
 						<Providers>
