@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+// @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useReaderSettings } from "@/features/reader/hooks/use-reader-settings";

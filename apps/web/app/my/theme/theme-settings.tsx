@@ -2,7 +2,7 @@
 
 import { AlignJustify, AlignLeft, Monitor, Moon, Sun } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/components/theme-provider";
 
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
