@@ -1,0 +1,1 @@
+export { txtRuleConfig } from "./config";
