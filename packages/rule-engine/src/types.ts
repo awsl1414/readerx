@@ -1,6 +1,7 @@
 // ---- Error Types ----
 
 export type RuleErrorCode =
+	| "COMPILE_ERROR"
 	| "INVALID_SELECTOR"
 	| "JSONPATH_ERROR"
 	| "XPATH_ERROR"

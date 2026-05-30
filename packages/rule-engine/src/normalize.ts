@@ -1,0 +1,99 @@
+import type { Result } from "./result";
+import { err, ok } from "./result";
+import type {
+	ExtractStep,
+	Rule,
+	RuleObject,
+	RuleStep,
+	StringTransformStep,
+} from "./types";
+
+/**
+ * Accept RuleObject | RuleStep[] and always return RuleStep[].
+ * RuleStep[] is passed through unchanged.
+ */
+export function toRule(rule: RuleObject | Rule): Result<Rule> {
+	if (Array.isArray(rule)) {
+		return ok(rule);
+	}
+	return normalizeRule(rule);
+}
+
+/**
+ * Normalize a RuleObject (shorthand with css/xpath/jsonpath/regex fields)
+ * into a canonical RuleStep[] pipeline.
+ *
+ * Order: extract → template → transforms
+ */
+export function normalizeRule(obj: RuleObject): Result<Rule> {
+	const steps: RuleStep[] = [];
+
+	// 1. Extract step from the first matching engine field
+	const extractStep = buildExtractStep(obj);
+	if (extractStep) {
+		steps.push(extractStep);
+	}
+
+	// 2. Template step (if present and no other extract engine)
+	if (obj.template && !extractStep) {
+		steps.push({
+			type: "transform",
+			category: "string",
+			action: "template",
+			template: obj.template,
+		} satisfies StringTransformStep);
+	}
+
+	// 3. Append explicit transforms
+	if (obj.transform) {
+		for (const t of obj.transform) {
+			steps.push(t);
+		}
+	}
+
+	if (steps.length === 0) {
+		return err({
+			code: "TYPE_MISMATCH",
+			message:
+				"RuleObject has no extract engine (css/xpath/jsonpath/regex) or template",
+		});
+	}
+
+	return ok(steps as Rule);
+}
+
+function buildExtractStep(obj: RuleObject): ExtractStep | undefined {
+	const engines: Array<{
+		field: string | undefined;
+		engine: ExtractStep["engine"];
+		selector: string;
+	}> = [];
+
+	if (obj.css)
+		engines.push({ field: obj.css, engine: "css", selector: obj.css });
+	if (obj.xpath)
+		engines.push({ field: obj.xpath, engine: "xpath", selector: obj.xpath });
+	if (obj.jsonpath)
+		engines.push({
+			field: obj.jsonpath,
+			engine: "jsonpath",
+			selector: obj.jsonpath,
+		});
+	if (obj.regex)
+		engines.push({ field: obj.regex, engine: "regex", selector: obj.regex });
+
+	// Use the first defined engine
+	for (const e of engines) {
+		if (e.field) {
+			const step: ExtractStep = {
+				type: "extract",
+				engine: e.engine,
+				selector: e.selector,
+			};
+			if (obj.attr) step.attr = obj.attr;
+			return step;
+		}
+	}
+
+	return undefined;
+}
