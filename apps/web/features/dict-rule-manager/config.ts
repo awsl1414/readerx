@@ -15,13 +15,17 @@ const dictRuleConfig: RuleManagerConfig<DictRule> = {
 	importParser: (raw) => {
 		const parsed: unknown = JSON.parse(raw);
 		const items = Array.isArray(parsed) ? parsed : [parsed];
-		return items.map((item: unknown) => ({
-			id: crypto.randomUUID(),
-			name: (item as Record<string, unknown>).name as string ?? "",
-			urlRule: (item as Record<string, unknown>).urlRule as string | undefined,
-			showRule: (item as Record<string, unknown>).showRule as string | undefined,
-			enabled: true,
-		}));
+		return items.map((item: unknown) => {
+			const record = item as Record<string, unknown>;
+			const result: DictRule = {
+				id: crypto.randomUUID(),
+				name: (record.name as string) ?? "",
+				enabled: true,
+			};
+			if (typeof record.urlRule === "string") result.urlRule = record.urlRule;
+			if (typeof record.showRule === "string") result.showRule = record.showRule;
+			return result;
+		});
 	},
 };
 
