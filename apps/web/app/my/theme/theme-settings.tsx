@@ -1,17 +1,10 @@
 "use client";
 
-import { Monitor, Moon, Sun } from "lucide-react";
+import { AlignJustify, AlignLeft, Monitor, Moon, Sun } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 
 import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import type { ReaderFontPreset } from "@/features/reader/hooks/use-reader-settings";
 import {
@@ -21,6 +14,49 @@ import {
 import type { ReaderTheme } from "@/features/reader/types";
 import { cn } from "@/lib/cn";
 
+/* ─── SegmentedControl: 分段控件 ─── */
+type SegmentedOption<T extends string> = {
+	readonly value: T;
+	readonly label: string;
+	readonly icon?: React.ComponentType<{ className?: string }>;
+};
+
+function SegmentedControl<T extends string>({
+	options,
+	value,
+	onChange,
+}: {
+	readonly options: readonly SegmentedOption<T>[];
+	readonly value: T;
+	readonly onChange: (value: T) => void;
+}) {
+	return (
+		<div className="inline-flex rounded-lg bg-surface-0 p-0.5">
+			{options.map((opt) => {
+				const Icon = opt.icon;
+				const active = value === opt.value;
+				return (
+					<button
+						key={opt.value}
+						type="button"
+						onClick={() => onChange(opt.value)}
+						className={cn(
+							"flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-all",
+							active
+								? "bg-surface-2 text-foreground shadow-sm"
+								: "text-muted-foreground hover:text-foreground",
+						)}
+					>
+						{Icon && <Icon className="size-3.5" />}
+						{opt.label}
+					</button>
+				);
+			})}
+		</div>
+	);
+}
+
+/* ─── SliderField ─── */
 type SliderFieldProps = {
 	readonly label: string;
 	readonly value: number;
@@ -63,6 +99,7 @@ function SliderField({
 	);
 }
 
+/* ─── Data ─── */
 const READER_THEMES: readonly {
 	readonly key: ReaderTheme;
 	readonly bgClass: string;
@@ -104,6 +141,7 @@ const READER_THEMES: readonly {
 const PREVIEW_TEXT =
 	"天地有大美而不言，四时有明法而不议，万物有成理而不说。圣人者，原天地之美而达万物之理。";
 
+/* ─── Main Component ─── */
 export function ThemeSettings() {
 	const t = useTranslations("my");
 	const { theme, setTheme } = useTheme();
@@ -120,45 +158,28 @@ export function ThemeSettings() {
 					{t("appearance")}
 				</h2>
 				<div className="grid grid-cols-3 gap-2">
-					<button
-						type="button"
-						onClick={() => setTheme("light")}
-						className={cn(
-							"flex flex-col items-center gap-1.5 rounded-lg border border-border px-3 py-3 text-sm transition-colors",
-							theme === "light"
-								? "bg-primary/10 text-primary border-primary"
-								: "bg-surface-1 hover:bg-surface-2",
-						)}
-					>
-						<Sun className="size-5" />
-						<span>{t("light")}</span>
-					</button>
-					<button
-						type="button"
-						onClick={() => setTheme("dark")}
-						className={cn(
-							"flex flex-col items-center gap-1.5 rounded-lg border border-border px-3 py-3 text-sm transition-colors",
-							theme === "dark"
-								? "bg-primary/10 text-primary border-primary"
-								: "bg-surface-1 hover:bg-surface-2",
-						)}
-					>
-						<Moon className="size-5" />
-						<span>{t("dark")}</span>
-					</button>
-					<button
-						type="button"
-						onClick={() => setTheme("system")}
-						className={cn(
-							"flex flex-col items-center gap-1.5 rounded-lg border border-border px-3 py-3 text-sm transition-colors",
-							theme === "system"
-								? "bg-primary/10 text-primary border-primary"
-								: "bg-surface-1 hover:bg-surface-2",
-						)}
-					>
-						<Monitor className="size-5" />
-						<span>{t("system")}</span>
-					</button>
+					{(
+						[
+							{ value: "light", icon: Sun, label: t("light") },
+							{ value: "dark", icon: Moon, label: t("dark") },
+							{ value: "system", icon: Monitor, label: t("system") },
+						] as const
+					).map(({ value, icon: Icon, label }) => (
+						<button
+							key={value}
+							type="button"
+							onClick={() => setTheme(value)}
+							className={cn(
+								"flex flex-col items-center gap-1.5 rounded-lg border px-3 py-3 text-sm transition-colors",
+								theme === value
+									? "border-primary bg-primary/10 text-primary"
+									: "border-border bg-surface-1 hover:bg-surface-2",
+							)}
+						>
+							<Icon className="size-5" />
+							<span>{label}</span>
+						</button>
+					))}
 				</div>
 			</section>
 
@@ -174,15 +195,15 @@ export function ThemeSettings() {
 							key={key}
 							onClick={() => updateSettings({ theme: key })}
 							className={cn(
-								"flex flex-col items-center gap-1.5 rounded-lg transition-all",
+								"flex flex-1 flex-col items-center gap-1.5 rounded-lg p-1.5 transition-all",
 								settings.theme === key
-									? "ring-2 ring-primary ring-offset-2"
-									: "ring-1 ring-border",
+									? "ring-2 ring-primary ring-offset-2 ring-offset-background"
+									: "ring-1 ring-border hover:ring-primary/40",
 							)}
 						>
 							<div
 								className={cn(
-									"h-12 w-12 rounded-lg",
+									"h-10 w-full rounded-md",
 									bgClass,
 									"flex items-center justify-center",
 									textClass,
@@ -190,7 +211,7 @@ export function ThemeSettings() {
 							>
 								<span className="text-xs font-medium">Aa</span>
 							</div>
-							<span className="text-xs text-muted-foreground">
+							<span className="text-[11px] text-muted-foreground">
 								{t(labelKey)}
 							</span>
 						</button>
@@ -204,24 +225,18 @@ export function ThemeSettings() {
 					{t("typography")}
 				</h2>
 				<div className="space-y-4 rounded-lg border border-border bg-surface-1 p-4">
-					{/* Font select */}
-					<div className="space-y-2">
+					{/* Font — segmented control */}
+					<div className="flex items-center justify-between">
 						<Label className="text-sm">{t("font")}</Label>
-						<Select
+						<SegmentedControl
+							options={[
+								{ value: "system", label: t("fontSystem") },
+								{ value: "serif", label: t("fontSerif") },
+								{ value: "sans", label: t("fontSans") },
+							]}
 							value={settings.font}
-							onValueChange={(v) =>
-								updateSettings({ font: v as ReaderFontPreset })
-							}
-						>
-							<SelectTrigger className="w-full">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="system">{t("fontSystem")}</SelectItem>
-								<SelectItem value="serif">{t("fontSerif")}</SelectItem>
-								<SelectItem value="sans">{t("fontSans")}</SelectItem>
-							</SelectContent>
-						</Select>
+							onChange={(v) => updateSettings({ font: v })}
+						/>
 					</div>
 
 					{/* Font size */}
@@ -266,40 +281,40 @@ export function ThemeSettings() {
 						onChange={(v) => updateSettings({ contentWidth: v })}
 					/>
 
-					{/* Text indent */}
-					<div className="space-y-2">
+					{/* Text indent — segmented control */}
+					<div className="flex items-center justify-between">
 						<Label className="text-sm">{t("textIndent")}</Label>
-						<Select
+						<SegmentedControl
+							options={[
+								{ value: "0", label: t("noIndent") },
+								{ value: "2em", label: t("indent2em") },
+							]}
 							value={settings.textIndent}
-							onValueChange={(v) => updateSettings({ textIndent: v })}
-						>
-							<SelectTrigger className="w-full">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="0">{t("noIndent")}</SelectItem>
-								<SelectItem value="2em">{t("indent2em")}</SelectItem>
-							</SelectContent>
-						</Select>
+							onChange={(v) => updateSettings({ textIndent: v })}
+						/>
 					</div>
 
-					{/* Text align */}
-					<div className="space-y-2">
+					{/* Text align — segmented control with icons */}
+					<div className="flex items-center justify-between">
 						<Label className="text-sm">{t("textAlign")}</Label>
-						<Select
+						<SegmentedControl
+							options={[
+								{
+									value: "left",
+									label: t("alignLeft"),
+									icon: AlignLeft,
+								},
+								{
+									value: "justify",
+									label: t("alignJustify"),
+									icon: AlignJustify,
+								},
+							]}
 							value={settings.textAlign}
-							onValueChange={(v) =>
+							onChange={(v) =>
 								updateSettings({ textAlign: v as "left" | "justify" })
 							}
-						>
-							<SelectTrigger className="w-full">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="left">{t("alignLeft")}</SelectItem>
-								<SelectItem value="justify">{t("alignJustify")}</SelectItem>
-							</SelectContent>
-						</Select>
+						/>
 					</div>
 				</div>
 			</section>

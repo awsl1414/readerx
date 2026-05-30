@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { settingsStorage } from "@/lib/settings-storage";
 import { FONT_PRESETS } from "../atmosphere";
 import type { ReaderFontPreset, ReaderTheme } from "../types";
@@ -35,7 +35,14 @@ function loadSettings(): ReaderSettings {
 }
 
 function useReaderSettings() {
-	const [settings, setSettings] = useState<ReaderSettings>(loadSettings);
+	const [settings, setSettings] = useState<ReaderSettings>(DEFAULT_SETTINGS);
+	const [mounted, setMounted] = useState(false);
+
+	// Read from localStorage after hydration to avoid mismatch
+	useEffect(() => {
+		setSettings(loadSettings());
+		setMounted(true);
+	}, []);
 
 	const updateSettings = useCallback((partial: Partial<ReaderSettings>) => {
 		setSettings((prev) => {
@@ -45,7 +52,7 @@ function useReaderSettings() {
 		});
 	}, []);
 
-	return { settings, updateSettings };
+	return { mounted, settings, updateSettings };
 }
 
 export type { ReaderFontPreset, ReaderSettings };

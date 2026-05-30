@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
-import { ThemeProvider } from "next-themes";
+import { ThemeProvider } from "@/components/theme-provider";
 import { AppShell } from "@/components/layout/app-shell";
 import { Providers } from "@/components/providers";
 import "./globals.css";
@@ -32,12 +32,7 @@ export default async function RootLayout({
 		>
 			<body className="min-h-dvh">
 				<NextIntlClientProvider messages={messages}>
-					<ThemeProvider
-						attribute="class"
-						defaultTheme="system"
-						enableSystem
-						disableTransitionOnChange
-					>
+					<ThemeProvider defaultTheme="system">
 						<Providers>
 							<AppShell>{children}</AppShell>
 						</Providers>
