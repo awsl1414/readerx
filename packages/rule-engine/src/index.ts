@@ -143,7 +143,7 @@ export {
 	importLegadoReplaceRules,
 	importLegadoTxtTocRules,
 	tryDetectFormat,
-} from "./import/index.js";
+} from "./import/index";
 
 export type {
 	ImportError,
@@ -156,7 +156,7 @@ export type {
 	LegadoDictRule,
 	LegadoReplaceRule,
 	LegadoTxtTocRule,
-} from "./import/index.js";
+} from "./import/index";
 
 // ---- DAG IR types ----
 export type {
