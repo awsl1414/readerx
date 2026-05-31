@@ -8,12 +8,9 @@ import type {
 	BookSourceRecord,
 	Cache,
 	Cookie,
-	DictRule,
-	ReplaceRule,
 	RssSourceRecord,
 	RuleRecord,
 	SearchKeyword,
-	TxtTocRule,
 } from "./types";
 
 export const DB_NAME = "readerx";
@@ -27,11 +24,8 @@ export class ReaderXDB extends Dexie {
 	bookmarks!: Table<Bookmark, number>;
 	searchKeywords!: Table<SearchKeyword, string>;
 	caches!: Table<Cache, string>;
-	replaceRules!: Table<ReplaceRule, string>;
 	cookies!: Table<Cookie, string>;
 	rssSources!: Table<RssSourceRecord, string>;
-	txtTocRules!: Table<TxtTocRule, string>;
-	dictRules!: Table<DictRule, string>;
 	rules!: Table<RuleRecord, string>;
 
 	constructor(name = DB_NAME) {
@@ -48,25 +42,27 @@ export class ReaderXDB extends Dexie {
 			replaceRules: "++id, name, group, order, isEnabled",
 			cookies: "url",
 		});
-		this.version(2).stores({
-			replaceRules: "id, name, group, order, enabled",
-			rssSources:
-				"sourceUrl, sourceName, *sourceGroup, enabled, [sourceGroup+enabled]",
-			txtTocRules: "id, name, enabled",
-			dictRules: "id, name, enabled",
-		}).upgrade((tx) => {
-			// Migrate replaceRules: numeric id → string id, isEnabled → enabled
-			return tx
-				.table("replaceRules")
-				.toCollection()
-				.modify((rule) => {
-					rule.id = String(rule.id);
-					rule.enabled = rule.isEnabled ?? true;
-					rule.createdAt = rule.createdAt ?? Date.now();
-					rule.updatedAt = rule.updatedAt ?? Date.now();
-					delete rule.isEnabled;
-				});
-		});
+		this.version(2)
+			.stores({
+				replaceRules: "id, name, group, order, enabled",
+				rssSources:
+					"sourceUrl, sourceName, *sourceGroup, enabled, [sourceGroup+enabled]",
+				txtTocRules: "id, name, enabled",
+				dictRules: "id, name, enabled",
+			})
+			.upgrade((tx) => {
+				// Migrate replaceRules: numeric id → string id, isEnabled → enabled
+				return tx
+					.table("replaceRules")
+					.toCollection()
+					.modify((rule) => {
+						rule.id = String(rule.id);
+						rule.enabled = rule.isEnabled ?? true;
+						rule.createdAt = rule.createdAt ?? Date.now();
+						rule.updatedAt = rule.updatedAt ?? Date.now();
+						delete rule.isEnabled;
+					});
+			});
 		this.version(3).stores({
 			rules: "id, type, name, updatedAt",
 		});

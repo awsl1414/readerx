@@ -71,9 +71,9 @@
 |---|---|---|
 | **WebDAV 同步** | 待实现 | ⬜ 未开始 |
 | **下载管理** | 待实现 | ⬜ 未开始 |
-| **TXT 导入** | `features/txt-rule-manager/` via SimpleRuleManager 模板 | ✅ 完成 |
+| **TXT 导入** | `features/txt-toc-rule/` via shared-rule-ui 模板 | ✅ 完成 |
 | **规则订阅** | 待实现 | ⬜ 未开始 |
-| **替换净化** | `features/replace-rule-manager/` + persistence ReplaceRuleRepository + Dexie v2 migration | ✅ 完成 |
+| **替换净化** | `features/replace-rule/` + persistence RulesRepository + unified rules table | ✅ 完成 |
 | **RSS 订阅** | `features/rss-source-manager/` + persistence RssSourceRepository | ✅ 完成 |
 | **书内搜索** | 待实现 | ⬜ 未开始 |
 | **阅读统计** | 待实现 | ⬜ 未开始 |
@@ -85,7 +85,7 @@
 |---|---|---|
 | **发现**（书源 exploreUrl 分类浏览） | P2 | ⬜ 未开始 |
 | **换封面** | P2 | ⬜ 未开始 |
-| **字典规则** | P2 | ✅ 完成 (`features/dict-rule-manager/`) |
+| **字典规则** | P2 | ✅ 完成 (`features/dict-rule/`) |
 | **EPUB** | P2 | ⬜ 未开始 |
 | **命令面板 ⌘K** | P2 | ⬜ 未开始 |
 | **漫画模式** | P2 | ⬜ 未开始 |

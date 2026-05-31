@@ -14,7 +14,10 @@
 ## 包依赖方向（禁止违反）
 
 ```text
-infrastructure  ←  rule-engine  ←  reader-engine
+infrastructure  ←  schemas  ←  rule-engine  ←  reader-engine
+                      ↑
+              persistence
+
                         ↑
                 quickjs-runtime (peer dep，import type only)
 
@@ -34,10 +37,11 @@ rule-engine  ←  services/api
 | 包 | 类型 | 允许的依赖方向 |
 |---|---|---|
 | infrastructure | 基础设施 | 零内部依赖 |
-| rule-engine | 领域引擎 | ← infrastructure |
+| schemas | 类型层 | 零内部依赖（仅 zod） |
+| rule-engine | 领域引擎 | ← schemas, infrastructure |
 | reader-engine | 领域引擎 | ← rule-engine, infrastructure |
 | quickjs-runtime | 运行时 | 仅 peer dep → rule-engine（import type） |
-| persistence | 数据层 | ← infrastructure |
+| persistence | 数据层 | ← schemas, infrastructure |
 | ai（未来） | 增强层 | 仅 peer dep → rule-engine（import type） |
 
 新增包必须在此表登记并声明类型和依赖方向。
