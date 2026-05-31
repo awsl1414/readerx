@@ -1,7 +1,11 @@
 import type { DictRule, DictRuleFile, RuleStep, ScriptStep } from "../../types";
-import type { ConversionResult, ImportedResult, LegadoDictRule } from "../types";
 import { parseLegadoRule } from "../parser";
 import { createReport } from "../report";
+import type {
+	ConversionResult,
+	ImportedResult,
+	LegadoDictRule,
+} from "../types";
 
 const SCHEMA_ID = "readerx/dict-rule/v1" as const;
 
@@ -23,7 +27,10 @@ export function convertLegadoDictRules(
 		if (showRule && showRule !== "") {
 			conversionResult = parseLegadoRule(showRule);
 
-			if (conversionResult.legacyScript && (!conversionResult.steps || conversionResult.steps.length === 0)) {
+			if (
+				conversionResult.legacyScript &&
+				(!conversionResult.steps || conversionResult.steps.length === 0)
+			) {
 				// Legacy script → wrap as ScriptStep
 				const scriptStep: ScriptStep = {
 					type: "script",

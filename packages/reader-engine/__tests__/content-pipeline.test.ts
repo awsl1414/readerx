@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import type { ContentRule } from "@readerx/rule-engine";
+import type { ContentModule } from "@readerx/rule-engine";
 import { describe, expect, it } from "vitest";
 import { decodeBody } from "../src/content/charset-decoder";
 import {
@@ -269,31 +269,58 @@ describe("fetchAndParse", () => {
 <div class="content"><p>Hello World</p><p>Second paragraph</p></div>
 </body></html>`;
 
+	function makeContentModule(
+		overrides: Partial<ContentModule> = {},
+	): ContentModule {
+		return {
+			rules: {
+				text: [
+					{
+						type: "extract" as const,
+						engine: "css" as const,
+						selector: ".content",
+						output: "text" as const,
+					},
+				],
+			},
+			...overrides,
+		};
+	}
+
 	it("fetches HTML, extracts content, and returns a Document", async () => {
 		const mockFetcher = createMockFetcher(htmlWithContent);
-		const contentRule: ContentRule = {
-			content: ".content",
-		};
+		const contentModule = makeContentModule();
 
 		const doc = await fetchAndParse(
 			{ httpFetcher: mockFetcher },
-			{ contentRule, url: "https://example.com/page1" },
+			{ contentModule, url: "https://example.com/page1" },
 		);
 
 		expect(doc.type).toBe("document");
 		expect(doc.children.length).toBeGreaterThanOrEqual(1);
 	});
 
-	it("extracts title when contentRule.title is set", async () => {
+	it("extracts title when contentModule has title rule", async () => {
 		const mockFetcher = createMockFetcher(htmlWithContent);
-		const contentRule: ContentRule = {
-			content: ".content",
-			title: "title",
-		};
+		const contentModule = makeContentModule({
+			rules: {
+				text: [
+					{
+						type: "extract",
+						engine: "css",
+						selector: ".content",
+						output: "text",
+					},
+				],
+				title: [
+					{ type: "extract", engine: "css", selector: "title", output: "text" },
+				],
+			},
+		});
 
 		const doc = await fetchAndParse(
 			{ httpFetcher: mockFetcher },
-			{ contentRule, url: "https://example.com/page1" },
+			{ contentModule, url: "https://example.com/page1" },
 		);
 
 		expect(doc.meta?.title).toBe("Test Page");
@@ -318,14 +345,22 @@ describe("fetchAndParse", () => {
 			},
 		};
 
-		// CSS rule selects the text content div
-		const contentRule: ContentRule = {
-			content: ".text-content",
+		const contentModule: ContentModule = {
+			rules: {
+				text: [
+					{
+						type: "extract",
+						engine: "css",
+						selector: ".text-content",
+						output: "text",
+					},
+				],
+			},
 		};
 
 		const doc = await fetchAndParse(
 			{ httpFetcher: plainTextFetcher },
-			{ contentRule, url: "https://example.com/page1" },
+			{ contentModule, url: "https://example.com/page1" },
 		);
 
 		expect(doc.type).toBe("document");
@@ -336,9 +371,7 @@ describe("fetchAndParse", () => {
 
 	it("applies replace rules when provided", async () => {
 		const mockFetcher = createMockFetcher(htmlWithContent);
-		const contentRule: ContentRule = {
-			content: ".content",
-		};
+		const contentModule = makeContentModule();
 		const replaceRules: ReplaceRule[] = [
 			{
 				id: 1,
@@ -356,7 +389,7 @@ describe("fetchAndParse", () => {
 		const doc = await fetchAndParse(
 			{ httpFetcher: mockFetcher },
 			{
-				contentRule,
+				contentModule,
 				url: "https://example.com/page1",
 				replaceRules,
 			},
@@ -369,14 +402,12 @@ describe("fetchAndParse", () => {
 
 	it("returns document without replace rules when replaceRules is empty", async () => {
 		const mockFetcher = createMockFetcher(htmlWithContent);
-		const contentRule: ContentRule = {
-			content: ".content",
-		};
+		const contentModule = makeContentModule();
 
 		const doc = await fetchAndParse(
 			{ httpFetcher: mockFetcher },
 			{
-				contentRule,
+				contentModule,
 				url: "https://example.com/page1",
 				replaceRules: [],
 			},
@@ -386,15 +417,13 @@ describe("fetchAndParse", () => {
 		expect(doc.children.length).toBeGreaterThanOrEqual(1);
 	});
 
-	it("works without a title rule (contentRule.title undefined)", async () => {
+	it("works without a title rule", async () => {
 		const mockFetcher = createMockFetcher(htmlWithContent);
-		const contentRule: ContentRule = {
-			content: ".content",
-		};
+		const contentModule = makeContentModule();
 
 		const doc = await fetchAndParse(
 			{ httpFetcher: mockFetcher },
-			{ contentRule, url: "https://example.com/page1" },
+			{ contentModule, url: "https://example.com/page1" },
 		);
 
 		expect(doc.meta?.title).toBeUndefined();

@@ -1,5 +1,5 @@
-import type { Table } from "dexie";
 import type { RuleRecord, RuleType } from "@readerx/schemas";
+import type { Table } from "dexie";
 
 class RulesRepository {
 	private table: Table<RuleRecord, string>;

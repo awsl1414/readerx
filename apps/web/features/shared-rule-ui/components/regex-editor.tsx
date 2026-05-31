@@ -61,9 +61,7 @@ function RegexEditor({
 		if (literal) {
 			if (!testValue) return { status: "idle" };
 			const hasMatch = testValue.includes(pattern);
-			return hasMatch
-				? { status: "match", count: 1 }
-				: { status: "no-match" };
+			return hasMatch ? { status: "match", count: 1 } : { status: "no-match" };
 		}
 		try {
 			const regex = new RegExp(pattern, flags || undefined);
@@ -93,7 +91,11 @@ function RegexEditor({
 					id="regex-pattern"
 					value={pattern}
 					onChange={(e) => onPatternChange(e.target.value)}
-					placeholder={literal ? (labels.literalPlaceholder ?? "Literal text...") : (labels.patternPlaceholder ?? "Regex pattern...")}
+					placeholder={
+						literal
+							? (labels.literalPlaceholder ?? "Literal text...")
+							: (labels.patternPlaceholder ?? "Regex pattern...")
+					}
 					className={cn(!literal && "font-mono text-xs")}
 					disabled={disabled}
 				/>
@@ -119,9 +121,7 @@ function RegexEditor({
 						<Switch
 							id="regex-literal"
 							checked={literal}
-							onCheckedChange={(checked: boolean) =>
-								onLiteralChange(checked)
-							}
+							onCheckedChange={(checked: boolean) => onLiteralChange(checked)}
 							size="sm"
 							disabled={disabled}
 						/>
@@ -147,14 +147,16 @@ function RegexEditor({
 						<p
 							className={cn(
 								"text-xs",
-								testResult.status === "match" && "text-green-600 dark:text-green-400",
+								testResult.status === "match" &&
+									"text-green-600 dark:text-green-400",
 								testResult.status === "no-match" && "text-muted-foreground",
 								testResult.status === "error" && "text-destructive",
 							)}
 						>
 							{testResult.status === "match" &&
 								`${labels.matchLabel ?? "Match"} (${testResult.count} result${testResult.count > 1 ? "s" : ""})`}
-							{testResult.status === "no-match" && (labels.noMatchLabel ?? "No match")}
+							{testResult.status === "no-match" &&
+								(labels.noMatchLabel ?? "No match")}
 							{testResult.status === "error" && testResult.message}
 						</p>
 					)}
@@ -164,5 +166,5 @@ function RegexEditor({
 	);
 }
 
-export { RegexEditor };
 export type { RegexEditorProps };
+export { RegexEditor };

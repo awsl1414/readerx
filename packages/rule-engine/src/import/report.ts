@@ -1,15 +1,24 @@
 import type { ConversionReport, ConversionResult } from "./types";
 
-export function createReport(results: readonly ConversionResult[]): ConversionReport {
+export function createReport(
+	results: readonly ConversionResult[],
+): ConversionReport {
 	let convertedRules = 0;
 	let partialConvertedRules = 0;
 	let scriptFallbackRules = 0;
 	const featureSet = new Set<string>();
 
 	for (const result of results) {
-		if (result.unsupported.length === 0 && result.steps && !result.legacyScript) {
+		if (
+			result.unsupported.length === 0 &&
+			result.steps &&
+			!result.legacyScript
+		) {
 			convertedRules++;
-		} else if (result.legacyScript && (!result.steps || result.steps.length === 0)) {
+		} else if (
+			result.legacyScript &&
+			(!result.steps || result.steps.length === 0)
+		) {
 			scriptFallbackRules++;
 		} else {
 			partialConvertedRules++;
@@ -29,7 +38,9 @@ export function createReport(results: readonly ConversionResult[]): ConversionRe
 	};
 }
 
-export function mergeReports(reports: readonly ConversionReport[]): ConversionReport {
+export function mergeReports(
+	reports: readonly ConversionReport[],
+): ConversionReport {
 	let totalRules = 0;
 	let convertedRules = 0;
 	let partialConvertedRules = 0;

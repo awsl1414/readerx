@@ -1,7 +1,7 @@
 import "fake-indexeddb/auto";
-import { Dexie } from "dexie";
 import type { Table } from "dexie";
-import { describe, it, expect, beforeEach } from "vitest";
+import { Dexie } from "dexie";
+import { beforeEach, describe, expect, it } from "vitest";
 import { BaseDexieRepository } from "../src/base-repository";
 
 type TestEntity = {

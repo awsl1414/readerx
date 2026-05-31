@@ -1,10 +1,10 @@
+import type { TxtTocRule, TxtTocRuleFile } from "../../types";
+import { createReport } from "../report";
 import type {
 	ConversionResult,
 	ImportedResult,
 	LegadoTxtTocRule,
 } from "../types";
-import { createReport } from "../report";
-import type { TxtTocRule, TxtTocRuleFile } from "../../types";
 
 const SCHEMA_ID = "readerx/txt-toc-rule/v1";
 

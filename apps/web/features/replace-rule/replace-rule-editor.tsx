@@ -1,9 +1,12 @@
 "use client";
 
-import type { ReplaceRuleData, RuleRecord } from "@readerx/schemas";
-import type { ReplaceScope } from "@readerx/schemas";
-import { useEffect, useState } from "react";
+import type {
+	ReplaceRuleData,
+	ReplaceScope,
+	RuleRecord,
+} from "@readerx/schemas";
 import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -17,11 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import {
-	RegexEditor,
-	ScopeEditor,
-	TagInput,
-} from "@/features/shared-rule-ui";
+import { RegexEditor, ScopeEditor, TagInput } from "@/features/shared-rule-ui";
 
 type ReplaceRuleEditorProps = {
 	readonly rule: RuleRecord<"replace"> | null;
@@ -128,7 +127,9 @@ function ReplaceRuleEditor({
 	const handleOpenChange = (isOpen: boolean) => {
 		if (isOpen) {
 			setFormState(
-				rule ? ruleToForm(rule) : { ...createDefaultForm(), id: crypto.randomUUID() },
+				rule
+					? ruleToForm(rule)
+					: { ...createDefaultForm(), id: crypto.randomUUID() },
 			);
 		}
 		onOpenChange(isOpen);
@@ -300,7 +301,11 @@ function ReplaceRuleEditor({
 					>
 						{t("cancel")}
 					</Button>
-					<Button size="sm" onClick={handleSave} disabled={!formState.name || !formState.pattern}>
+					<Button
+						size="sm"
+						onClick={handleSave}
+						disabled={!formState.name || !formState.pattern}
+					>
 						{t("save")}
 					</Button>
 				</DialogFooter>

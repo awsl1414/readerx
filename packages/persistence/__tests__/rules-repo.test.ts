@@ -1,8 +1,8 @@
 import "fake-indexeddb/auto";
+import type { RuleRecord, RuleType } from "@readerx/schemas";
 import { describe, expect, it } from "vitest";
 import { createDB } from "../src/database";
 import { RulesRepository } from "../src/rules-repo";
-import type { RuleRecord, RuleType } from "@readerx/schemas";
 
 function makeRule<T extends RuleType>(
 	type: T,
@@ -121,9 +121,7 @@ describe("RulesRepository", () => {
 	it("searches rules by name", async () => {
 		const { testDb, repo } = await setup();
 		await repo.save(makeRule("replace", { id: "r1", name: "Remove Ads" }));
-		await repo.save(
-			makeRule("replace", { id: "r2", name: "Fix Encoding" }),
-		);
+		await repo.save(makeRule("replace", { id: "r2", name: "Fix Encoding" }));
 		await repo.save(
 			makeRule("replace", { id: "r3", name: "ADvanced Cleanup" }),
 		);

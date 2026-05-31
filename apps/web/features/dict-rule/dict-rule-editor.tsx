@@ -1,8 +1,15 @@
 "use client";
 
-import type { DictField, DictRuleData, RequestConfig, RuleRecord, RuleStepDef } from "@readerx/schemas";
-import { useEffect, useState } from "react";
+import type {
+	DictField,
+	DictRuleData,
+	RequestConfig,
+	RuleRecord,
+	RuleStepDef,
+} from "@readerx/schemas";
+import { MinusIcon, PlusIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -28,7 +35,6 @@ import {
 	RequestConfigEditor,
 	TagInput,
 } from "@/features/shared-rule-ui";
-import { MinusIcon, PlusIcon } from "lucide-react";
 
 type DictRuleEditorProps = {
 	readonly rule: RuleRecord<"dict"> | null;
@@ -176,7 +182,9 @@ function DictRuleEditor({
 	const handleOpenChange = (isOpen: boolean) => {
 		if (isOpen) {
 			setFormState(
-				rule ? ruleToForm(rule) : { ...createDefaultForm(), id: crypto.randomUUID() },
+				rule
+					? ruleToForm(rule)
+					: { ...createDefaultForm(), id: crypto.randomUUID() },
 			);
 		}
 		onOpenChange(isOpen);
@@ -189,10 +197,7 @@ function DictRuleEditor({
 		setFormState((prev) => ({ ...prev, [key]: value }));
 	};
 
-	const updateFieldEntry = (
-		index: number,
-		patch: Partial<FieldEntry>,
-	) => {
+	const updateFieldEntry = (index: number, patch: Partial<FieldEntry>) => {
 		setFormState((prev) => {
 			const next = [...prev.fields];
 			const current = next[index];
@@ -206,10 +211,7 @@ function DictRuleEditor({
 	const addFieldEntry = () => {
 		setFormState((prev) => ({
 			...prev,
-			fields: [
-				...prev.fields,
-				{ name: "", schema: "html", pipeline: [] },
-			],
+			fields: [...prev.fields, { name: "", schema: "html", pipeline: [] }],
 		}));
 	};
 
@@ -220,10 +222,7 @@ function DictRuleEditor({
 		}));
 	};
 
-	const updateVariable = (
-		index: number,
-		patch: Partial<VariableEntry>,
-	) => {
+	const updateVariable = (index: number, patch: Partial<VariableEntry>) => {
 		setFormState((prev) => {
 			const next = [...prev.variables];
 			const current = next[index];
@@ -310,11 +309,7 @@ function DictRuleEditor({
 					<div className="flex flex-col gap-2">
 						<div className="flex items-center justify-between">
 							<Label>{t("extractFields")}</Label>
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={addFieldEntry}
-							>
+							<Button variant="outline" size="sm" onClick={addFieldEntry}>
 								<PlusIcon className="size-3.5" />
 								{t("addField")}
 							</Button>
@@ -328,7 +323,7 @@ function DictRuleEditor({
 
 						{formState.fields.map((field, index) => (
 							<div
-								key={`field-${index}`}
+								key={`field-${field.name ?? index}`}
 								className="border-border bg-surface-1 rounded-md border p-3"
 							>
 								<div className="flex items-center gap-2">
@@ -390,11 +385,7 @@ function DictRuleEditor({
 					<div className="flex flex-col gap-2">
 						<div className="flex items-center justify-between">
 							<Label>{t("fieldVariables")}</Label>
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={addVariable}
-							>
+							<Button variant="outline" size="sm" onClick={addVariable}>
 								<PlusIcon className="size-3.5" />
 								{t("addVariable")}
 							</Button>
@@ -407,10 +398,7 @@ function DictRuleEditor({
 						)}
 
 						{formState.variables.map((v, index) => (
-							<div
-								key={`var-${index}`}
-								className="flex items-center gap-1.5"
-							>
+							<div key={`var-${v.key}`} className="flex items-center gap-1.5">
 								<Input
 									value={v.key}
 									onChange={(e) =>
@@ -462,9 +450,7 @@ function DictRuleEditor({
 							id="dr-weight"
 							type="number"
 							value={formState.weight}
-							onChange={(e) =>
-								updateField("weight", Number(e.target.value))
-							}
+							onChange={(e) => updateField("weight", Number(e.target.value))}
 							min={0}
 							max={100}
 						/>
@@ -492,11 +478,7 @@ function DictRuleEditor({
 					>
 						{t("cancel")}
 					</Button>
-					<Button
-						size="sm"
-						onClick={handleSave}
-						disabled={!formState.name}
-					>
+					<Button size="sm" onClick={handleSave} disabled={!formState.name}>
 						{t("save")}
 					</Button>
 				</DialogFooter>

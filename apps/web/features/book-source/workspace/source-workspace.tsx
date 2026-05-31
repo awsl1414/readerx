@@ -1,15 +1,15 @@
 "use client";
 
 import type { RuleRecord } from "@readerx/schemas";
+import { ArrowLeftIcon, UploadIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { RuleImportDialog } from "@/features/shared-rule-ui";
-import { UploadIcon, ArrowLeftIcon } from "lucide-react";
-import { useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
-import { useSourceRules } from "../hooks/use-source-rules";
 import { useSourceMutations } from "../hooks/use-source-mutations";
-import { SourceListPanel } from "./source-list-panel";
+import { useSourceRules } from "../hooks/use-source-rules";
 import { SourceEditorPanel } from "./source-editor-panel";
+import { SourceListPanel } from "./source-list-panel";
 
 function SourceWorkspace() {
 	const t = useTranslations("sourceManager");
@@ -54,7 +54,7 @@ function SourceWorkspace() {
 						createdAt: new Date().toISOString(),
 						updatedAt: new Date().toISOString(),
 						data: item as RuleRecord<"book-source">["data"],
-				}))
+					}))
 				: [];
 			importRules.mutate(records);
 		} catch {
@@ -70,7 +70,9 @@ function SourceWorkspace() {
 				<div
 					className={
 						"border-r border-border md:flex md:w-[300px] md:min-w-[300px] md:flex-col" +
-						(mobileLayer === 0 ? " flex flex-col" : " hidden md:flex md:flex-col")
+						(mobileLayer === 0
+							? " flex flex-col"
+							: " hidden md:flex md:flex-col")
 					}
 				>
 					{/* Import button */}

@@ -5,37 +5,43 @@
 
 // ── Type re-exports ───────────────────────────────────────
 export type {
+	ConversionReport,
+	ConversionResult,
+	ImportError,
+	ImportedResult,
+	ImportOptions,
 	LegadoBookSource,
 	LegadoDictRule,
 	LegadoReplaceRule,
 	LegadoTxtTocRule,
-	ImportError,
-	ImportOptions,
-	ConversionResult,
-	ConversionReport,
-	ImportedResult,
 	RuleFormatKind,
 } from "./types";
 
 // ── ReaderX native imports ────────────────────────────────
 
-import type { ImportError as ImportErrorT } from "./types";
-import type { BookSource, DictRuleFile, ReplaceRuleFile, TxtTocRuleFile } from "../types";
 import type { Result } from "../result";
-
 import {
 	parseBookSource,
 	parseDictRuleFile,
 	parseReplaceRuleFile,
 	parseTxtTocRuleFile,
 } from "../schemas";
+import type {
+	BookSource,
+	DictRuleFile,
+	ReplaceRuleFile,
+	TxtTocRuleFile,
+} from "../types";
+import type { ImportError as ImportErrorT } from "./types";
 
 /**
  * Import a ReaderX-format BookSource from unknown data.
  *
  * Wraps `parseBookSource` in try/catch; returns `Result` instead of throwing.
  */
-export function importBookSource(data: unknown): Result<BookSource, ImportErrorT> {
+export function importBookSource(
+	data: unknown,
+): Result<BookSource, ImportErrorT> {
 	try {
 		const value = parseBookSource(data);
 		return { ok: true, value: value as unknown as BookSource };
@@ -52,7 +58,9 @@ export function importBookSource(data: unknown): Result<BookSource, ImportErrorT
 /**
  * Import a ReaderX-format DictRuleFile from unknown data.
  */
-export function importDictRuleFile(data: unknown): Result<DictRuleFile, ImportErrorT> {
+export function importDictRuleFile(
+	data: unknown,
+): Result<DictRuleFile, ImportErrorT> {
 	try {
 		const value = parseDictRuleFile(data);
 		return { ok: true, value: value as unknown as DictRuleFile };
@@ -69,7 +77,9 @@ export function importDictRuleFile(data: unknown): Result<DictRuleFile, ImportEr
 /**
  * Import a ReaderX-format ReplaceRuleFile from unknown data.
  */
-export function importReplaceRuleFile(data: unknown): Result<ReplaceRuleFile, ImportErrorT> {
+export function importReplaceRuleFile(
+	data: unknown,
+): Result<ReplaceRuleFile, ImportErrorT> {
 	try {
 		const value = parseReplaceRuleFile(data);
 		return { ok: true, value: value as unknown as ReplaceRuleFile };
@@ -86,7 +96,9 @@ export function importReplaceRuleFile(data: unknown): Result<ReplaceRuleFile, Im
 /**
  * Import a ReaderX-format TxtTocRuleFile from unknown data.
  */
-export function importTxtTocRuleFile(data: unknown): Result<TxtTocRuleFile, ImportErrorT> {
+export function importTxtTocRuleFile(
+	data: unknown,
+): Result<TxtTocRuleFile, ImportErrorT> {
 	try {
 		const value = parseTxtTocRuleFile(data);
 		return { ok: true, value: value as unknown as TxtTocRuleFile };
@@ -102,16 +114,15 @@ export function importTxtTocRuleFile(data: unknown): Result<TxtTocRuleFile, Impo
 
 // ── Legado legacy imports ─────────────────────────────────
 
-import type {
-	ImportedResult as ImportedResultT,
-	RuleFormatKind as RuleFormatKindT,
-} from "./types";
-
 import { convertLegadoBookSources } from "./converters/book-source";
 import { convertLegadoDictRules } from "./converters/dict-rule";
 import { convertLegadoReplaceRules } from "./converters/replace-rule";
 import { convertLegadoTxtTocRules } from "./converters/txt-toc";
 import { createReport } from "./report";
+import type {
+	ImportedResult as ImportedResultT,
+	RuleFormatKind as RuleFormatKindT,
+} from "./types";
 
 /**
  * Import an array of Legado-format BookSources.
@@ -217,8 +228,8 @@ export function tryDetectFormat(data: unknown): RuleFormatKindT {
 	// 1. Object with $schema → check content
 	if (typeof data === "object" && data !== null && !Array.isArray(data)) {
 		const obj = data as Record<string, unknown>;
-		if (typeof obj["$schema"] === "string") {
-			const schema = obj["$schema"] as string;
+		if (typeof obj.$schema === "string") {
+			const schema = obj.$schema as string;
 			if (schema.includes("book-source-rule")) return "readerx-book-source";
 			if (schema.includes("dict-rule")) return "readerx-dict";
 			if (schema.includes("replace-rule")) return "readerx-replace";

@@ -1,14 +1,14 @@
 "use client";
 
+import type { RuleRecord, RuleType } from "@readerx/schemas";
+import { PlusIcon, SearchIcon, TrashIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
-import { PlusIcon, SearchIcon, TrashIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
-import type { RuleRecord, RuleType } from "@readerx/schemas";
 
 type RuleListProps<T extends RuleType = RuleType> = {
 	readonly items: readonly RuleRecord<T>[];
@@ -124,11 +124,7 @@ function RuleList<T extends RuleType = RuleType>({
 					</span>
 					<div className="flex-1" />
 					{onBatchDelete && (
-						<Button
-							variant="destructive"
-							size="sm"
-							onClick={handleBatchDelete}
-						>
+						<Button variant="destructive" size="sm" onClick={handleBatchDelete}>
 							<TrashIcon className="size-3.5" />
 							Delete
 						</Button>
@@ -235,5 +231,5 @@ function RuleList<T extends RuleType = RuleType>({
 	);
 }
 
-export { RuleList };
 export type { RuleListProps };
+export { RuleList };

@@ -2,9 +2,8 @@
 
 import type { RuleRecord } from "@readerx/schemas";
 import { validateBookSourceData } from "@readerx/schemas";
-import { db, RulesRepository } from "@readerx/persistence";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { QUERY_KEY, repo, TYPE } from "./use-source-rules";
+import { QUERY_KEY, repo } from "./use-source-rules";
 
 function useSourceMutations() {
 	const queryClient = useQueryClient();

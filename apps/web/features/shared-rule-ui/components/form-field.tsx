@@ -24,7 +24,10 @@ type FormFieldProps = {
 	readonly required?: boolean;
 	readonly monospace?: boolean;
 	readonly disabled?: boolean;
-	readonly options?: readonly { readonly label: string; readonly value: string }[];
+	readonly options?: readonly {
+		readonly label: string;
+		readonly value: string;
+	}[];
 	readonly className?: string;
 	readonly description?: string;
 };
@@ -67,9 +70,7 @@ function FormField({
 				<>
 					<Label htmlFor={id}>
 						{label}
-						{required && (
-							<span className="text-destructive ml-0.5">*</span>
-						)}
+						{required && <span className="text-destructive ml-0.5">*</span>}
 					</Label>
 					{description && (
 						<p className="text-muted-foreground text-xs">{description}</p>
@@ -130,5 +131,5 @@ function FormField({
 	}
 }
 
-export { FormField };
 export type { FormFieldProps };
+export { FormField };

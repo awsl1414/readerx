@@ -6,13 +6,13 @@ import { err, ok } from "./result";
 // Prefer importing validation functions directly from @readerx/schemas in new code.
 export {
 	validateBookSource as validateBookSourceFromSchemas,
-	validateDictRuleFile as validateDictRuleFileFromSchemas,
-	validateReplaceRuleFile as validateReplaceRuleFileFromSchemas,
-	validateTxtTocRuleFile as validateTxtTocRuleFileFromSchemas,
-	validateReplaceRuleData,
-	validateTxtTocRuleData,
-	validateDictRuleData,
 	validateBookSourceData,
+	validateDictRuleData,
+	validateDictRuleFile as validateDictRuleFileFromSchemas,
+	validateReplaceRuleData,
+	validateReplaceRuleFile as validateReplaceRuleFileFromSchemas,
+	validateTxtTocRuleData,
+	validateTxtTocRuleFile as validateTxtTocRuleFileFromSchemas,
 } from "@readerx/schemas";
 
 // ---- Replace Rule Schema ----

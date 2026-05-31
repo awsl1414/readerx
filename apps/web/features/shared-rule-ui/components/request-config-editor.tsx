@@ -1,5 +1,7 @@
 "use client";
 
+import type { RequestConfig } from "@readerx/schemas";
+import { PlusIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,9 +14,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { PlusIcon, TrashIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
-import type { RequestConfig } from "@readerx/schemas";
 
 type RequestConfigEditorProps = {
 	readonly config: RequestConfig;
@@ -118,9 +118,9 @@ function RequestConfigEditor({
 
 			{/* Headers key-value editor */}
 			<HeadersEditor
-			{...(config.headers ? { headers: config.headers } : {})}
-			onChange={updateHeaders}
-			disabled={disabled ?? false}
+				{...(config.headers ? { headers: config.headers } : {})}
+				onChange={updateHeaders}
+				disabled={disabled ?? false}
 			/>
 
 			{/* Body */}
@@ -265,5 +265,5 @@ function HeadersEditor({ headers, onChange, disabled }: HeadersEditorProps) {
 	);
 }
 
-export { RequestConfigEditor };
 export type { RequestConfigEditorProps };
+export { RequestConfigEditor };

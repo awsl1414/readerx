@@ -3,12 +3,15 @@
 import type { ReplaceRuleData, RuleRecord } from "@readerx/schemas";
 import { validateReplaceRuleFile } from "@readerx/schemas";
 import { PlusIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { RuleImportDialog, RuleList } from "@/features/shared-rule-ui";
-import { useReplaceRuleMutations, useReplaceRules } from "./hooks/use-replace-rules";
+import {
+	useReplaceRuleMutations,
+	useReplaceRules,
+} from "./hooks/use-replace-rules";
 import { ReplaceRuleEditor } from "./replace-rule-editor";
 
 function ReplaceRuleListPage() {
@@ -79,7 +82,10 @@ function ReplaceRuleListPage() {
 						if (item.replacementJs) extras.replacementJs = item.replacementJs;
 						if (item.scope) extras.scope = item.scope;
 
-						const data = { pattern: item.pattern, ...extras } as unknown as ReplaceRuleData;
+						const data = {
+							pattern: item.pattern,
+							...extras,
+						} as unknown as ReplaceRuleData;
 
 						return {
 							id: crypto.randomUUID(),
@@ -95,8 +101,9 @@ function ReplaceRuleListPage() {
 					},
 				);
 				importRules.mutate(records, {
-					onSuccess: () => toast.success(t("imported", { count: records.length })),
-					onError: (err) => toast.error(t("importFailed")),
+					onSuccess: () =>
+						toast.success(t("imported", { count: records.length })),
+					onError: (_err) => toast.error(t("importFailed")),
 				});
 				return;
 			}
@@ -135,8 +142,9 @@ function ReplaceRuleListPage() {
 				};
 			});
 			importRules.mutate(records, {
-				onSuccess: () => toast.success(t("imported", { count: records.length })),
-				onError: (err) => toast.error(t("importFailed")),
+				onSuccess: () =>
+					toast.success(t("imported", { count: records.length })),
+				onError: (_err) => toast.error(t("importFailed")),
 			});
 		} catch {
 			toast.error(t("invalidJson"));
@@ -155,7 +163,11 @@ function ReplaceRuleListPage() {
 			<div className="flex items-center justify-between border-b px-4 py-3">
 				<h1 className="text-lg font-semibold">{t("title")}</h1>
 				<div className="flex items-center gap-2">
-					<Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => setImportOpen(true)}
+					>
 						{t("importLabel")}
 					</Button>
 					<Button size="sm" onClick={handleAdd}>

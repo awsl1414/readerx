@@ -1,6 +1,11 @@
 "use client";
 
 import type { SourceModuleType } from "@readerx/schemas";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
 	Select,
 	SelectContent,
@@ -8,11 +13,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useState } from "react";
-import { useTranslations } from "next-intl";
 
 const MODULE_TYPE_KEYS: { key: string; value: SourceModuleType }[] = [
 	{ key: "moduleSearch", value: "search" },
@@ -51,10 +51,10 @@ function RuleTester({ disabled }: RuleTesterProps) {
 						</SelectTrigger>
 						<SelectContent>
 							{MODULE_TYPE_KEYS.map((opt) => (
-									<SelectItem key={opt.value} value={opt.value}>
-										{t(opt.key)}
-									</SelectItem>
-								))}
+								<SelectItem key={opt.value} value={opt.value}>
+									{t(opt.key)}
+								</SelectItem>
+							))}
 						</SelectContent>
 					</Select>
 				</div>

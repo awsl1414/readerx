@@ -1,8 +1,8 @@
 "use client";
 
+import { db, RulesRepository } from "@readerx/persistence";
 import type { RuleRecord } from "@readerx/schemas";
 import { validateReplaceRuleData } from "@readerx/schemas";
-import { db, RulesRepository } from "@readerx/persistence";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const repo = new RulesRepository(db.rules);
@@ -57,4 +57,4 @@ function useReplaceRuleMutations() {
 	return { save, remove, toggleEnabled, importRules };
 }
 
-export { useReplaceRules, useReplaceRuleMutations };
+export { useReplaceRuleMutations, useReplaceRules };

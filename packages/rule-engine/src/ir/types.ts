@@ -6,10 +6,7 @@
  * (a DAG of typed nodes); the executor walks the DAG in dependency order.
  */
 
-import type {
-	RequestConfig,
-	RuleRecord,
-} from "@readerx/schemas";
+import type { RequestConfig, RuleRecord } from "@readerx/schemas";
 
 type ExecutionPlan = {
 	readonly nodes: Readonly<Record<string, ExecutionNode>>;
@@ -47,7 +44,15 @@ type TransformNode = {
 	readonly type: "transform";
 	readonly id: string;
 	readonly depends: readonly string[];
-	readonly action: "replace" | "match" | "split" | "template" | "trim" | "remove" | "unwrap" | "strip";
+	readonly action:
+		| "replace"
+		| "match"
+		| "split"
+		| "template"
+		| "trim"
+		| "remove"
+		| "unwrap"
+		| "strip";
 	readonly params: Readonly<Record<string, unknown>>;
 };
 
@@ -97,15 +102,15 @@ type ExecutionResult = {
 };
 
 export type {
-	ExecutionPlan,
-	ExecutionNode,
-	RequestNode,
-	ExtractNode,
-	TransformNode,
-	ScriptNode,
 	BranchNode,
-	MergeNode,
 	ExecutionContext,
-	RuntimeAPI,
+	ExecutionNode,
+	ExecutionPlan,
 	ExecutionResult,
+	ExtractNode,
+	MergeNode,
+	RequestNode,
+	RuntimeAPI,
+	ScriptNode,
+	TransformNode,
 };

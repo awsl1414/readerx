@@ -1,14 +1,14 @@
 "use client";
 
-import type { SourceModule, RuleExpression } from "@readerx/schemas";
+import type { RuleExpression, SourceModule } from "@readerx/schemas";
+import { PlusIcon, TrashIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RequestConfigEditor } from "@/features/shared-rule-ui";
-import { PlusIcon, TrashIcon } from "lucide-react";
-import { useCallback, useState } from "react";
-import { useTranslations } from "next-intl";
 
 type ModuleEditorProps = {
 	readonly module: SourceModule;
@@ -137,9 +137,7 @@ function ModuleEditor({ module, onChange, disabled }: ModuleEditorProps) {
 					variant="outline"
 					size="sm"
 					className="w-fit text-xs"
-					onClick={() =>
-						onChange({ ...module, request: {} })
-					}
+					onClick={() => onChange({ ...module, request: {} })}
 					disabled={disabled}
 				>
 					<PlusIcon className="size-3.5" />

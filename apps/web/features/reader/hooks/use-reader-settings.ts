@@ -47,7 +47,11 @@ function loadSettings(): ReaderSettings {
 		{},
 		readerSettingsSchema.partial(),
 	);
-	return { ...DEFAULT_SETTINGS, ...stored };
+	// Filter out undefined values to avoid overwriting defaults with undefined
+	const defined = Object.fromEntries(
+		Object.entries(stored).filter(([, v]) => v !== undefined),
+	);
+	return { ...DEFAULT_SETTINGS, ...defined } as ReaderSettings;
 }
 
 function useReaderSettings() {

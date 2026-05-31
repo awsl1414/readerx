@@ -1,23 +1,21 @@
 "use client";
 
-import type { RuleRecord, SourceModule, SourceModuleType, BookSourceData } from "@readerx/schemas";
+import type {
+	BookSourceData,
+	RuleRecord,
+	SourceModule,
+	SourceModuleType,
+} from "@readerx/schemas";
+import { SaveIcon, TrashIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { RequestConfigEditor, TagInput } from "@/features/shared-rule-ui";
-import { SaveIcon, TrashIcon, PlusIcon } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
-import { useTranslations } from "next-intl";
+import { TagInput } from "@/features/shared-rule-ui";
 import { useSourceMutations } from "../hooks/use-source-mutations";
 import { ModuleEditor } from "./module-editor";
 import { ModuleNavigator } from "./module-navigator";
@@ -42,7 +40,9 @@ function SourceEditorPanel({ source, onDeselect }: SourceEditorPanelProps) {
 	const [localTags, setLocalTags] = useState<readonly string[]>([]);
 	const [localEnabled, setLocalEnabled] = useState(true);
 	const [localOrder, setLocalOrder] = useState(0);
-	const [selectedModuleIndex, setSelectedModuleIndex] = useState<number | null>(null);
+	const [selectedModuleIndex, setSelectedModuleIndex] = useState<number | null>(
+		null,
+	);
 
 	// Reset when source changes
 	useEffect(() => {
@@ -52,9 +52,7 @@ function SourceEditorPanel({ source, onDeselect }: SourceEditorPanelProps) {
 			setLocalTags(source.tags);
 			setLocalEnabled(source.enabled);
 			setLocalOrder(source.order);
-			setSelectedModuleIndex(
-				source.data.modules.length > 0 ? 0 : null,
-			);
+			setSelectedModuleIndex(source.data.modules.length > 0 ? 0 : null);
 		} else {
 			setLocalData(null);
 			setLocalName("");
@@ -63,7 +61,15 @@ function SourceEditorPanel({ source, onDeselect }: SourceEditorPanelProps) {
 			setLocalOrder(0);
 			setSelectedModuleIndex(null);
 		}
-	}, [source?.id]); // eslint-disable-line react-hooks/exhaustive-deps -- intentionally use id as trigger
+	}, [
+		source?.id,
+		source?.enabled,
+		source?.tags,
+		source?.data,
+		source?.name,
+		source?.order,
+		source,
+	]); // eslint-disable-line react-hooks/exhaustive-deps -- intentionally use id as trigger
 
 	const selectedModule = useMemo(() => {
 		if (!localData || selectedModuleIndex === null) return null;
@@ -98,9 +104,15 @@ function SourceEditorPanel({ source, onDeselect }: SourceEditorPanelProps) {
 			setLocalData({ ...localData, modules: newModules });
 			if (selectedModuleIndex !== null) {
 				if (selectedModuleIndex >= newModules.length) {
-					setSelectedModuleIndex(newModules.length > 0 ? newModules.length - 1 : null);
+					setSelectedModuleIndex(
+						newModules.length > 0 ? newModules.length - 1 : null,
+					);
 				} else if (selectedModuleIndex === index) {
-					setSelectedModuleIndex(newModules.length > 0 ? Math.min(index, newModules.length - 1) : null);
+					setSelectedModuleIndex(
+						newModules.length > 0
+							? Math.min(index, newModules.length - 1)
+							: null,
+					);
 				}
 			}
 		},
@@ -125,7 +137,16 @@ function SourceEditorPanel({ source, onDeselect }: SourceEditorPanelProps) {
 				toast.success(t("saved"));
 			},
 		});
-	}, [source, localData, localName, localEnabled, localTags, localOrder, save, t]);
+	}, [
+		source,
+		localData,
+		localName,
+		localEnabled,
+		localTags,
+		localOrder,
+		save,
+		t,
+	]);
 
 	const handleDelete = useCallback(() => {
 		if (!source) return;
@@ -153,7 +174,12 @@ function SourceEditorPanel({ source, onDeselect }: SourceEditorPanelProps) {
 					{source.name}
 				</h3>
 				<div className="flex items-center gap-1.5">
-					<Button size="sm" onClick={handleSave} className="text-xs" disabled={save.isPending}>
+					<Button
+						size="sm"
+						onClick={handleSave}
+						className="text-xs"
+						disabled={save.isPending}
+					>
 						<SaveIcon className="size-3.5" />
 						{t("save")}
 					</Button>

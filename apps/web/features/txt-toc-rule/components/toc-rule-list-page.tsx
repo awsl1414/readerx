@@ -3,20 +3,15 @@
 import type { RuleRecord } from "@readerx/schemas";
 import { validateTxtTocRuleFile } from "@readerx/schemas";
 import { FileTextIcon, PlusIcon, SearchIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
-import {
-	RuleImportDialog,
-} from "@/features/shared-rule-ui";
-import {
-	useTocRuleMutations,
-	useTocRules,
-} from "../hooks/use-toc-rules";
+import { RuleImportDialog } from "@/features/shared-rule-ui";
+import { useTocRuleMutations, useTocRules } from "../hooks/use-toc-rules";
 import { TocRuleEditor } from "./toc-rule-editor";
 
 function TocRuleListPage() {
@@ -84,7 +79,7 @@ function TocRuleListPage() {
 			const records: RuleRecord<"txt-toc">[] = validation.value.rules.map(
 				(item, index) => {
 					const data: RuleRecord<"txt-toc">["data"] = {
-					...(item.description ? { description: item.description } : {}),
+						...(item.description ? { description: item.description } : {}),
 						pattern: item.pattern,
 						...(item.flags ? { flags: item.flags } : {}),
 					};
@@ -127,7 +122,11 @@ function TocRuleListPage() {
 			<div className="flex items-center justify-between px-4 py-3">
 				<h1 className="text-foreground text-base font-medium">{t("title")}</h1>
 				<div className="flex items-center gap-2">
-					<Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => setImportOpen(true)}
+					>
 						{t("importLabel")}
 					</Button>
 					<Button size="sm" onClick={handleAdd}>

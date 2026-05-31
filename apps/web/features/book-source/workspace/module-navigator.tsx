@@ -1,16 +1,15 @@
 "use client";
 
 import type { SourceModuleType } from "@readerx/schemas";
+import { PlusIcon, XIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { PlusIcon, XIcon } from "lucide-react";
-import { useTranslations } from "next-intl";
 
 const MODULE_TYPE_KEYS: Record<SourceModuleType, string> = {
 	search: "moduleSearch",
@@ -51,7 +50,10 @@ function ModuleNavigator({
 				const isActive = i === selectedIndex;
 				const label = t(MODULE_TYPE_KEYS[mod.type]);
 				return (
-					<div key={`module-${i}-${mod.type}`} className="relative flex items-center">
+					<div
+						key={`module-${mod.type}`}
+						className="relative flex items-center"
+					>
 						<Button
 							variant={isActive ? "default" : "ghost"}
 							size="sm"
@@ -83,10 +85,7 @@ function ModuleNavigator({
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="start">
 					{ALL_MODULE_TYPES.map((type) => (
-						<DropdownMenuItem
-							key={type}
-							onClick={() => onAdd(type)}
-						>
+						<DropdownMenuItem key={type} onClick={() => onAdd(type)}>
 							{t(MODULE_TYPE_KEYS[type])}
 						</DropdownMenuItem>
 					))}
@@ -96,4 +95,4 @@ function ModuleNavigator({
 	);
 }
 
-export { ModuleNavigator, MODULE_TYPE_KEYS };
+export { MODULE_TYPE_KEYS, ModuleNavigator };

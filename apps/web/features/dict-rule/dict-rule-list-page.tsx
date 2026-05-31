@@ -1,18 +1,23 @@
 "use client";
 
-import type { DictField, DictRuleData, RequestConfig, RuleRecord } from "@readerx/schemas";
+import type {
+	DictField,
+	DictRuleData,
+	RequestConfig,
+	RuleRecord,
+} from "@readerx/schemas";
 import { validateDictRuleFile } from "@readerx/schemas";
 import { BookOpenIcon, PlusIcon, SearchIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { RuleImportDialog } from "@/features/shared-rule-ui";
-import { useDictRuleMutations, useDictRules } from "./hooks/use-dict-rules";
 import { DictRuleEditor } from "./dict-rule-editor";
+import { useDictRuleMutations, useDictRules } from "./hooks/use-dict-rules";
 
 /** Strip undefined values from a parsed request to satisfy exactOptionalPropertyTypes. */
 function cleanRequestConfig(raw: Record<string, unknown>): RequestConfig {
@@ -96,25 +101,31 @@ function DictRuleListPage() {
 			}
 			// Build records from raw JSON to avoid exactOptionalPropertyTypes mismatch
 			const fileObj = parsed as Record<string, unknown>;
-			const rawRules = fileObj["rules"] as Record<string, unknown>[];
+			const rawRules = fileObj.rules as Record<string, unknown>[];
 			const now = new Date().toISOString();
 			const records: RuleRecord<"dict">[] = rawRules.map(
 				(item, index): RuleRecord<"dict"> => {
-					const requestRaw = item["request"] as Record<string, unknown>;
+					const requestRaw = item.request as Record<string, unknown>;
 					const data: DictRuleData = {
 						request: cleanRequestConfig(requestRaw),
-						...(item["description"] ? { description: item["description"] as string } : {}),
-						...(item["weight"] != null ? { weight: item["weight"] as number } : {}),
-						...(item["variables"] ? { variables: item["variables"] as Record<string, string> } : {}),
-						...(item["fields"] ? { fields: item["fields"] as Record<string, DictField> } : {}),
+						...(item.description
+							? { description: item.description as string }
+							: {}),
+						...(item.weight != null ? { weight: item.weight as number } : {}),
+						...(item.variables
+							? { variables: item.variables as Record<string, string> }
+							: {}),
+						...(item.fields
+							? { fields: item.fields as Record<string, DictField> }
+							: {}),
 					};
 
 					return {
 						id: crypto.randomUUID(),
 						type: "dict" as const,
-						name: item["name"] as string,
-						enabled: (item["enabled"] as boolean) ?? true,
-						tags: [...((item["tags"] as string[]) ?? [])],
+						name: item.name as string,
+						enabled: (item.enabled as boolean) ?? true,
+						tags: [...((item.tags as string[]) ?? [])],
 						order: index,
 						createdAt: now,
 						updatedAt: now,
@@ -149,7 +160,11 @@ function DictRuleListPage() {
 			<div className="flex items-center justify-between px-4 py-3">
 				<h1 className="text-foreground text-base font-medium">{t("title")}</h1>
 				<div className="flex items-center gap-2">
-					<Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => setImportOpen(true)}
+					>
 						{t("importLabel")}
 					</Button>
 					<Button size="sm" onClick={handleAdd}>

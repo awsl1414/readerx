@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReplaceScope } from "@readerx/schemas";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -10,7 +11,6 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/cn";
-import type { ReplaceScope } from "@readerx/schemas";
 
 type ScopeEditorLabels = {
 	readonly includeLabel?: string;
@@ -35,7 +35,10 @@ function joinList(items: readonly string[] | undefined): string {
 
 function splitList(value: string): readonly string[] {
 	if (!value.trim()) return [];
-	return value.split(",").map((s) => s.trim()).filter(Boolean);
+	return value
+		.split(",")
+		.map((s) => s.trim())
+		.filter(Boolean);
 }
 
 function ScopeEditor({
@@ -69,7 +72,9 @@ function ScopeEditor({
 	return (
 		<div className={cn("flex flex-col gap-3", className)}>
 			<div className="flex flex-col gap-1.5">
-				<Label htmlFor="scope-include">{labels.includeLabel ?? "Include (comma-separated)"}</Label>
+				<Label htmlFor="scope-include">
+					{labels.includeLabel ?? "Include (comma-separated)"}
+				</Label>
 				<Input
 					id="scope-include"
 					value={joinList(scope.include)}
@@ -80,7 +85,9 @@ function ScopeEditor({
 			</div>
 
 			<div className="flex flex-col gap-1.5">
-				<Label htmlFor="scope-exclude">{labels.excludeLabel ?? "Exclude (comma-separated)"}</Label>
+				<Label htmlFor="scope-exclude">
+					{labels.excludeLabel ?? "Exclude (comma-separated)"}
+				</Label>
 				<Input
 					id="scope-exclude"
 					value={joinList(scope.exclude)}
@@ -113,5 +120,5 @@ function ScopeEditor({
 	);
 }
 
-export { ScopeEditor };
 export type { ScopeEditorProps };
+export { ScopeEditor };

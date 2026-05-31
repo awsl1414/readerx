@@ -41,9 +41,7 @@ const VALID_DICT_RULE_FILE = {
 
 const VALID_TXT_TOC_RULE_FILE = {
 	$schema: "readerx/txt-toc-rule/v1",
-	rules: [
-		{ name: "Chapter", pattern: "^Chapter \\d+" },
-	],
+	rules: [{ name: "Chapter", pattern: "^Chapter \\d+" }],
 };
 
 describe("import module public API", () => {
@@ -277,27 +275,23 @@ describe("import module public API", () => {
 		});
 
 		it("detects Legado book source by bookSourceUrl", () => {
-			expect(
-				tryDetectFormat([{ bookSourceUrl: "https://example.com" }]),
-			).toBe("legado-book-source");
+			expect(tryDetectFormat([{ bookSourceUrl: "https://example.com" }])).toBe(
+				"legado-book-source",
+			);
 		});
 
 		it("detects Legado dict by urlRule", () => {
-			expect(
-				tryDetectFormat([{ urlRule: "https://dict.example.com" }]),
-			).toBe("legado-dict");
+			expect(tryDetectFormat([{ urlRule: "https://dict.example.com" }])).toBe(
+				"legado-dict",
+			);
 		});
 
 		it("detects Legado replace by isRegex", () => {
-			expect(
-				tryDetectFormat([{ isRegex: true }]),
-			).toBe("legado-replace");
+			expect(tryDetectFormat([{ isRegex: true }])).toBe("legado-replace");
 		});
 
 		it("detects Legado txt-toc by serialNumber", () => {
-			expect(
-				tryDetectFormat([{ serialNumber: 1 }]),
-			).toBe("legado-txt-toc");
+			expect(tryDetectFormat([{ serialNumber: 1 }])).toBe("legado-txt-toc");
 		});
 
 		it("returns unknown for string input", () => {

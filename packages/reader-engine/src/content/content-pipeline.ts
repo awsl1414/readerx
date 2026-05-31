@@ -1,5 +1,10 @@
-import type { ContentRule, JsExecutor } from "@readerx/rule-engine";
-import { AnalyzeRule } from "@readerx/rule-engine";
+import type {
+	ContentModule,
+	EvalContext,
+	JsExecutor,
+	Rule,
+} from "@readerx/rule-engine";
+import { evaluateRule } from "@readerx/rule-engine";
 import type { HttpFetcher } from "../contracts/http-fetcher";
 import type { Document } from "../document/nodes";
 import { decodeBody } from "./charset-decoder";
@@ -15,7 +20,7 @@ type PipelineDeps = {
 };
 
 type PipelineConfig = {
-	readonly contentRule: ContentRule;
+	readonly contentModule: ContentModule;
 	readonly url: string;
 	readonly urlOptions?: Record<string, string>;
 	readonly replaceRules?: readonly ReplaceRule[];
@@ -39,26 +44,30 @@ async function fetchAndParse(
 	const decoded = decodeBody(body, detectedCharset);
 
 	// 3. Extract content using rule engine
-	const analyzer = new AnalyzeRule();
-	analyzer.setContent(decoded);
 	const { content, isHtml } = await extractContent(
-		analyzer,
-		config.contentRule,
+		decoded,
+		config.contentModule,
 		deps.jsExecutor,
 	);
 
-	// 4. Parse into Document AST
+	// 4. Extract title if rule is defined
 	let title: string | undefined;
-	if (config.contentRule.title) {
-		const titleResult = await analyzer.getString(config.contentRule.title);
-		title = titleResult.ok ? (titleResult.value ?? undefined) : undefined;
+	const titleRule: Rule | undefined = config.contentModule.rules?.title;
+	if (titleRule && titleRule.length > 0) {
+		const titleCtx: EvalContext = {
+			allowScript: true,
+			...(deps.jsExecutor ? { jsExecutor: deps.jsExecutor } : {}),
+		};
+		const titleResult = await evaluateRule(titleRule, decoded, titleCtx);
+		title = titleResult.ok ? (titleResult.value[0] ?? undefined) : undefined;
 	}
 
+	// 5. Parse into Document AST
 	const doc = isHtml
 		? parseHtmlToDocument(content, title)
 		: parseTextToDocument(content, title);
 
-	// 5. Apply replace rules if provided
+	// 6. Apply replace rules if provided
 	if (config.replaceRules !== undefined && config.replaceRules.length > 0) {
 		const processor = new ContentProcessor();
 		processor.setRules([...config.replaceRules]);

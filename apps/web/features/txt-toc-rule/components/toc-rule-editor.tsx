@@ -1,12 +1,8 @@
 "use client";
 
 import type { RuleRecord, TxtTocRuleData } from "@readerx/schemas";
-import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import {
-	RegexEditor,
-	TagInput,
-} from "@/features/shared-rule-ui";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -20,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { RegexEditor, TagInput } from "@/features/shared-rule-ui";
 
 type TocRuleEditorProps = {
 	readonly rule: RuleRecord<"txt-toc"> | null;
@@ -77,9 +74,7 @@ function TocRuleEditor({
 	// Sync form when dialog opens
 	const handleOpenChange = (isOpen: boolean) => {
 		if (isOpen) {
-			setFormState(
-				rule ?? { ...createDefaultRule(), id: crypto.randomUUID() },
-			);
+			setFormState(rule ?? { ...createDefaultRule(), id: crypto.randomUUID() });
 		}
 		onOpenChange(isOpen);
 	};
@@ -91,7 +86,9 @@ function TocRuleEditor({
 		setFormState((prev) => ({ ...prev, [key]: value }));
 	};
 
-	const updateData = (patch: { pattern: string } | { flags: string } | { description: string }) => {
+	const updateData = (
+		patch: { pattern: string } | { flags: string } | { description: string },
+	) => {
 		setFormState((prev) => ({
 			...prev,
 			data: { ...prev.data, ...patch },
@@ -211,9 +208,7 @@ function TocRuleEditor({
 							id="toc-order"
 							type="number"
 							value={formState.order}
-							onChange={(e) =>
-								updateField("order", Number(e.target.value))
-							}
+							onChange={(e) => updateField("order", Number(e.target.value))}
 							min={0}
 						/>
 					</div>

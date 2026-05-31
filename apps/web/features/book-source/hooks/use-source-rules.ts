@@ -1,6 +1,5 @@
 "use client";
 
-import type { RuleRecord } from "@readerx/schemas";
 import { db, RulesRepository } from "@readerx/persistence";
 import { useQuery } from "@tanstack/react-query";
 
@@ -16,5 +15,4 @@ function useSourceRules() {
 	});
 }
 
-export { useSourceRules };
-export { QUERY_KEY, repo, TYPE };
+export { QUERY_KEY, repo, TYPE, useSourceRules };

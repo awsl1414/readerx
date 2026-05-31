@@ -1,59 +1,25 @@
-import type {
-	AnalyzeRule,
-	ContentRule,
-	JsEvalContext,
-	JsEvalResult,
-	JsExecutor,
-	ParseResult,
-} from "@readerx/rule-engine";
+import type { ContentModule, Rule } from "@readerx/rule-engine";
+import { evaluateRule } from "@readerx/rule-engine";
 import { describe, expect, it, vi } from "vitest";
 import { extractContent } from "../src/content/content-extractor";
 
+// Mock the rule-engine evaluateRule
+vi.mock("@readerx/rule-engine", async (importOriginal) => {
+	const actual = await importOriginal<typeof import("@readerx/rule-engine")>();
+	return {
+		...actual,
+		evaluateRule: vi.fn(),
+	};
+});
+
 // --- Helpers ---
 
-function successResult(value: string): ParseResult {
-	return { ok: true, value, values: [value] };
-}
-
-function failureResult(error: string): ParseResult {
-	return { ok: false, error };
-}
-
-interface MockAnalyzerState {
-	jsExecutorSet: boolean;
-}
-
-/**
- * Create a mock AnalyzeRule that only implements the methods used by
- * extractContent: setJsExecutor and getString.
- */
-function createMockAnalyzer(
-	getStringResult: ParseResult,
-	state?: MockAnalyzerState,
-): AnalyzeRule {
+function makeContentModule(
+	rule: Rule = [{ type: "extract", engine: "css", selector: ".content" }],
+	overrides: Partial<ContentModule> = {},
+): ContentModule {
 	return {
-		setContent: vi.fn(),
-		setJsExecutor: vi.fn((_executor: JsExecutor) => {
-			if (state) {
-				state.jsExecutorSet = true;
-			}
-		}),
-		setEvalContext: vi.fn(),
-		getContent: vi.fn(() => ""),
-		getContentType: vi.fn(() => "html"),
-		getString: vi.fn(async (_rule: string) => getStringResult),
-		getStringList: vi.fn(async (_rule: string) => getStringResult),
-		getElements: vi.fn(async (_rule: string) => getStringResult),
-		getStringSync: vi.fn((_rule: string) => getStringResult),
-		getStringListSync: vi.fn((_rule: string) => getStringResult),
-		getElementsSync: vi.fn((_rule: string) => getStringResult),
-		detectRuleMode: vi.fn(() => "default"),
-	} as unknown as AnalyzeRule;
-}
-
-function makeContentRule(overrides: Partial<ContentRule> = {}): ContentRule {
-	return {
-		content: ".content",
+		rules: { text: rule },
 		...overrides,
 	};
 }
@@ -63,10 +29,12 @@ function makeContentRule(overrides: Partial<ContentRule> = {}): ContentRule {
 describe("extractContent", () => {
 	it("extracts HTML content and detects isHtml=true", async () => {
 		const htmlContent = '<div class="content"><p>Hello world</p></div>';
-		const analyzer = createMockAnalyzer(successResult(htmlContent));
-		const rule = makeContentRule();
+		vi.mocked(evaluateRule).mockResolvedValue({
+			ok: true,
+			value: [htmlContent],
+		});
 
-		const result = await extractContent(analyzer, rule);
+		const result = await extractContent("<html></html>", makeContentModule());
 
 		expect(result.content).toBe(htmlContent);
 		expect(result.isHtml).toBe(true);
@@ -74,106 +42,102 @@ describe("extractContent", () => {
 
 	it("detects plain text as isHtml=false", async () => {
 		const plainText = "Just a plain text paragraph with no tags.";
-		const analyzer = createMockAnalyzer(successResult(plainText));
-		const rule = makeContentRule();
+		vi.mocked(evaluateRule).mockResolvedValue({
+			ok: true,
+			value: [plainText],
+		});
 
-		const result = await extractContent(analyzer, rule);
+		const result = await extractContent("source", makeContentModule());
 
 		expect(result.content).toBe(plainText);
 		expect(result.isHtml).toBe(false);
 	});
 
 	it("returns empty content when rule matches nothing", async () => {
-		const analyzer = createMockAnalyzer(successResult(""));
-		const rule = makeContentRule();
+		vi.mocked(evaluateRule).mockResolvedValue({
+			ok: true,
+			value: [""],
+		});
 
-		const result = await extractContent(analyzer, rule);
+		const result = await extractContent("source", makeContentModule());
 
 		expect(result.content).toBe("");
 		expect(result.isHtml).toBe(false);
 	});
 
 	it("throws when content extraction fails", async () => {
-		const analyzer = createMockAnalyzer(
-			failureResult("CSS selector not found"),
-		);
-		const rule = makeContentRule();
+		vi.mocked(evaluateRule).mockResolvedValue({
+			ok: false,
+			error: { code: "INVALID_SELECTOR", message: "CSS selector not found" },
+		});
 
-		await expect(extractContent(analyzer, rule)).rejects.toThrow(
-			"Content extraction failed: CSS selector not found",
+		await expect(extractContent("source", makeContentModule())).rejects.toThrow(
+			"Content extraction failed",
 		);
 	});
 
-	it("throws with 'unknown' when error is undefined", async () => {
-		const analyzer = createMockAnalyzer(failureResult("unknown"));
-		const rule = makeContentRule();
+	it("throws with error message when extraction fails", async () => {
+		vi.mocked(evaluateRule).mockResolvedValue({
+			ok: false,
+			error: { code: "INVALID_SELECTOR", message: "bad selector" },
+		});
 
-		await expect(extractContent(analyzer, rule)).rejects.toThrow(
-			"Content extraction failed: unknown",
+		await expect(extractContent("source", makeContentModule())).rejects.toThrow(
+			"Content extraction failed",
 		);
 	});
 
 	it("detects HTML from content with any HTML tag", async () => {
 		const contentWithSpan = "Text <span>with span</span> inside";
-		const analyzer = createMockAnalyzer(successResult(contentWithSpan));
-		const rule = makeContentRule();
+		vi.mocked(evaluateRule).mockResolvedValue({
+			ok: true,
+			value: [contentWithSpan],
+		});
 
-		const result = await extractContent(analyzer, rule);
+		const result = await extractContent("source", makeContentModule());
 
 		expect(result.isHtml).toBe(true);
 	});
 
-	it("calls setJsExecutor when jsExecutor is provided", async () => {
-		const state: MockAnalyzerState = { jsExecutorSet: false };
-		const analyzer = createMockAnalyzer(successResult("<p>test</p>"), state);
+	it("joins multiple result values with newlines", async () => {
+		vi.mocked(evaluateRule).mockResolvedValue({
+			ok: true,
+			value: ["<p>para1</p>", "<p>para2</p>"],
+		});
 
-		const mockJsExecutor: JsExecutor = {
-			async eval(
-				_code: string,
-				_context: JsEvalContext,
-			): Promise<JsEvalResult> {
-				return { success: true, value: "js result" };
-			},
-		};
+		const result = await extractContent("source", makeContentModule());
 
-		const rule = makeContentRule();
-		const result = await extractContent(analyzer, rule, mockJsExecutor);
-
-		expect(state.jsExecutorSet).toBe(true);
-		expect(result.content).toBe("<p>test</p>");
+		expect(result.content).toBe("<p>para1</p>\n<p>para2</p>");
+		expect(result.isHtml).toBe(true);
 	});
 
-	it("does not call setJsExecutor when jsExecutor is undefined", async () => {
-		const state: MockAnalyzerState = { jsExecutorSet: false };
-		const analyzer = createMockAnalyzer(successResult("text"), state);
-		const rule = makeContentRule();
+	it("throws when content rule is empty", async () => {
+		const module = makeContentModule([]);
 
-		const result = await extractContent(analyzer, rule);
+		await expect(extractContent("source", module)).rejects.toThrow(
+			"Content rule is empty or not defined",
+		);
+	});
 
-		expect(state.jsExecutorSet).toBe(false);
-		expect(result.content).toBe("text");
+	it("throws when content rule is undefined", async () => {
+		const module: ContentModule = { rules: {} };
+
+		await expect(extractContent("source", module)).rejects.toThrow(
+			"Content rule is empty or not defined",
+		);
 	});
 
 	it("handles content with nested HTML tags", async () => {
 		const nestedHtml =
 			"<div><p><strong>Bold</strong> and <em>italic</em></p></div>";
-		const analyzer = createMockAnalyzer(successResult(nestedHtml));
-		const rule = makeContentRule();
+		vi.mocked(evaluateRule).mockResolvedValue({
+			ok: true,
+			value: [nestedHtml],
+		});
 
-		const result = await extractContent(analyzer, rule);
+		const result = await extractContent("source", makeContentModule());
 
 		expect(result.isHtml).toBe(true);
 		expect(result.content).toBe(nestedHtml);
-	});
-
-	it("passes the content rule string to getString", async () => {
-		const analyzer = createMockAnalyzer(successResult("result"));
-		const rule = makeContentRule({ content: "#main-content" });
-
-		await extractContent(analyzer, rule);
-
-		// Verify getString was called with the rule's content string
-		const mockGetString = analyzer.getString as ReturnType<typeof vi.fn>;
-		expect(mockGetString).toHaveBeenCalledWith("#main-content");
 	});
 });

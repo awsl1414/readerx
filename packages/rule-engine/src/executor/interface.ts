@@ -9,7 +9,10 @@ import type {
 } from "../ir/types";
 
 interface Executor {
-	execute(plan: ExecutionPlan, context: ExecutionContext): Promise<ExecutionResult>;
+	execute(
+		plan: ExecutionPlan,
+		context: ExecutionContext,
+	): Promise<ExecutionResult>;
 }
 
 export type { Executor };

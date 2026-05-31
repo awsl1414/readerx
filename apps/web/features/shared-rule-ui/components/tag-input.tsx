@@ -1,9 +1,9 @@
 "use client";
 
+import { XIcon } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { XIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 type TagInputProps = {
@@ -50,7 +50,7 @@ function TagInput({
 			<div className="border-input bg-transparent flex min-h-8 flex-wrap items-center gap-1 rounded-lg border px-2 py-1">
 				{tags.map((tag, index) => (
 					<span
-						key={`tag-${tag}-${index}`}
+						key={`tag-${tag}`}
 						className="bg-muted text-foreground inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs"
 					>
 						{tag}
@@ -80,5 +80,5 @@ function TagInput({
 	);
 }
 
-export { TagInput };
 export type { TagInputProps };
+export { TagInput };

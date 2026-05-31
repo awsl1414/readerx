@@ -1,11 +1,11 @@
 "use client";
 
 import type { RuleRecord } from "@readerx/schemas";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { SearchIcon } from "lucide-react";
-import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useMemo, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 
 type SourceListPanelProps = {
 	readonly sources: readonly RuleRecord<"book-source">[];
@@ -15,9 +15,7 @@ type SourceListPanelProps = {
 	readonly onImportOpen: () => void;
 };
 
-function getModuleTypes(
-	source: RuleRecord<"book-source">,
-): string[] {
+function getModuleTypes(source: RuleRecord<"book-source">): string[] {
 	return source.data.modules.map((m) => m.type);
 }
 

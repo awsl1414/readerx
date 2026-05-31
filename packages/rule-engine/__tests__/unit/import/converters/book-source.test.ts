@@ -58,25 +58,19 @@ describe("convertLegadoBookSources", () => {
 	});
 
 	it("maps enabled directly", () => {
-		const result = convertLegadoBookSources([
-			makeSource({ enabled: true }),
-		]);
+		const result = convertLegadoBookSources([makeSource({ enabled: true })]);
 
 		expect(result.data[0]?.enabled).toBe(true);
 	});
 
 	it("maps weight directly", () => {
-		const result = convertLegadoBookSources([
-			makeSource({ weight: 100 }),
-		]);
+		const result = convertLegadoBookSources([makeSource({ weight: 100 })]);
 
 		expect(result.data[0]?.weight).toBe(100);
 	});
 
 	it("maps customOrder to order", () => {
-		const result = convertLegadoBookSources([
-			makeSource({ customOrder: 5 }),
-		]);
+		const result = convertLegadoBookSources([makeSource({ customOrder: 5 })]);
 
 		expect(result.data[0]?.order).toBe(5);
 	});
@@ -166,7 +160,9 @@ describe("convertLegadoBookSources", () => {
 
 	it("parses header JSON string to headers object", () => {
 		const result = convertLegadoBookSources([
-			makeSource({ header: '{"User-Agent": "ReaderX", "Accept": "text/html"}' }),
+			makeSource({
+				header: '{"User-Agent": "ReaderX", "Accept": "text/html"}',
+			}),
 		]);
 
 		expect(result.data[0]?.headers).toEqual({
@@ -224,9 +220,9 @@ describe("convertLegadoBookSources", () => {
 			makeSource({ loginUi: '{"fields":[]}' }),
 		]);
 
-		expect(
-			result.warnings.some((w) => w.message.includes("loginUi")),
-		).toBe(true);
+		expect(result.warnings.some((w) => w.message.includes("loginUi"))).toBe(
+			true,
+		);
 	});
 
 	it("adds warning for loginCheckJs", () => {
@@ -244,9 +240,9 @@ describe("convertLegadoBookSources", () => {
 			makeSource({ respondTime: 12345 }),
 		]);
 
-		expect(
-			result.warnings.some((w) => w.message.includes("respondTime")),
-		).toBe(false);
+		expect(result.warnings.some((w) => w.message.includes("respondTime"))).toBe(
+			false,
+		);
 	});
 
 	// ── 7. searchUrl → search.url ────────────────────────────────
@@ -268,17 +264,18 @@ describe("convertLegadoBookSources", () => {
 
 		expect(result.data[0]?.search).toBeUndefined();
 		expect(
-			result.warnings.some((w) => w.message.includes("searchUrl") && w.message.includes("@js:")),
+			result.warnings.some(
+				(w) => w.message.includes("searchUrl") && w.message.includes("@js:"),
+			),
 		).toBe(true);
 	});
 
 	// ── 9. exploreUrl parsing ────────────────────────────────────
 
 	it("parses exploreUrl newline-separated title::url format", () => {
-		const exploreUrl = "Fantasy::https://example.com/explore/fantasy\nSci-Fi::https://example.com/explore/scifi";
-		const result = convertLegadoBookSources([
-			makeSource({ exploreUrl }),
-		]);
+		const exploreUrl =
+			"Fantasy::https://example.com/explore/fantasy\nSci-Fi::https://example.com/explore/scifi";
+		const result = convertLegadoBookSources([makeSource({ exploreUrl })]);
 
 		expect(result.data[0]?.explore?.categories).toEqual([
 			{ title: "Fantasy", url: "https://example.com/explore/fantasy" },
@@ -288,9 +285,7 @@ describe("convertLegadoBookSources", () => {
 
 	it("handles lines without :: as group headings (no url)", () => {
 		const exploreUrl = "Genres\nFantasy::https://example.com/fantasy";
-		const result = convertLegadoBookSources([
-			makeSource({ exploreUrl }),
-		]);
+		const result = convertLegadoBookSources([makeSource({ exploreUrl })]);
 
 		expect(result.data[0]?.explore?.categories).toEqual([
 			{ title: "Genres" },
@@ -300,9 +295,7 @@ describe("convertLegadoBookSources", () => {
 
 	it("skips empty lines in exploreUrl", () => {
 		const exploreUrl = "A::https://a.com\n\nB::https://b.com\n";
-		const result = convertLegadoBookSources([
-			makeSource({ exploreUrl }),
-		]);
+		const result = convertLegadoBookSources([makeSource({ exploreUrl })]);
 
 		expect(result.data[0]?.explore?.categories).toEqual([
 			{ title: "A", url: "https://a.com" },
@@ -344,7 +337,9 @@ describe("convertLegadoBookSources", () => {
 		// coverUrl → cover
 		expect(searchRules?.cover).toBeDefined();
 		// No legacy 'bookUrl' key
-		expect(searchRules?.["bookUrl" as keyof typeof searchRules]).toBeUndefined();
+		expect(
+			searchRules?.["bookUrl" as keyof typeof searchRules],
+		).toBeUndefined();
 	});
 
 	it("maps checkKeyWord directly on search module", () => {
@@ -483,7 +478,7 @@ describe("convertLegadoBookSources", () => {
 	// ── 14. @js: rules → ScriptStep pipeline ─────────────────────
 
 	it("converts @js: rules to ScriptStep pipeline", () => {
-		const result = convertLegadoBookSources([
+		const _result = convertLegadoBookSources([
 			makeSource({
 				ruleSearch: {
 					bookList: "@js:JSON.parse(result).data",
@@ -676,9 +671,7 @@ describe("convertLegadoBookSources", () => {
 	});
 
 	it("defaults id and baseUrl to empty string when bookSourceUrl is missing", () => {
-		const result = convertLegadoBookSources([
-			{ bookSourceName: "NoUrl" },
-		]);
+		const result = convertLegadoBookSources([{ bookSourceName: "NoUrl" }]);
 
 		expect(result.data[0]?.id).toBe("");
 		expect(result.data[0]?.baseUrl).toBe("");

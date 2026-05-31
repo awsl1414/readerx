@@ -6,7 +6,7 @@ import type {
 	JsEvalResult,
 	JsExecutor,
 } from "@readerx/rule-engine";
-import { evaluateRule } from "@readerx/rule-engine";
+import { evaluateRule, toRule } from "@readerx/rule-engine";
 import * as Comlink from "comlink";
 
 // --- Public types ---
@@ -46,6 +46,24 @@ class WorkerUnavailableError extends Error {
 // --- Sandbox option sanitization ---
 
 import { sanitizeFetchOptions } from "./worker-bridge-utils";
+
+// --- Helper: parse raw rule string into Rule ---
+
+const SELECTOR_PREFIX_MAP: Record<string, "css" | "xpath" | "jsonpath"> = {
+	"//": "xpath",
+	$: "jsonpath",
+};
+
+function stringToRule(ruleStr: string) {
+	// Auto-detect engine from prefix; default to CSS
+	for (const [prefix, engine] of Object.entries(SELECTOR_PREFIX_MAP)) {
+		if (ruleStr.startsWith(prefix)) {
+			return toRule({ [engine]: ruleStr });
+		}
+	}
+	// Default: treat as CSS selector
+	return toRule({ css: ruleStr });
+}
 
 // --- WorkerBridge ---
 
@@ -111,13 +129,17 @@ class WorkerBridge {
 			},
 			evalRule: async (rule: string) => {
 				const content = this.#activeContent ?? "";
-				const result = evaluateRule(rule, content);
-				if (result.ok && result.value.length > 0) return result.value[0];
+				const parsed = stringToRule(rule);
+				if (!parsed.ok) return "";
+				const result = await evaluateRule(parsed.value, content);
+				if (result.ok && result.value.length > 0) return result.value[0] ?? "";
 				return "";
 			},
 			evalRuleList: async (rule: string) => {
 				const content = this.#activeContent ?? "";
-				const result = evaluateRule(rule, content);
+				const parsed = stringToRule(rule);
+				if (!parsed.ok) return [];
+				const result = await evaluateRule(parsed.value, content);
 				if (result.ok) return result.value;
 				return [];
 			},
@@ -210,18 +232,32 @@ class WorkerBridge {
 		this.#activeContent = content;
 
 		try {
-			const evalResult = evaluateRule(rule, content, {
-				baseUrl: options?.baseUrl,
+			const parsed = stringToRule(rule);
+			if (!parsed.ok) {
+				return {
+					ok: false,
+					error: { type: "syntax", message: "Failed to parse rule" },
+				};
+			}
+
+			const evalResult = await evaluateRule(parsed.value, content, {
+				...(options?.baseUrl ? { baseUrl: options.baseUrl } : {}),
 				allowScript: true,
 			});
 
 			if (evalResult.ok) {
 				return {
 					ok: true,
-					value: evalResult.value.length > 1 ? evalResult.value : (evalResult.value[0] ?? ""),
+					value:
+						evalResult.value.length > 1
+							? evalResult.value
+							: (evalResult.value[0] ?? ""),
 				};
 			}
-			return { ok: false, error: { type: "runtime", message: evalResult.error.message } };
+			return {
+				ok: false,
+				error: { type: "runtime", message: evalResult.error.message },
+			};
 		} catch (error: unknown) {
 			if (error instanceof DOMException && error.name === "TimeoutError") {
 				return {
@@ -252,10 +288,8 @@ class WorkerBridge {
 				const out: JsEvalResult = {
 					success: result.success,
 					value: result.value ?? null,
+					...(result.error ? { error: result.error } : {}),
 				};
-				if (result.error) {
-					out.error = result.error;
-				}
 				return out;
 			},
 			options?.timeout,

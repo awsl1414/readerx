@@ -1,5 +1,19 @@
 "use client";
 
+import type {
+	DomTransformDef,
+	ExtractStepDef,
+	RuleStepDef,
+	ScriptStepDef,
+	StringTransformDef,
+} from "@readerx/schemas";
+import {
+	ChevronDownIcon,
+	ChevronRightIcon,
+	GripVerticalIcon,
+	PlusIcon,
+	TrashIcon,
+} from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,21 +27,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-	ChevronDownIcon,
-	ChevronRightIcon,
-	GripVerticalIcon,
-	PlusIcon,
-	TrashIcon,
-} from "lucide-react";
 import { cn } from "@/lib/cn";
-import type {
-	DomTransformDef,
-	ExtractStepDef,
-	RuleStepDef,
-	ScriptStepDef,
-	StringTransformDef,
-} from "@readerx/schemas";
 
 type PipelineEditorProps = {
 	readonly steps: readonly RuleStepDef[];
@@ -79,14 +79,31 @@ function getStepSummary(step: RuleStepDef): string {
 		return `${step.action}: ${step.selector}`;
 	}
 	if (step.type === "script") {
-		return step.code.length > 40
-			? `${step.code.slice(0, 40)}...`
-			: step.code;
+		return step.code.length > 40 ? `${step.code.slice(0, 40)}...` : step.code;
 	}
 	return "unknown";
 }
 
-function createDefaultStep(type: "extract" | "transform" | "script"): RuleStepDef {
+/** 基于步骤内容生成稳定的 key（避免使用数组索引） */
+function getStepKey(step: RuleStepDef): string {
+	if (step.type === "extract") {
+		return `${step.type}-${step.engine}-${step.selector}`;
+	}
+	if (step.type === "transform") {
+		if (step.category === "string") {
+			return `${step.type}-${step.category}-${step.action}-${step.pattern ?? ""}`;
+		}
+		return `${step.type}-${step.category}-${step.action}-${step.selector}`;
+	}
+	if (step.type === "script") {
+		return `${step.type}-${step.code}`;
+	}
+	return "unknown";
+}
+
+function createDefaultStep(
+	type: "extract" | "transform" | "script",
+): RuleStepDef {
 	if (type === "extract") {
 		return { type: "extract", engine: "css", selector: "" };
 	}
@@ -132,8 +149,9 @@ function PipelineEditor({
 		if (targetIndex < 0 || targetIndex >= steps.length) return;
 		const next = [...steps];
 		const temp = next[targetIndex];
-		if (temp !== undefined) {
-			next[targetIndex] = next[index]!;
+		const current = next[index];
+		if (temp !== undefined && current !== undefined) {
+			next[targetIndex] = current;
 			next[index] = temp;
 		}
 		onChange(next);
@@ -161,7 +179,7 @@ function PipelineEditor({
 
 			{steps.map((step, index) => (
 				<div
-					key={`step-${index}`}
+					key={`step-${getStepKey(step)}`}
 					className="border-border bg-surface-1 rounded-md border"
 				>
 					{/* Row header */}
@@ -293,10 +311,14 @@ type StepEditorProps = {
 
 function StepEditor({ step, onChange, disabled }: StepEditorProps) {
 	if (step.type === "extract") {
-		return <ExtractEditor step={step} onChange={onChange} disabled={disabled} />;
+		return (
+			<ExtractEditor step={step} onChange={onChange} disabled={disabled} />
+		);
 	}
 	if (step.type === "transform") {
-		return <TransformEditor step={step} onChange={onChange} disabled={disabled} />;
+		return (
+			<TransformEditor step={step} onChange={onChange} disabled={disabled} />
+		);
 	}
 	if (step.type === "script") {
 		return <ScriptEditor step={step} onChange={onChange} disabled={disabled} />;
@@ -360,9 +382,7 @@ function ExtractEditor({ step, onChange, disabled }: ExtractEditorProps) {
 					<Input
 						value={step.output ?? ""}
 						onChange={(e) =>
-							update(
-								e.target.value ? { output: e.target.value } : {},
-							)
+							update(e.target.value ? { output: e.target.value } : {})
 						}
 						placeholder="text"
 						className="font-mono text-xs"
@@ -374,9 +394,7 @@ function ExtractEditor({ step, onChange, disabled }: ExtractEditorProps) {
 					<Input
 						value={step.attr ?? ""}
 						onChange={(e) =>
-							update(
-								e.target.value ? { attr: e.target.value } : {},
-							)
+							update(e.target.value ? { attr: e.target.value } : {})
 						}
 						placeholder="href"
 						className="font-mono text-xs"
@@ -416,9 +434,15 @@ function TransformEditor({ step, onChange, disabled }: TransformEditorProps) {
 
 	const handleActionChange = (v: string) => {
 		if (step.category === "string") {
-			onChange({ ...(step as StringTransformDef), action: v as StringTransformDef["action"] });
+			onChange({
+				...(step as StringTransformDef),
+				action: v as StringTransformDef["action"],
+			});
 		} else {
-			onChange({ ...(step as DomTransformDef), action: v as DomTransformDef["action"] });
+			onChange({
+				...(step as DomTransformDef),
+				action: v as DomTransformDef["action"],
+			});
 		}
 	};
 
@@ -482,7 +506,10 @@ function TransformEditor({ step, onChange, disabled }: TransformEditorProps) {
 					<Input
 						value={(step as DomTransformDef).selector}
 						onChange={(e) =>
-							onChange({ ...(step as DomTransformDef), selector: e.target.value })
+							onChange({
+								...(step as DomTransformDef),
+								selector: e.target.value,
+							})
 						}
 						placeholder=".ad, script"
 						className="font-mono text-xs"
@@ -581,9 +608,7 @@ function StringTransformFields({
 								value={step.group ?? ""}
 								onChange={(e) =>
 									update(
-										e.target.value
-											? { group: Number(e.target.value) }
-											: {},
+										e.target.value ? { group: Number(e.target.value) } : {},
 									)
 								}
 								placeholder="0"
@@ -621,5 +646,5 @@ function ScriptEditor({ step, onChange, disabled }: ScriptEditorProps) {
 	);
 }
 
-export { PipelineEditor };
 export type { PipelineEditorProps };
+export { PipelineEditor };

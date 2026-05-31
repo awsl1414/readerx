@@ -1,5 +1,6 @@
 "use client";
 
+import { UploadIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +12,6 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { UploadIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 type RuleImportDialogLabels = {
@@ -100,9 +100,13 @@ function RuleImportDialog({
 		<Dialog open={open} onOpenChange={handleClose}>
 			<DialogContent className="sm:max-w-lg">
 				<DialogHeader>
-					<DialogTitle>{labels.importLabel ?? "Import"} {ruleType} {labels.importLabel ? "" : "Rules"}</DialogTitle>
+					<DialogTitle>
+						{labels.importLabel ?? "Import"} {ruleType}{" "}
+						{labels.importLabel ? "" : "Rules"}
+					</DialogTitle>
 					<DialogDescription>
-						{labels.descriptionLabel ?? "Paste JSON or upload a file. Format will be auto-detected."}
+						{labels.descriptionLabel ??
+							"Paste JSON or upload a file. Format will be auto-detected."}
 					</DialogDescription>
 				</DialogHeader>
 
@@ -110,7 +114,7 @@ function RuleImportDialog({
 					<Textarea
 						value={rawInput}
 						onChange={(e) => handleTextChange(e.target.value)}
-						placeholder='Paste JSON array or Legado format here...'
+						placeholder="Paste JSON array or Legado format here..."
 						className="min-h-[160px] font-mono text-xs"
 					/>
 
@@ -133,7 +137,8 @@ function RuleImportDialog({
 
 						{previewCount !== null && (
 							<span className={cn("text-xs", "text-muted-foreground")}>
-								{labels.detectedLabel ?? "Detected"} {previewCount} item{previewCount !== 1 ? "s" : ""}
+								{labels.detectedLabel ?? "Detected"} {previewCount} item
+								{previewCount !== 1 ? "s" : ""}
 							</span>
 						)}
 						{parseError && (
@@ -145,18 +150,10 @@ function RuleImportDialog({
 				</div>
 
 				<DialogFooter>
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={handleClose}
-					>
+					<Button variant="outline" size="sm" onClick={handleClose}>
 						{labels.cancelLabel ?? "Cancel"}
 					</Button>
-					<Button
-						size="sm"
-						onClick={handleImport}
-						disabled={!rawInput.trim()}
-					>
+					<Button size="sm" onClick={handleImport} disabled={!rawInput.trim()}>
 						{labels.importLabel ?? "Import"}
 					</Button>
 				</DialogFooter>
@@ -165,5 +162,5 @@ function RuleImportDialog({
 	);
 }
 
-export { RuleImportDialog };
 export type { RuleImportDialogProps };
+export { RuleImportDialog };
