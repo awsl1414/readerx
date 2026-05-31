@@ -1,4 +1,4 @@
-import type { ConversionReport, ConversionResult } from "./types.js";
+import type { ConversionReport, ConversionResult } from "./types";
 
 export function createReport(results: readonly ConversionResult[]): ConversionReport {
 	let convertedRules = 0;

@@ -1,7 +1,7 @@
-import type { DictRule, DictRuleFile, RuleStep, ScriptStep } from "../../types.js";
-import type { ConversionResult, ImportedResult, LegadoDictRule } from "../types.js";
-import { parseLegadoRule } from "../parser.js";
-import { createReport } from "../report.js";
+import type { DictRule, DictRuleFile, RuleStep, ScriptStep } from "../../types";
+import type { ConversionResult, ImportedResult, LegadoDictRule } from "../types";
+import { parseLegadoRule } from "../parser";
+import { createReport } from "../report";
 
 const SCHEMA_ID = "readerx/dict-rule/v1" as const;
 

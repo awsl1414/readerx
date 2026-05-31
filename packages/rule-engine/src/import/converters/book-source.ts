@@ -15,7 +15,7 @@ import type {
 	SearchRules,
 	TocModule,
 	TocRules,
-} from "../../types.js";
+} from "../../types";
 import type {
 	ConversionResult,
 	ImportedResult,
@@ -25,9 +25,9 @@ import type {
 	LegadoRuleContent,
 	LegadoRuleFields,
 	LegadoRuleToc,
-} from "../types.js";
-import { parseLegadoRule } from "../parser.js";
-import { createReport } from "../report.js";
+} from "../types";
+import { parseLegadoRule } from "../parser";
+import { createReport } from "../report";
 
 const SCHEMA_ID = "readerx/book-source-rule/v1" as const;
 

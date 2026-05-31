@@ -15,20 +15,20 @@ export type {
 	ConversionReport,
 	ImportedResult,
 	RuleFormatKind,
-} from "./types.js";
+} from "./types";
 
 // ── ReaderX native imports ────────────────────────────────
 
-import type { ImportError as ImportErrorT } from "./types.js";
-import type { BookSource, DictRuleFile, ReplaceRuleFile, TxtTocRuleFile } from "../types.js";
-import type { Result } from "../result.js";
+import type { ImportError as ImportErrorT } from "./types";
+import type { BookSource, DictRuleFile, ReplaceRuleFile, TxtTocRuleFile } from "../types";
+import type { Result } from "../result";
 
 import {
 	parseBookSource,
 	parseDictRuleFile,
 	parseReplaceRuleFile,
 	parseTxtTocRuleFile,
-} from "../schemas.js";
+} from "../schemas";
 
 /**
  * Import a ReaderX-format BookSource from unknown data.
@@ -105,13 +105,13 @@ export function importTxtTocRuleFile(data: unknown): Result<TxtTocRuleFile, Impo
 import type {
 	ImportedResult as ImportedResultT,
 	RuleFormatKind as RuleFormatKindT,
-} from "./types.js";
+} from "./types";
 
-import { convertLegadoBookSources } from "./converters/book-source.js";
-import { convertLegadoDictRules } from "./converters/dict-rule.js";
-import { convertLegadoReplaceRules } from "./converters/replace-rule.js";
-import { convertLegadoTxtTocRules } from "./converters/txt-toc.js";
-import { createReport } from "./report.js";
+import { convertLegadoBookSources } from "./converters/book-source";
+import { convertLegadoDictRules } from "./converters/dict-rule";
+import { convertLegadoReplaceRules } from "./converters/replace-rule";
+import { convertLegadoTxtTocRules } from "./converters/txt-toc";
+import { createReport } from "./report";
 
 /**
  * Import an array of Legado-format BookSources.

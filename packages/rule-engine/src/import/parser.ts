@@ -1,5 +1,5 @@
-import type { ConversionResult } from "./types.js";
-import type { ExtractStep, RuleStep, StringTransformStep } from "../types.js";
+import type { ConversionResult } from "./types";
+import type { ExtractStep, RuleStep, StringTransformStep } from "../types";
 
 // ── Unsupported Feature Detection ─────────────────────────────
 
