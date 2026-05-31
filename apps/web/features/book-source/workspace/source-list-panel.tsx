@@ -1,10 +1,11 @@
 "use client";
 
 import type { RuleRecord } from "@readerx/schemas";
-import { SearchIcon } from "lucide-react";
+import { BookOpenIcon, SearchIcon, UploadIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 type SourceListPanelProps = {
@@ -24,6 +25,7 @@ function SourceListPanel({
 	isLoading,
 	selectedId,
 	onSelect,
+	onImportOpen,
 }: SourceListPanelProps) {
 	const t = useTranslations("sourceManager");
 	const [searchQuery, setSearchQuery] = useState("");
@@ -61,12 +63,28 @@ function SourceListPanel({
 				</div>
 			</div>
 
-			{/* List */}
+			{/* 列表 / 空状态 */}
 			<div className="flex-1 overflow-y-auto">
 				{filteredSources.length === 0 ? (
-					<div className="p-6 text-center text-sm text-muted-foreground">
-						{searchQuery ? t("noMatchResult") : t("noSources")}
-					</div>
+					searchQuery ? (
+						<div className="p-6 text-center text-sm text-muted-foreground">
+							{t("noMatchResult")}
+						</div>
+					) : (
+						<div className="flex flex-col items-center justify-center gap-4 px-6 py-12 text-center">
+							<div className="flex size-16 items-center justify-center rounded-full bg-surface-2">
+								<BookOpenIcon className="size-8 text-muted-foreground" />
+							</div>
+							<h3 className="text-base font-medium">{t("emptyTitle")}</h3>
+							<p className="text-sm text-muted-foreground">
+								{t("emptyDescription")}
+							</p>
+							<Button variant="outline" size="sm" onClick={onImportOpen}>
+								<UploadIcon className="size-3.5" />
+								{t("emptyImport")}
+							</Button>
+						</div>
+					)
 				) : (
 					filteredSources.map((source) => {
 						const isSelected = source.id === selectedId;

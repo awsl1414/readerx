@@ -383,12 +383,13 @@
 		"requestConfig": "请求配置",
 		"extractFields": "提取字段",
 		"variablesHint": "暂无提取字段。点击\"添加字段\"开始定义。",
-		"variablesEmpty": "暂无变量。在 URL 或字段中通过 {{varName}} 引用。",
+		"variablesEmpty": "暂无变量。在 URL 或字段中通过 '{{varName}}' 引用。",
 		"variableName": "变量名",
 		"variableValue": "变量值",
 		"removeField": "移除字段",
 		"removeVariable": "移除变量",
 		"noUrlConfigured": "未配置 URL",
-		"uploadFileLabel": "上传文件"
+		"uploadFileLabel": "上传文件",
+		"fieldTags": "标签"
 	}
 }

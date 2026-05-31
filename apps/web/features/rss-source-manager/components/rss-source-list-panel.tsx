@@ -41,12 +41,7 @@ function RssSourceListPanel({
 	}
 
 	if (sources.length === 0 && !searchQuery) {
-		return (
-			<RssSourceEmptyState
-				onImport={onImportOpen}
-				onAdd={() => selectSource(null)}
-			/>
-		);
+		return <RssSourceEmptyState onImport={onImportOpen} />;
 	}
 
 	return (
@@ -65,7 +60,7 @@ function RssSourceListPanel({
 					</div>
 					<button
 						type="button"
-						onClick={() => selectSource(null)}
+						onClick={onImportOpen}
 						className="flex size-8 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-surface-2"
 						aria-label={t("addSource")}
 					>
