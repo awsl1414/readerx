@@ -1,7 +1,7 @@
 "use client";
 
-import { ReplaceRulePage } from "@/features/replace-rule-manager";
+import { ReplaceRuleListPage } from "@/features/replace-rule";
 
 export default function ReplaceRulesPage() {
-	return <ReplaceRulePage />;
+	return <ReplaceRuleListPage />;
 }
