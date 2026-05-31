@@ -3,6 +3,7 @@
 import type { ReplaceRuleData, RuleRecord } from "@readerx/schemas";
 import type { ReplaceScope } from "@readerx/schemas";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -111,6 +112,7 @@ function ReplaceRuleEditor({
 	onSave,
 	onDelete,
 }: ReplaceRuleEditorProps) {
+	const t = useTranslations("replaceRules");
 	const isEditing = rule !== null;
 
 	const [formState, setFormState] = useState<FormState>(() =>
@@ -156,10 +158,10 @@ function ReplaceRuleEditor({
 			<DialogContent className="max-h-[85vh] overflow-y-auto">
 				<DialogHeader>
 					<DialogTitle>
-						{isEditing ? "Edit Replace Rule" : "Add Replace Rule"}
+						{isEditing ? t("editTitle") : t("addTitle")}
 					</DialogTitle>
 					<DialogDescription className="sr-only">
-						{isEditing ? "Edit replace rule" : "Create a new replace rule"}
+						{isEditing ? t("editTitle") : t("addTitle")}
 					</DialogDescription>
 				</DialogHeader>
 
@@ -167,7 +169,7 @@ function ReplaceRuleEditor({
 					{/* Name */}
 					<div className="flex flex-col gap-1.5">
 						<Label htmlFor="rr-name">
-							Name
+							{t("fieldName")}
 							<span className="text-destructive ml-0.5">*</span>
 						</Label>
 						<Input
@@ -180,7 +182,7 @@ function ReplaceRuleEditor({
 
 					{/* Description */}
 					<div className="flex flex-col gap-1.5">
-						<Label htmlFor="rr-description">Description</Label>
+						<Label htmlFor="rr-description">{t("fieldDescription")}</Label>
 						<Textarea
 							id="rr-description"
 							value={formState.description}
@@ -196,11 +198,20 @@ function ReplaceRuleEditor({
 						onFlagsChange={(f) => updateField("flags", f)}
 						literal={formState.literal}
 						onLiteralChange={(l) => updateField("literal", l)}
+						labels={{
+							patternLabel: t("fieldPattern"),
+							flagsLabel: t("fieldFlags"),
+							literalLabel: t("fieldLiteral"),
+							testLabel: t("fieldTestInput"),
+							matchLabel: t("fieldTestMatch"),
+							noMatchLabel: t("fieldTestNoMatch"),
+							patternPlaceholder: t("patternPlaceholder"),
+						}}
 					/>
 
 					{/* Replacement */}
 					<div className="flex flex-col gap-1.5">
-						<Label htmlFor="rr-replacement">Replacement</Label>
+						<Label htmlFor="rr-replacement">{t("fieldReplacement")}</Label>
 						<Input
 							id="rr-replacement"
 							value={formState.replacement}
@@ -212,7 +223,7 @@ function ReplaceRuleEditor({
 					{/* Replacement JS */}
 					<div className="flex flex-col gap-1.5">
 						<Label htmlFor="rr-replacement-js">
-							Replacement JS
+							{t("fieldReplacementJs")}
 							<span className="text-muted-foreground ml-1 text-xs">
 								(optional)
 							</span>
@@ -230,6 +241,14 @@ function ReplaceRuleEditor({
 					<ScopeEditor
 						scope={formState.scope}
 						onChange={(s) => updateField("scope", s)}
+						labels={{
+							includeLabel: t("fieldScopeInclude"),
+							excludeLabel: t("fieldScopeExclude"),
+							targetLabel: t("fieldScopeTarget"),
+							targetBoth: t("fieldScopeTargetBoth"),
+							targetContent: t("fieldScopeTargetContent"),
+							targetTitle: t("fieldScopeTargetTitle"),
+						}}
 					/>
 
 					{/* Enabled */}
@@ -243,13 +262,13 @@ function ReplaceRuleEditor({
 							size="sm"
 						/>
 						<Label htmlFor="rr-enabled" className="cursor-pointer">
-							Enabled
+							{t("fieldEnabled")}
 						</Label>
 					</div>
 
 					{/* Order */}
 					<div className="flex flex-col gap-1.5">
-						<Label htmlFor="rr-order">Order</Label>
+						<Label htmlFor="rr-order">{t("fieldOrder")}</Label>
 						<Input
 							id="rr-order"
 							type="number"
@@ -270,7 +289,7 @@ function ReplaceRuleEditor({
 				<DialogFooter>
 					{isEditing && (
 						<Button variant="destructive" size="sm" onClick={handleDelete}>
-							Delete
+							{t("delete")}
 						</Button>
 					)}
 					<div className="flex-1" />
@@ -279,10 +298,10 @@ function ReplaceRuleEditor({
 						size="sm"
 						onClick={() => onOpenChange(false)}
 					>
-						Cancel
+						{t("cancel")}
 					</Button>
 					<Button size="sm" onClick={handleSave} disabled={!formState.name || !formState.pattern}>
-						Save
+						{t("save")}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

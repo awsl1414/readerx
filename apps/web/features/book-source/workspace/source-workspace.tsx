@@ -2,16 +2,17 @@
 
 import type { RuleRecord } from "@readerx/schemas";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { RuleImportDialog } from "@/features/shared-rule-ui";
 import { UploadIcon, ArrowLeftIcon } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useSourceRules } from "../hooks/use-source-rules";
 import { useSourceMutations } from "../hooks/use-source-mutations";
 import { SourceListPanel } from "./source-list-panel";
 import { SourceEditorPanel } from "./source-editor-panel";
 
 function SourceWorkspace() {
+	const t = useTranslations("sourceManager");
 	const { data: sources = [], isLoading } = useSourceRules();
 	const { importRules } = useSourceMutations();
 
@@ -75,7 +76,7 @@ function SourceWorkspace() {
 					{/* Import button */}
 					<div className="flex items-center justify-between border-b border-border px-3 py-2">
 						<span className="text-xs text-muted-foreground">
-							{sources.length} 条规则 · {enabledCount} 已启用
+							{t("stats", { count: sources.length, enabled: enabledCount })}
 						</span>
 						<Button
 							variant="outline"
@@ -84,7 +85,7 @@ function SourceWorkspace() {
 							onClick={() => setImportOpen(true)}
 						>
 							<UploadIcon className="size-3.5" />
-							导入
+							{t("importLabel")}
 						</Button>
 					</div>
 					<SourceListPanel
@@ -128,7 +129,7 @@ function SourceWorkspace() {
 
 			{/* Footer status bar */}
 			<div className="border-t border-border px-4 py-1.5 text-xs text-muted-foreground">
-				{sources.length} 条规则 · {enabledCount} 已启用
+				{t("stats", { count: sources.length, enabled: enabledCount })}
 			</div>
 
 			{/* Import Dialog */}
@@ -137,6 +138,11 @@ function SourceWorkspace() {
 				onOpenChange={setImportOpen}
 				ruleType="book-source"
 				onImport={handleImport}
+				labels={{
+					importLabel: t("importLabel"),
+					cancelLabel: t("importClose"),
+					uploadFileLabel: t("importSelectFile"),
+				}}
 			/>
 		</div>
 	);

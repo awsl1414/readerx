@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RequestConfigEditor } from "@/features/shared-rule-ui";
 import { PlusIcon, TrashIcon } from "lucide-react";
 import { useCallback, useState } from "react";
+import { useTranslations } from "next-intl";
 
 type ModuleEditorProps = {
 	readonly module: SourceModule;
@@ -36,6 +37,7 @@ function stringToExpression(value: string): RuleExpression {
 }
 
 function ModuleEditor({ module, onChange, disabled }: ModuleEditorProps) {
+	const t = useTranslations("sourceManager");
 	const [newRuleKey, setNewRuleKey] = useState("");
 
 	const handleRequestChange = useCallback(
@@ -112,14 +114,14 @@ function ModuleEditor({ module, onChange, disabled }: ModuleEditorProps) {
 					disabled={disabled}
 					className="size-4"
 				/>
-				<Label>启用此模块</Label>
+				<Label>{t("enableModule")}</Label>
 			</div>
 
 			{/* Request Config */}
 			{module.request && (
 				<div className="flex flex-col gap-1.5">
 					<Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-						Request Config
+						{t("requestConfigLabel")}
 					</Label>
 					<div className="rounded-lg border border-border p-3">
 						<RequestConfigEditor
@@ -141,14 +143,14 @@ function ModuleEditor({ module, onChange, disabled }: ModuleEditorProps) {
 					disabled={disabled}
 				>
 					<PlusIcon className="size-3.5" />
-					添加 Request Config
+					{t("addRequestConfig")}
 				</Button>
 			)}
 
 			{/* Rules */}
 			<div className="flex flex-col gap-1.5">
 				<Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-					Rules
+					{t("moduleRules")}
 				</Label>
 				<div className="flex flex-col gap-2">
 					{ruleEntries.map(([key, expr]) => (
@@ -202,7 +204,7 @@ function ModuleEditor({ module, onChange, disabled }: ModuleEditorProps) {
 							className="shrink-0 text-xs"
 						>
 							<PlusIcon className="size-3.5" />
-							添加规则字段
+							{t("addRuleField")}
 						</Button>
 					</div>
 				</div>
@@ -211,7 +213,7 @@ function ModuleEditor({ module, onChange, disabled }: ModuleEditorProps) {
 			{/* nextUrl */}
 			<div className="flex flex-col gap-1.5">
 				<Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-					Next URL
+					{t("fieldNextUrl")}
 				</Label>
 				<Textarea
 					value={expressionToString(module.nextUrl)}

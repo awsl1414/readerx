@@ -2,6 +2,7 @@
 
 import type { DictField, DictRuleData, RequestConfig, RuleRecord, RuleStepDef } from "@readerx/schemas";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -159,6 +160,7 @@ function DictRuleEditor({
 	onSave,
 	onDelete,
 }: DictRuleEditorProps) {
+	const t = useTranslations("dictRules");
 	const isEditing = rule !== null;
 
 	const [formState, setFormState] = useState<FormState>(() =>
@@ -263,10 +265,10 @@ function DictRuleEditor({
 			<DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
 				<DialogHeader>
 					<DialogTitle>
-						{isEditing ? "编辑词典规则" : "添加词典规则"}
+						{isEditing ? t("editTitle") : t("addTitle")}
 					</DialogTitle>
 					<DialogDescription className="sr-only">
-						{isEditing ? "编辑词典规则" : "创建新的词典规则"}
+						{isEditing ? t("editTitle") : t("addTitle")}
 					</DialogDescription>
 				</DialogHeader>
 
@@ -274,7 +276,7 @@ function DictRuleEditor({
 					{/* Name */}
 					<div className="flex flex-col gap-1.5">
 						<Label htmlFor="dr-name">
-							名称
+							{t("fieldName")}
 							<span className="text-destructive ml-0.5">*</span>
 						</Label>
 						<Input
@@ -287,7 +289,7 @@ function DictRuleEditor({
 
 					{/* Description */}
 					<div className="flex flex-col gap-1.5">
-						<Label htmlFor="dr-description">描述</Label>
+						<Label htmlFor="dr-description">{t("fieldDescription")}</Label>
 						<Textarea
 							id="dr-description"
 							value={formState.description}
@@ -297,7 +299,7 @@ function DictRuleEditor({
 
 					{/* Request Config */}
 					<div className="flex flex-col gap-1.5">
-						<Label>请求配置</Label>
+						<Label>{t("requestConfig")}</Label>
 						<RequestConfigEditor
 							config={formState.request}
 							onChange={(config) => updateField("request", config)}
@@ -307,20 +309,20 @@ function DictRuleEditor({
 					{/* Fields Section */}
 					<div className="flex flex-col gap-2">
 						<div className="flex items-center justify-between">
-							<Label>提取字段</Label>
+							<Label>{t("extractFields")}</Label>
 							<Button
 								variant="outline"
 								size="sm"
 								onClick={addFieldEntry}
 							>
 								<PlusIcon className="size-3.5" />
-								添加字段
+								{t("addField")}
 							</Button>
 						</div>
 
 						{formState.fields.length === 0 && (
 							<p className="text-muted-foreground py-2 text-center text-xs">
-								暂无提取字段。点击"添加字段"开始定义。
+								{t("variablesHint")}
 							</p>
 						)}
 
@@ -336,7 +338,7 @@ function DictRuleEditor({
 											onChange={(e) =>
 												updateFieldEntry(index, { name: e.target.value })
 											}
-											placeholder="字段名 (如 definition, phonetic)"
+											placeholder={t("fieldFieldName")}
 											className="font-mono text-xs"
 										/>
 									</div>
@@ -366,7 +368,7 @@ function DictRuleEditor({
 										size="icon-sm"
 										className="text-destructive shrink-0"
 										onClick={() => removeFieldEntry(index)}
-										aria-label="移除字段"
+										aria-label={t("removeField")}
 									>
 										<MinusIcon className="size-3.5" />
 									</Button>
@@ -387,20 +389,20 @@ function DictRuleEditor({
 					{/* Variables Section */}
 					<div className="flex flex-col gap-2">
 						<div className="flex items-center justify-between">
-							<Label>变量</Label>
+							<Label>{t("fieldVariables")}</Label>
 							<Button
 								variant="outline"
 								size="sm"
 								onClick={addVariable}
 							>
 								<PlusIcon className="size-3.5" />
-								添加变量
+								{t("addVariable")}
 							</Button>
 						</div>
 
 						{formState.variables.length === 0 && (
 							<p className="text-muted-foreground py-2 text-center text-xs">
-								暂无变量。在 URL 或字段中通过 {"{{varName}}"} 引用。
+								{t("variablesEmpty")}
 							</p>
 						)}
 
@@ -414,7 +416,7 @@ function DictRuleEditor({
 									onChange={(e) =>
 										updateVariable(index, { key: e.target.value })
 									}
-									placeholder="变量名"
+									placeholder={t("variableName")}
 									className="w-32 font-mono text-xs"
 								/>
 								<Input
@@ -422,7 +424,7 @@ function DictRuleEditor({
 									onChange={(e) =>
 										updateVariable(index, { value: e.target.value })
 									}
-									placeholder="变量值"
+									placeholder={t("variableValue")}
 									className="flex-1 font-mono text-xs"
 								/>
 								<Button
@@ -430,7 +432,7 @@ function DictRuleEditor({
 									size="icon-sm"
 									className="text-destructive shrink-0"
 									onClick={() => removeVariable(index)}
-									aria-label="移除变量"
+									aria-label={t("removeVariable")}
 								>
 									<MinusIcon className="size-3.5" />
 								</Button>
@@ -449,13 +451,13 @@ function DictRuleEditor({
 							size="sm"
 						/>
 						<Label htmlFor="dr-enabled" className="cursor-pointer">
-							启用
+							{t("fieldEnabled")}
 						</Label>
 					</div>
 
 					{/* Weight */}
 					<div className="flex flex-col gap-1.5">
-						<Label htmlFor="dr-weight">权重 (0-100)</Label>
+						<Label htmlFor="dr-weight">{t("fieldWeight")} (0-100)</Label>
 						<Input
 							id="dr-weight"
 							type="number"
@@ -471,15 +473,15 @@ function DictRuleEditor({
 					{/* Tags */}
 					<TagInput
 						tags={[...formState.tags]}
-						onChange={(t) => updateField("tags", t)}
-						placeholder="添加标签..."
+						onChange={(newTags) => updateField("tags", newTags)}
+						placeholder={t("fieldTags")}
 					/>
 				</div>
 
 				<DialogFooter>
 					{isEditing && (
 						<Button variant="destructive" size="sm" onClick={handleDelete}>
-							删除
+							{t("delete")}
 						</Button>
 					)}
 					<div className="flex-1" />
@@ -488,14 +490,14 @@ function DictRuleEditor({
 						size="sm"
 						onClick={() => onOpenChange(false)}
 					>
-						取消
+						{t("cancel")}
 					</Button>
 					<Button
 						size="sm"
 						onClick={handleSave}
 						disabled={!formState.name}
 					>
-						保存
+						{t("save")}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

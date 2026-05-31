@@ -6,6 +6,17 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/cn";
 
+type RegexEditorLabels = {
+	readonly patternLabel?: string;
+	readonly flagsLabel?: string;
+	readonly literalLabel?: string;
+	readonly testLabel?: string;
+	readonly matchLabel?: string;
+	readonly noMatchLabel?: string;
+	readonly patternPlaceholder?: string;
+	readonly literalPlaceholder?: string;
+};
+
 type RegexEditorProps = {
 	readonly pattern: string;
 	readonly onPatternChange: (pattern: string) => void;
@@ -18,6 +29,7 @@ type RegexEditorProps = {
 	readonly showTest?: boolean;
 	readonly className?: string;
 	readonly disabled?: boolean;
+	readonly labels?: RegexEditorLabels;
 };
 
 type TestResult =
@@ -38,6 +50,7 @@ function RegexEditor({
 	showTest = true,
 	className,
 	disabled,
+	labels = {},
 }: RegexEditorProps) {
 	const [internalTest, setInternalTest] = useState("");
 	const testValue = testString ?? internalTest;
@@ -73,14 +86,14 @@ function RegexEditor({
 			{/* Pattern input */}
 			<div className="flex flex-col gap-1.5">
 				<Label htmlFor="regex-pattern">
-					Pattern
+					{labels.patternLabel ?? "Pattern"}
 					<span className="text-destructive ml-0.5">*</span>
 				</Label>
 				<Input
 					id="regex-pattern"
 					value={pattern}
 					onChange={(e) => onPatternChange(e.target.value)}
-					placeholder={literal ? "Literal text..." : "Regex pattern..."}
+					placeholder={literal ? (labels.literalPlaceholder ?? "Literal text...") : (labels.patternPlaceholder ?? "Regex pattern...")}
 					className={cn(!literal && "font-mono text-xs")}
 					disabled={disabled}
 				/>
@@ -90,7 +103,7 @@ function RegexEditor({
 			<div className="flex items-end gap-4">
 				{!literal && onFlagsChange && (
 					<div className="flex flex-col gap-1.5">
-						<Label htmlFor="regex-flags">Flags</Label>
+						<Label htmlFor="regex-flags">{labels.flagsLabel ?? "Flags"}</Label>
 						<Input
 							id="regex-flags"
 							value={flags}
@@ -113,7 +126,7 @@ function RegexEditor({
 							disabled={disabled}
 						/>
 						<Label htmlFor="regex-literal" className="cursor-pointer">
-							Literal
+							{labels.literalLabel ?? "Literal"}
 						</Label>
 					</div>
 				)}
@@ -122,7 +135,7 @@ function RegexEditor({
 			{/* Test area */}
 			{showTest && (
 				<div className="flex flex-col gap-1.5">
-					<Label htmlFor="regex-test">Test</Label>
+					<Label htmlFor="regex-test">{labels.testLabel ?? "Test"}</Label>
 					<Input
 						id="regex-test"
 						value={testValue}
@@ -140,8 +153,8 @@ function RegexEditor({
 							)}
 						>
 							{testResult.status === "match" &&
-								`Match (${testResult.count} result${testResult.count > 1 ? "s" : ""})`}
-							{testResult.status === "no-match" && "No match"}
+								`${labels.matchLabel ?? "Match"} (${testResult.count} result${testResult.count > 1 ? "s" : ""})`}
+							{testResult.status === "no-match" && (labels.noMatchLabel ?? "No match")}
 							{testResult.status === "error" && testResult.message}
 						</p>
 					)}

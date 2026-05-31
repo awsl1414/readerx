@@ -5,6 +5,7 @@ import { validateTxtTocRuleFile } from "@readerx/schemas";
 import { FileTextIcon, PlusIcon, SearchIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -19,6 +20,7 @@ import {
 import { TocRuleEditor } from "./toc-rule-editor";
 
 function TocRuleListPage() {
+	const t = useTranslations("txtRules");
 	const { data: rules = [], isLoading } = useTocRules();
 	const { save, remove, toggleEnabled, importRules } = useTocRuleMutations();
 
@@ -51,7 +53,7 @@ function TocRuleListPage() {
 	const handleSave = (rule: RuleRecord<"txt-toc">) => {
 		save.mutate(rule, {
 			onSuccess: () => {
-				toast.success("已保存");
+				toast.success(t("saved"));
 				setEditRuleId(null);
 			},
 		});
@@ -60,7 +62,7 @@ function TocRuleListPage() {
 	const handleDelete = (id: string) => {
 		remove.mutate(id, {
 			onSuccess: () => {
-				toast.success("已删除");
+				toast.success(t("deleted"));
 				setEditRuleId(null);
 			},
 		});
@@ -75,7 +77,7 @@ function TocRuleListPage() {
 			const parsed: unknown = JSON.parse(raw);
 			const validation = validateTxtTocRuleFile(parsed);
 			if (!validation.ok) {
-				toast.error(`导入失败: ${validation.error.message}`);
+				toast.error(t("importFailed"));
 				return;
 			}
 			const now = new Date().toISOString();
@@ -101,12 +103,12 @@ function TocRuleListPage() {
 			);
 			importRules.mutate(records, {
 				onSuccess: () => {
-					toast.success(`已导入 ${records.length} 条规则`);
+					toast.success(t("imported", { count: records.length }));
 				},
 			});
 		} catch (e) {
 			toast.error(
-				`导入失败: ${e instanceof Error ? e.message : "未知错误"}`,
+				`${t("importFailed")}: ${e instanceof Error ? e.message : ""}`,
 			);
 		}
 	};
@@ -114,7 +116,7 @@ function TocRuleListPage() {
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center py-12">
-				<p className="text-muted-foreground text-sm">加载中...</p>
+				<p className="text-muted-foreground text-sm">{t("loading")}</p>
 			</div>
 		);
 	}
@@ -123,14 +125,14 @@ function TocRuleListPage() {
 		<div className="flex h-full flex-col">
 			{/* Header */}
 			<div className="flex items-center justify-between px-4 py-3">
-				<h1 className="text-foreground text-base font-medium">目录规则</h1>
+				<h1 className="text-foreground text-base font-medium">{t("title")}</h1>
 				<div className="flex items-center gap-2">
 					<Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
-						导入
+						{t("importLabel")}
 					</Button>
 					<Button size="sm" onClick={handleAdd}>
 						<PlusIcon />
-						添加
+						{t("addLabel")}
 					</Button>
 				</div>
 			</div>
@@ -143,7 +145,7 @@ function TocRuleListPage() {
 						<Input
 							value={searchQuery}
 							onChange={(e) => setSearchQuery(e.target.value)}
-							placeholder="搜索规则..."
+							placeholder={t("searchPlaceholder")}
 							className="pl-8"
 						/>
 					</div>
@@ -158,19 +160,19 @@ function TocRuleListPage() {
 							<FileTextIcon className="text-muted-foreground size-6" />
 						</div>
 						<p className="text-foreground mb-1 text-sm font-medium">
-							暂无目录规则
+							{t("emptyTitle")}
 						</p>
 						<p className="text-muted-foreground mb-6 text-xs">
-							添加目录规则以识别 TXT 文件中的章节结构
+							{t("emptyDescription")}
 						</p>
 						<Button size="sm" onClick={handleAdd}>
 							<PlusIcon />
-							添加规则
+							{t("addRule")}
 						</Button>
 					</div>
 				) : filteredRules.length === 0 ? (
 					<div className="flex items-center justify-center py-12">
-						<p className="text-muted-foreground text-sm">未找到匹配的规则</p>
+						<p className="text-muted-foreground text-sm">{t("noRulesFound")}</p>
 					</div>
 				) : (
 					<div className="divide-y divide-border">
@@ -222,6 +224,11 @@ function TocRuleListPage() {
 				onOpenChange={setImportOpen}
 				ruleType="TXT TOC"
 				onImport={handleImport}
+				labels={{
+					importLabel: t("importLabel"),
+					cancelLabel: t("cancel"),
+					uploadFileLabel: t("uploadFileLabel"),
+				}}
 			/>
 		</div>
 	);

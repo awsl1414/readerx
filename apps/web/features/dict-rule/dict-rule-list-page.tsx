@@ -5,6 +5,7 @@ import { validateDictRuleFile } from "@readerx/schemas";
 import { BookOpenIcon, PlusIcon, SearchIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -25,6 +26,7 @@ function cleanRequestConfig(raw: Record<string, unknown>): RequestConfig {
 }
 
 function DictRuleListPage() {
+	const t = useTranslations("dictRules");
 	const { data: rules = [], isLoading } = useDictRules();
 	const { save, remove, toggleEnabled, importRules } = useDictRuleMutations();
 
@@ -58,20 +60,20 @@ function DictRuleListPage() {
 	const handleSave = (rule: RuleRecord<"dict">) => {
 		save.mutate(rule, {
 			onSuccess: () => {
-				toast.success("已保存");
+				toast.success(t("saved"));
 				setEditRuleId(null);
 			},
-			onError: (err) => toast.error(`保存失败: ${err.message}`),
+			onError: (err) => toast.error(`${t("save")} failed: ${err.message}`),
 		});
 	};
 
 	const handleDelete = (id: string) => {
 		remove.mutate(id, {
 			onSuccess: () => {
-				toast.success("已删除");
+				toast.success(t("deleted"));
 				setEditRuleId(null);
 			},
-			onError: (err) => toast.error(`删除失败: ${err.message}`),
+			onError: (err) => toast.error(`${t("delete")} failed: ${err.message}`),
 		});
 	};
 
@@ -79,7 +81,7 @@ function DictRuleListPage() {
 		toggleEnabled.mutate(
 			{ id, enabled },
 			{
-				onError: (err) => toast.error(`切换失败: ${err.message}`),
+				onError: (err) => toast.error(`Toggle failed: ${err.message}`),
 			},
 		);
 	};
@@ -89,7 +91,7 @@ function DictRuleListPage() {
 			const parsed: unknown = JSON.parse(raw);
 			const validation = validateDictRuleFile(parsed);
 			if (!validation.ok) {
-				toast.error(`导入失败: ${validation.error.message}`);
+				toast.error(`${t("importFailed")}: ${validation.error.message}`);
 				return;
 			}
 			// Build records from raw JSON to avoid exactOptionalPropertyTypes mismatch
@@ -122,13 +124,13 @@ function DictRuleListPage() {
 			);
 			importRules.mutate(records, {
 				onSuccess: () => {
-					toast.success(`已导入 ${records.length} 条规则`);
+					toast.success(t("imported", { count: records.length }));
 				},
-				onError: (err) => toast.error(`导入失败: ${err.message}`),
+				onError: (err) => toast.error(`${t("importFailed")}: ${err.message}`),
 			});
 		} catch (e) {
 			toast.error(
-				`导入失败: ${e instanceof Error ? e.message : "未知错误"}`,
+				`${t("importFailed")}: ${e instanceof Error ? e.message : ""}`,
 			);
 		}
 	};
@@ -136,7 +138,7 @@ function DictRuleListPage() {
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center py-12">
-				<p className="text-muted-foreground text-sm">加载中...</p>
+				<p className="text-muted-foreground text-sm">{t("loading")}</p>
 			</div>
 		);
 	}
@@ -145,14 +147,14 @@ function DictRuleListPage() {
 		<div className="flex h-full flex-col">
 			{/* Header */}
 			<div className="flex items-center justify-between px-4 py-3">
-				<h1 className="text-foreground text-base font-medium">词典规则</h1>
+				<h1 className="text-foreground text-base font-medium">{t("title")}</h1>
 				<div className="flex items-center gap-2">
 					<Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
-						导入
+						{t("importLabel")}
 					</Button>
 					<Button size="sm" onClick={handleAdd}>
 						<PlusIcon />
-						添加
+						{t("addLabel")}
 					</Button>
 				</div>
 			</div>
@@ -165,7 +167,7 @@ function DictRuleListPage() {
 						<Input
 							value={searchQuery}
 							onChange={(e) => setSearchQuery(e.target.value)}
-							placeholder="搜索规则..."
+							placeholder={t("searchPlaceholder")}
 							className="pl-8"
 						/>
 					</div>
@@ -180,19 +182,19 @@ function DictRuleListPage() {
 							<BookOpenIcon className="text-muted-foreground size-6" />
 						</div>
 						<p className="text-foreground mb-1 text-sm font-medium">
-							暂无词典规则
+							{t("emptyTitle")}
 						</p>
 						<p className="text-muted-foreground mb-6 text-xs">
-							添加词典规则以查询在线词典并提取释义内容
+							{t("emptyDescription")}
 						</p>
 						<Button size="sm" onClick={handleAdd}>
 							<PlusIcon />
-							添加规则
+							{t("addRule")}
 						</Button>
 					</div>
 				) : filteredRules.length === 0 ? (
 					<div className="flex items-center justify-center py-12">
-						<p className="text-muted-foreground text-sm">未找到匹配的规则</p>
+						<p className="text-muted-foreground text-sm">{t("noRulesFound")}</p>
 					</div>
 				) : (
 					<div className="divide-y divide-border">
@@ -212,7 +214,7 @@ function DictRuleListPage() {
 											{rule.name}
 										</p>
 										<p className="text-muted-foreground truncate font-mono text-xs">
-											{url || "未配置 URL"}
+											{url || t("noUrlConfigured")}
 										</p>
 									</div>
 									<span className="text-muted-foreground shrink-0 text-xs">
@@ -252,6 +254,11 @@ function DictRuleListPage() {
 				onOpenChange={setImportOpen}
 				ruleType="Dict"
 				onImport={handleImport}
+				labels={{
+					importLabel: t("importLabel"),
+					cancelLabel: t("cancel"),
+					uploadFileLabel: t("uploadFileLabel"),
+				}}
 			/>
 		</div>
 	);

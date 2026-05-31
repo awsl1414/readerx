@@ -12,13 +12,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
-const MODULE_TYPE_OPTIONS: { label: string; value: SourceModuleType }[] = [
-	{ label: "Search", value: "search" },
-	{ label: "Explore", value: "explore" },
-	{ label: "Detail", value: "detail" },
-	{ label: "TOC", value: "toc" },
-	{ label: "Content", value: "content" },
+const MODULE_TYPE_KEYS: { key: string; value: SourceModuleType }[] = [
+	{ key: "moduleSearch", value: "search" },
+	{ key: "moduleExplore", value: "explore" },
+	{ key: "moduleDetail", value: "detail" },
+	{ key: "moduleToc", value: "toc" },
+	{ key: "moduleContent", value: "content" },
 ];
 
 type RuleTesterProps = {
@@ -26,6 +27,7 @@ type RuleTesterProps = {
 };
 
 function RuleTester({ disabled }: RuleTesterProps) {
+	const t = useTranslations("sourceManager");
 	const [selectedType, setSelectedType] = useState<SourceModuleType>("search");
 	const [keyword, setKeyword] = useState("");
 	const [url, setUrl] = useState("");
@@ -38,7 +40,7 @@ function RuleTester({ disabled }: RuleTesterProps) {
 
 			<div className="flex flex-col gap-2">
 				<div className="flex flex-col gap-1.5">
-					<Label>模块类型</Label>
+					<Label>{t("fieldType")}</Label>
 					<Select
 						value={selectedType}
 						onValueChange={(v) => setSelectedType(v as SourceModuleType)}
@@ -48,11 +50,11 @@ function RuleTester({ disabled }: RuleTesterProps) {
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
-							{MODULE_TYPE_OPTIONS.map((opt) => (
-								<SelectItem key={opt.value} value={opt.value}>
-									{opt.label}
-								</SelectItem>
-							))}
+							{MODULE_TYPE_KEYS.map((opt) => (
+									<SelectItem key={opt.value} value={opt.value}>
+										{t(opt.key)}
+									</SelectItem>
+								))}
 						</SelectContent>
 					</Select>
 				</div>
@@ -80,11 +82,11 @@ function RuleTester({ disabled }: RuleTesterProps) {
 				</div>
 
 				<Button disabled className="w-fit text-xs">
-					运行测试
+					{t("testRun")}
 				</Button>
 
 				<p className="text-xs text-muted-foreground">
-					运行时尚未实现
+					{t("testNotImplemented")}
 				</p>
 			</div>
 		</div>

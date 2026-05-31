@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { SearchIcon } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 
 type SourceListPanelProps = {
 	readonly sources: readonly RuleRecord<"book-source">[];
@@ -12,13 +13,6 @@ type SourceListPanelProps = {
 	readonly selectedId: string | null;
 	readonly onSelect: (id: string) => void;
 	readonly onImportOpen: () => void;
-};
-
-const TYPE_LABELS: Record<string, string> = {
-	novel: "小说",
-	audio: "音频",
-	comic: "漫画",
-	file: "文件",
 };
 
 function getModuleTypes(
@@ -33,6 +27,7 @@ function SourceListPanel({
 	selectedId,
 	onSelect,
 }: SourceListPanelProps) {
+	const t = useTranslations("sourceManager");
 	const [searchQuery, setSearchQuery] = useState("");
 
 	const filteredSources = useMemo(() => {
@@ -48,7 +43,7 @@ function SourceListPanel({
 	if (isLoading) {
 		return (
 			<div className="flex h-full items-center justify-center p-6 text-sm text-muted-foreground">
-				加载中...
+				{t("loading")}
 			</div>
 		);
 	}
@@ -62,7 +57,7 @@ function SourceListPanel({
 					<Input
 						value={searchQuery}
 						onChange={(e) => setSearchQuery(e.target.value)}
-						placeholder="搜索书源..."
+						placeholder={t("searchPlaceholder")}
 						className="h-8 pl-8 text-xs"
 					/>
 				</div>
@@ -72,7 +67,7 @@ function SourceListPanel({
 			<div className="flex-1 overflow-y-auto">
 				{filteredSources.length === 0 ? (
 					<div className="p-6 text-center text-sm text-muted-foreground">
-						{searchQuery ? "无匹配结果" : "暂无书源，点击导入"}
+						{searchQuery ? t("noMatchResult") : t("noSources")}
 					</div>
 				) : (
 					filteredSources.map((source) => {
@@ -101,7 +96,7 @@ function SourceListPanel({
 											variant={source.enabled ? "default" : "outline"}
 											className="text-[10px] px-1.5 py-0"
 										>
-											{source.enabled ? "启用" : "停用"}
+											{source.enabled ? t("enabled") : t("disabled")}
 										</Badge>
 									</div>
 								</div>

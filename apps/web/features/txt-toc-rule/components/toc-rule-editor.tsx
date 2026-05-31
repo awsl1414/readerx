@@ -2,6 +2,7 @@
 
 import type { RuleRecord, TxtTocRuleData } from "@readerx/schemas";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
 	RegexEditor,
 	TagInput,
@@ -61,6 +62,7 @@ function TocRuleEditor({
 	onSave,
 	onDelete,
 }: TocRuleEditorProps) {
+	const t = useTranslations("txtRules");
 	const isEditing = rule !== null;
 
 	const [formState, setFormState] = useState<RuleRecord<"txt-toc">>(
@@ -119,10 +121,10 @@ function TocRuleEditor({
 			<DialogContent className="max-h-[85vh] overflow-y-auto">
 				<DialogHeader>
 					<DialogTitle>
-						{isEditing ? "编辑目录规则" : "添加目录规则"}
+						{isEditing ? t("editTitle") : t("addTitle")}
 					</DialogTitle>
 					<DialogDescription className="sr-only">
-						{isEditing ? "编辑目录规则" : "添加目录规则"}
+						{isEditing ? t("editTitle") : t("addTitle")}
 					</DialogDescription>
 				</DialogHeader>
 
@@ -130,7 +132,7 @@ function TocRuleEditor({
 					{/* Name */}
 					<div className="flex flex-col gap-1.5">
 						<Label htmlFor="toc-name">
-							名称
+							{t("fieldName")}
 							<span className="text-destructive ml-0.5">*</span>
 						</Label>
 						<Input
@@ -143,7 +145,7 @@ function TocRuleEditor({
 
 					{/* Description */}
 					<div className="flex flex-col gap-1.5">
-						<Label htmlFor="toc-description">描述</Label>
+						<Label htmlFor="toc-description">{t("fieldDescription")}</Label>
 						<Textarea
 							id="toc-description"
 							value={formState.data.description ?? ""}
@@ -177,6 +179,14 @@ function TocRuleEditor({
 							}
 						}}
 						showTest
+						labels={{
+							patternLabel: t("fieldRule"),
+							flagsLabel: t("fieldFlags"),
+							testLabel: t("fieldTestInput"),
+							matchLabel: t("fieldTestMatch"),
+							noMatchLabel: t("fieldTestNoMatch"),
+							patternPlaceholder: t("patternPlaceholder"),
+						}}
 					/>
 
 					{/* Enabled */}
@@ -190,13 +200,13 @@ function TocRuleEditor({
 							size="sm"
 						/>
 						<Label htmlFor="toc-enabled" className="cursor-pointer">
-							启用
+							{t("fieldEnabled")}
 						</Label>
 					</div>
 
 					{/* Order */}
 					<div className="flex flex-col gap-1.5">
-						<Label htmlFor="toc-order">排序</Label>
+						<Label htmlFor="toc-order">{t("fieldOrder")}</Label>
 						<Input
 							id="toc-order"
 							type="number"
@@ -212,14 +222,14 @@ function TocRuleEditor({
 					<TagInput
 						tags={[...formState.tags]}
 						onChange={(tags) => updateField("tags", tags)}
-						placeholder="添加标签..."
+						placeholder="Add tags..."
 					/>
 				</div>
 
 				<DialogFooter>
 					{isEditing && (
 						<Button variant="destructive" size="sm" onClick={handleDelete}>
-							删除
+							{t("delete")}
 						</Button>
 					)}
 					<div className="flex-1" />
@@ -228,10 +238,10 @@ function TocRuleEditor({
 						size="sm"
 						onClick={() => onOpenChange(false)}
 					>
-						取消
+						{t("cancel")}
 					</Button>
 					<Button size="sm" onClick={handleSave}>
-						保存
+						{t("save")}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

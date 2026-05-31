@@ -17,6 +17,7 @@ import { RequestConfigEditor, TagInput } from "@/features/shared-rule-ui";
 import { SaveIcon, TrashIcon, PlusIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { useSourceMutations } from "../hooks/use-source-mutations";
 import { ModuleEditor } from "./module-editor";
 import { ModuleNavigator } from "./module-navigator";
@@ -32,6 +33,7 @@ function createEmptyModule(type: SourceModuleType): SourceModule {
 }
 
 function SourceEditorPanel({ source, onDeselect }: SourceEditorPanelProps) {
+	const t = useTranslations("sourceManager");
 	const { save, remove } = useSourceMutations();
 
 	// Local editing state
@@ -120,25 +122,25 @@ function SourceEditorPanel({ source, onDeselect }: SourceEditorPanelProps) {
 		};
 		save.mutate(updated, {
 			onSuccess: () => {
-				toast.success("保存成功");
+				toast.success(t("saved"));
 			},
 		});
-	}, [source, localData, localName, localEnabled, localTags, localOrder, save]);
+	}, [source, localData, localName, localEnabled, localTags, localOrder, save, t]);
 
 	const handleDelete = useCallback(() => {
 		if (!source) return;
 		remove.mutate(source.id, {
 			onSuccess: () => {
-				toast.success("已删除");
+				toast.success(t("deleted"));
 				onDeselect();
 			},
 		});
-	}, [source, remove, onDeselect]);
+	}, [source, remove, onDeselect, t]);
 
 	if (!source || !localData) {
 		return (
 			<div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-				请选择书源
+				{t("noSourceSelected")}
 			</div>
 		);
 	}
@@ -153,7 +155,7 @@ function SourceEditorPanel({ source, onDeselect }: SourceEditorPanelProps) {
 				<div className="flex items-center gap-1.5">
 					<Button size="sm" onClick={handleSave} className="text-xs" disabled={save.isPending}>
 						<SaveIcon className="size-3.5" />
-						保存
+						{t("save")}
 					</Button>
 					<Button
 						variant="destructive"
@@ -172,30 +174,30 @@ function SourceEditorPanel({ source, onDeselect }: SourceEditorPanelProps) {
 				{/* Basic Info Section */}
 				<div className="p-4">
 					<h4 className="mb-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-						基本信息
+						{t("basicInfo")}
 					</h4>
 					<div className="flex flex-col gap-3">
 						<div className="flex flex-col gap-1.5">
-							<Label htmlFor="bs-name">名称</Label>
+							<Label htmlFor="bs-name">{t("fieldName")}</Label>
 							<Input
 								id="bs-name"
 								value={localName}
 								onChange={(e) => setLocalName(e.target.value)}
-								placeholder="书源名称"
+								placeholder={t("fieldName")}
 							/>
 						</div>
 
 						<div className="flex flex-col gap-1.5">
-							<Label>标签</Label>
+							<Label>{t("fieldTags")}</Label>
 							<TagInput
 								tags={localTags}
 								onChange={setLocalTags}
-								placeholder="添加标签..."
+								placeholder={t("fieldTags")}
 							/>
 						</div>
 
 						<div className="flex flex-col gap-1.5">
-							<Label htmlFor="bs-baseurl">Base URL</Label>
+							<Label htmlFor="bs-baseurl">{t("fieldBaseUrl")}</Label>
 							<Input
 								id="bs-baseurl"
 								value={localData.baseUrl}
@@ -207,7 +209,7 @@ function SourceEditorPanel({ source, onDeselect }: SourceEditorPanelProps) {
 						</div>
 
 						<div className="flex flex-col gap-1.5">
-							<Label htmlFor="bs-urlpattern">URL Pattern</Label>
+							<Label htmlFor="bs-urlpattern">{t("fieldUrlPattern")}</Label>
 							<Input
 								id="bs-urlpattern"
 								value={localData.urlPattern ?? ""}
@@ -226,7 +228,7 @@ function SourceEditorPanel({ source, onDeselect }: SourceEditorPanelProps) {
 
 						<div className="grid grid-cols-3 gap-2">
 							<div className="flex flex-col gap-1.5">
-								<Label htmlFor="bs-weight">权重</Label>
+								<Label htmlFor="bs-weight">{t("fieldWeight")}</Label>
 								<Input
 									id="bs-weight"
 									type="number"
@@ -240,7 +242,7 @@ function SourceEditorPanel({ source, onDeselect }: SourceEditorPanelProps) {
 								/>
 							</div>
 							<div className="flex flex-col gap-1.5">
-								<Label htmlFor="bs-ratelimit">频率限制</Label>
+								<Label htmlFor="bs-ratelimit">{t("fieldRateLimit")}</Label>
 								<Input
 									id="bs-ratelimit"
 									type="number"
@@ -258,7 +260,7 @@ function SourceEditorPanel({ source, onDeselect }: SourceEditorPanelProps) {
 								/>
 							</div>
 							<div className="flex flex-col gap-1.5">
-								<Label>启用</Label>
+								<Label>{t("fieldEnabled")}</Label>
 								<div className="flex items-center h-9">
 									<input
 										type="checkbox"
@@ -272,7 +274,7 @@ function SourceEditorPanel({ source, onDeselect }: SourceEditorPanelProps) {
 
 						{localData.headers && (
 							<div className="flex flex-col gap-1.5">
-								<Label>Headers</Label>
+								<Label>{t("fieldHeader")}</Label>
 								<div className="rounded-lg border border-border p-3">
 									<pre className="text-xs font-mono">
 										{JSON.stringify(localData.headers, null, 2)}
@@ -282,7 +284,7 @@ function SourceEditorPanel({ source, onDeselect }: SourceEditorPanelProps) {
 						)}
 
 						<div className="flex flex-col gap-1.5">
-							<Label htmlFor="bs-loginurl">Login URL</Label>
+							<Label htmlFor="bs-loginurl">{t("fieldLoginUrl")}</Label>
 							<Input
 								id="bs-loginurl"
 								value={localData.loginUrl ?? ""}
@@ -300,7 +302,7 @@ function SourceEditorPanel({ source, onDeselect }: SourceEditorPanelProps) {
 						</div>
 
 						<div className="flex flex-col gap-1.5">
-							<Label htmlFor="bs-description">描述</Label>
+							<Label htmlFor="bs-description">{t("fieldDescription")}</Label>
 							<Input
 								id="bs-description"
 								value={localData.description ?? ""}
@@ -313,7 +315,7 @@ function SourceEditorPanel({ source, onDeselect }: SourceEditorPanelProps) {
 										setLocalData(rest as BookSourceData);
 									}
 								}}
-								placeholder="书源描述"
+								placeholder={t("fieldDescription")}
 							/>
 						</div>
 					</div>
@@ -325,10 +327,10 @@ function SourceEditorPanel({ source, onDeselect }: SourceEditorPanelProps) {
 				<div>
 					<div className="flex items-center justify-between px-4 pt-3 pb-1">
 						<h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-							模块
+							{t("modules")}
 						</h4>
 						<Badge variant="secondary" className="text-[10px]">
-							{localData.modules.length} 个模块
+							{t("moduleCount", { count: localData.modules.length })}
 						</Badge>
 					</div>
 
@@ -347,7 +349,7 @@ function SourceEditorPanel({ source, onDeselect }: SourceEditorPanelProps) {
 						/>
 					) : (
 						<div className="p-6 text-center text-sm text-muted-foreground">
-							选择或添加模块以编辑
+							{t("selectOrAddModule")}
 						</div>
 					)}
 				</div>

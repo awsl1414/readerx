@@ -10,13 +10,14 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { PlusIcon, XIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
-const MODULE_TYPE_LABELS: Record<SourceModuleType, string> = {
-	search: "Search",
-	explore: "Explore",
-	detail: "Detail",
-	toc: "TOC",
-	content: "Content",
+const MODULE_TYPE_KEYS: Record<SourceModuleType, string> = {
+	search: "moduleSearch",
+	explore: "moduleExplore",
+	detail: "moduleDetail",
+	toc: "moduleToc",
+	content: "moduleContent",
 };
 
 const ALL_MODULE_TYPES: SourceModuleType[] = [
@@ -42,10 +43,13 @@ function ModuleNavigator({
 	onAdd,
 	onRemove,
 }: ModuleNavigatorProps) {
+	const t = useTranslations("sourceManager");
+
 	return (
 		<div className="flex items-center gap-1 overflow-x-auto border-b border-border px-3 py-2">
 			{modules.map((mod, i) => {
 				const isActive = i === selectedIndex;
+				const label = t(MODULE_TYPE_KEYS[mod.type]);
 				return (
 					<div key={`module-${i}-${mod.type}`} className="relative flex items-center">
 						<Button
@@ -54,7 +58,7 @@ function ModuleNavigator({
 							className="h-7 text-xs gap-1 px-2"
 							onClick={() => onSelect(i)}
 						>
-							{MODULE_TYPE_LABELS[mod.type]}
+							{label}
 						</Button>
 						<button
 							type="button"
@@ -63,7 +67,7 @@ function ModuleNavigator({
 								e.stopPropagation();
 								onRemove(i);
 							}}
-							aria-label={`Remove ${MODULE_TYPE_LABELS[mod.type]} module`}
+							aria-label={t("removeModule")}
 						>
 							<XIcon className="size-2.5" />
 						</button>
@@ -83,7 +87,7 @@ function ModuleNavigator({
 							key={type}
 							onClick={() => onAdd(type)}
 						>
-							{MODULE_TYPE_LABELS[type]}
+							{t(MODULE_TYPE_KEYS[type])}
 						</DropdownMenuItem>
 					))}
 				</DropdownMenuContent>
@@ -92,4 +96,4 @@ function ModuleNavigator({
 	);
 }
 
-export { ModuleNavigator, MODULE_TYPE_LABELS };
+export { ModuleNavigator, MODULE_TYPE_KEYS };

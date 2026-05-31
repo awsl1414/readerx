@@ -12,18 +12,22 @@ import {
 import { cn } from "@/lib/cn";
 import type { ReplaceScope } from "@readerx/schemas";
 
+type ScopeEditorLabels = {
+	readonly includeLabel?: string;
+	readonly excludeLabel?: string;
+	readonly targetLabel?: string;
+	readonly targetBoth?: string;
+	readonly targetContent?: string;
+	readonly targetTitle?: string;
+};
+
 type ScopeEditorProps = {
 	readonly scope: ReplaceScope;
 	readonly onChange: (scope: ReplaceScope) => void;
 	readonly className?: string;
 	readonly disabled?: boolean;
+	readonly labels?: ScopeEditorLabels;
 };
-
-const TARGET_OPTIONS = [
-	{ label: "Both", value: "both" },
-	{ label: "Content", value: "content" },
-	{ label: "Title", value: "title" },
-] as const;
 
 function joinList(items: readonly string[] | undefined): string {
 	return items?.join(", ") ?? "";
@@ -39,7 +43,14 @@ function ScopeEditor({
 	onChange,
 	className,
 	disabled,
+	labels = {},
 }: ScopeEditorProps) {
+	const targetOptions = [
+		{ label: labels.targetBoth ?? "Both", value: "both" },
+		{ label: labels.targetContent ?? "Content", value: "content" },
+		{ label: labels.targetTitle ?? "Title", value: "title" },
+	] as const;
+
 	const handleIncludeChange = (value: string) => {
 		const include = splitList(value);
 		onChange({ ...scope, include });
@@ -58,7 +69,7 @@ function ScopeEditor({
 	return (
 		<div className={cn("flex flex-col gap-3", className)}>
 			<div className="flex flex-col gap-1.5">
-				<Label htmlFor="scope-include">Include (comma-separated)</Label>
+				<Label htmlFor="scope-include">{labels.includeLabel ?? "Include (comma-separated)"}</Label>
 				<Input
 					id="scope-include"
 					value={joinList(scope.include)}
@@ -69,7 +80,7 @@ function ScopeEditor({
 			</div>
 
 			<div className="flex flex-col gap-1.5">
-				<Label htmlFor="scope-exclude">Exclude (comma-separated)</Label>
+				<Label htmlFor="scope-exclude">{labels.excludeLabel ?? "Exclude (comma-separated)"}</Label>
 				<Input
 					id="scope-exclude"
 					value={joinList(scope.exclude)}
@@ -80,7 +91,7 @@ function ScopeEditor({
 			</div>
 
 			<div className="flex flex-col gap-1.5">
-				<Label htmlFor="scope-target">Target</Label>
+				<Label htmlFor="scope-target">{labels.targetLabel ?? "Target"}</Label>
 				<Select
 					value={scope.target ?? "both"}
 					onValueChange={handleTargetChange}
@@ -90,7 +101,7 @@ function ScopeEditor({
 						<SelectValue />
 					</SelectTrigger>
 					<SelectContent>
-						{TARGET_OPTIONS.map((opt) => (
+						{targetOptions.map((opt) => (
 							<SelectItem key={opt.value} value={opt.value}>
 								{opt.label}
 							</SelectItem>

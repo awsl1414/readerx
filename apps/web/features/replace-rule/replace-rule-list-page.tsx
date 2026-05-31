@@ -5,12 +5,14 @@ import { validateReplaceRuleFile } from "@readerx/schemas";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { RuleImportDialog, RuleList } from "@/features/shared-rule-ui";
 import { useReplaceRuleMutations, useReplaceRules } from "./hooks/use-replace-rules";
 import { ReplaceRuleEditor } from "./replace-rule-editor";
 
 function ReplaceRuleListPage() {
+	const t = useTranslations("replaceRules");
 	const { data: rules = [], isLoading } = useReplaceRules();
 	const { save, remove, toggleEnabled, importRules } =
 		useReplaceRuleMutations();
@@ -36,14 +38,14 @@ function ReplaceRuleListPage() {
 
 	const handleSave = (rule: RuleRecord<"replace">) => {
 		save.mutate(rule, {
-			onSuccess: () => toast.success("Rule saved"),
+			onSuccess: () => toast.success(t("saved")),
 			onError: (err) => toast.error(`Save failed: ${err.message}`),
 		});
 	};
 
 	const handleDelete = (id: string) => {
 		remove.mutate(id, {
-			onSuccess: () => toast.success("Rule deleted"),
+			onSuccess: () => toast.success(t("deleted")),
 			onError: (err) => toast.error(`Delete failed: ${err.message}`),
 		});
 	};
@@ -93,8 +95,8 @@ function ReplaceRuleListPage() {
 					},
 				);
 				importRules.mutate(records, {
-					onSuccess: () => toast.success(`Imported ${records.length} rules`),
-					onError: (err) => toast.error(`Import failed: ${err.message}`),
+					onSuccess: () => toast.success(t("imported", { count: records.length })),
+					onError: (err) => toast.error(t("importFailed")),
 				});
 				return;
 			}
@@ -133,11 +135,11 @@ function ReplaceRuleListPage() {
 				};
 			});
 			importRules.mutate(records, {
-				onSuccess: () => toast.success(`Imported ${records.length} rules`),
-				onError: (err) => toast.error(`Import failed: ${err.message}`),
+				onSuccess: () => toast.success(t("imported", { count: records.length })),
+				onError: (err) => toast.error(t("importFailed")),
 			});
 		} catch {
-			toast.error("Invalid JSON format");
+			toast.error(t("invalidJson"));
 		}
 	};
 
@@ -151,14 +153,14 @@ function ReplaceRuleListPage() {
 		<div className="flex h-full flex-col">
 			{/* Header */}
 			<div className="flex items-center justify-between border-b px-4 py-3">
-				<h1 className="text-lg font-semibold">Replace Rules</h1>
+				<h1 className="text-lg font-semibold">{t("title")}</h1>
 				<div className="flex items-center gap-2">
 					<Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
-						Import
+						{t("importLabel")}
 					</Button>
 					<Button size="sm" onClick={handleAdd}>
 						<PlusIcon className="size-3.5" />
-						Add
+						{t("addLabel")}
 					</Button>
 				</div>
 			</div>
@@ -170,7 +172,7 @@ function ReplaceRuleListPage() {
 				onEdit={handleEdit}
 				onToggle={handleToggle}
 				onBatchDelete={handleBatchDelete}
-				emptyMessage="No replace rules. Click + Add to create one."
+				emptyMessage={t("emptyMessage")}
 			/>
 
 			{/* Editor Dialog */}
@@ -188,6 +190,11 @@ function ReplaceRuleListPage() {
 				onOpenChange={setImportOpen}
 				ruleType="Replace"
 				onImport={handleImport}
+				labels={{
+					importLabel: t("importLabel"),
+					cancelLabel: t("cancel"),
+					uploadFileLabel: t("uploadFileLabel"),
+				}}
 			/>
 		</div>
 	);

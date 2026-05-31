@@ -14,12 +14,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { UploadIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
 
+type RuleImportDialogLabels = {
+	readonly cancelLabel?: string;
+	readonly importLabel?: string;
+	readonly uploadFileLabel?: string;
+	readonly detectedLabel?: string;
+	readonly descriptionLabel?: string;
+};
+
 type RuleImportDialogProps = {
 	readonly open: boolean;
 	readonly onOpenChange: (open: boolean) => void;
 	readonly ruleType: string;
 	readonly onImport: (raw: string) => void;
 	readonly className?: string;
+	readonly labels?: RuleImportDialogLabels;
 };
 
 function RuleImportDialog({
@@ -27,6 +36,7 @@ function RuleImportDialog({
 	onOpenChange,
 	ruleType,
 	onImport,
+	labels = {},
 }: RuleImportDialogProps) {
 	const [rawInput, setRawInput] = useState("");
 	const [previewCount, setPreviewCount] = useState<number | null>(null);
@@ -90,9 +100,9 @@ function RuleImportDialog({
 		<Dialog open={open} onOpenChange={handleClose}>
 			<DialogContent className="sm:max-w-lg">
 				<DialogHeader>
-					<DialogTitle>Import {ruleType} Rules</DialogTitle>
+					<DialogTitle>{labels.importLabel ?? "Import"} {ruleType} {labels.importLabel ? "" : "Rules"}</DialogTitle>
 					<DialogDescription>
-						Paste JSON or upload a file. Format will be auto-detected.
+						{labels.descriptionLabel ?? "Paste JSON or upload a file. Format will be auto-detected."}
 					</DialogDescription>
 				</DialogHeader>
 
@@ -111,7 +121,7 @@ function RuleImportDialog({
 							onClick={() => fileInputRef.current?.click()}
 						>
 							<UploadIcon className="size-3.5" />
-							Upload File
+							{labels.uploadFileLabel ?? "Upload File"}
 						</Button>
 						<input
 							ref={fileInputRef}
@@ -123,7 +133,7 @@ function RuleImportDialog({
 
 						{previewCount !== null && (
 							<span className={cn("text-xs", "text-muted-foreground")}>
-								Detected {previewCount} item{previewCount !== 1 ? "s" : ""}
+								{labels.detectedLabel ?? "Detected"} {previewCount} item{previewCount !== 1 ? "s" : ""}
 							</span>
 						)}
 						{parseError && (
@@ -140,14 +150,14 @@ function RuleImportDialog({
 						size="sm"
 						onClick={handleClose}
 					>
-						Cancel
+						{labels.cancelLabel ?? "Cancel"}
 					</Button>
 					<Button
 						size="sm"
 						onClick={handleImport}
 						disabled={!rawInput.trim()}
 					>
-						Import
+						{labels.importLabel ?? "Import"}
 					</Button>
 				</DialogFooter>
 			</DialogContent>
