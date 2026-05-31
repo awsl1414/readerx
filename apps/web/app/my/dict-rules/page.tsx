@@ -1,8 +1,7 @@
 "use client";
 
-import { dictRuleConfig } from "@/features/dict-rule-manager";
-import { RuleListPage } from "@/features/simple-rule-manager";
+import { DictRuleListPage } from "@/features/dict-rule";
 
 export default function DictRulesPage() {
-	return <RuleListPage config={dictRuleConfig} />;
+	return <DictRuleListPage />;
 }
