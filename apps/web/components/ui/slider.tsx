@@ -50,7 +50,7 @@ function Slider({
 					className="bg-primary absolute h-full rounded-full"
 				/>
 			</SliderPrimitive.Track>
-			{_values.map((val, index) => (
+			{_values.map((val, _index) => (
 				<SliderPrimitive.Thumb
 					data-slot="slider-thumb"
 					key={`thumb-${val}`}

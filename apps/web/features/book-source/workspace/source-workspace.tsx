@@ -141,6 +141,7 @@ function SourceWorkspace() {
 				ruleType="book-source"
 				onImport={handleImport}
 				labels={{
+					titleLabel: t("importTitle"),
 					importLabel: t("importLabel"),
 					cancelLabel: t("importClose"),
 					uploadFileLabel: t("importSelectFile"),

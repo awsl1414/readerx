@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/cn";
 
 type RuleImportDialogLabels = {
+	readonly titleLabel?: string;
 	readonly cancelLabel?: string;
 	readonly importLabel?: string;
 	readonly uploadFileLabel?: string;
@@ -101,8 +102,7 @@ function RuleImportDialog({
 			<DialogContent className="sm:max-w-lg">
 				<DialogHeader>
 					<DialogTitle>
-						{labels.importLabel ?? "Import"} {ruleType}{" "}
-						{labels.importLabel ? "" : "Rules"}
+						{labels.titleLabel ?? `${labels.importLabel ?? "导入"} ${ruleType}`}
 					</DialogTitle>
 					<DialogDescription>
 						{labels.descriptionLabel ??

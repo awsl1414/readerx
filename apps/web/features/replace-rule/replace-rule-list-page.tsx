@@ -200,9 +200,10 @@ function ReplaceRuleListPage() {
 			<RuleImportDialog
 				open={importOpen}
 				onOpenChange={setImportOpen}
-				ruleType="Replace"
+				ruleType="replace-rule"
 				onImport={handleImport}
 				labels={{
+					titleLabel: t("importTitle"),
 					importLabel: t("importLabel"),
 					cancelLabel: t("cancel"),
 					uploadFileLabel: t("uploadFileLabel"),

@@ -221,9 +221,10 @@ function TocRuleListPage() {
 			<RuleImportDialog
 				open={importOpen}
 				onOpenChange={setImportOpen}
-				ruleType="TXT TOC"
+				ruleType="txt-toc-rule"
 				onImport={handleImport}
 				labels={{
+					titleLabel: t("importTitle"),
 					importLabel: t("importLabel"),
 					cancelLabel: t("cancel"),
 					uploadFileLabel: t("uploadFileLabel"),

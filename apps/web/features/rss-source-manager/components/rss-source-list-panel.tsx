@@ -14,9 +14,14 @@ import { RssSourceListItem } from "./rss-source-list-item";
 type RssSourceListPanelProps = {
 	readonly sources: readonly RssSourceRecord[];
 	readonly isLoading: boolean;
+	readonly onImportOpen: () => void;
 };
 
-function RssSourceListPanel({ sources, isLoading }: RssSourceListPanelProps) {
+function RssSourceListPanel({
+	sources,
+	isLoading,
+	onImportOpen,
+}: RssSourceListPanelProps) {
 	const t = useTranslations("rssSourceManager");
 	const tCommon = useTranslations("common");
 	const filterMode = useRssSourceStore((s) => s.filterMode);
@@ -36,7 +41,12 @@ function RssSourceListPanel({ sources, isLoading }: RssSourceListPanelProps) {
 	}
 
 	if (sources.length === 0 && !searchQuery) {
-		return <RssSourceEmptyState />;
+		return (
+			<RssSourceEmptyState
+				onImport={onImportOpen}
+				onAdd={() => selectSource(null)}
+			/>
+		);
 	}
 
 	return (

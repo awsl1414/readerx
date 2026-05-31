@@ -267,9 +267,10 @@ function DictRuleListPage() {
 			<RuleImportDialog
 				open={importOpen}
 				onOpenChange={setImportOpen}
-				ruleType="Dict"
+				ruleType="dict-rule"
 				onImport={handleImport}
 				labels={{
+					titleLabel: t("importTitle"),
 					importLabel: t("importLabel"),
 					cancelLabel: t("cancel"),
 					uploadFileLabel: t("uploadFileLabel"),
