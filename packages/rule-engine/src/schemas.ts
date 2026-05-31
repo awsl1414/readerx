@@ -2,6 +2,19 @@ import { z } from "zod";
 import type { Result } from "./result";
 import { err, ok } from "./result";
 
+// ---- Re-exports from @readerx/schemas ----
+// Prefer importing validation functions directly from @readerx/schemas in new code.
+export {
+	validateBookSource as validateBookSourceFromSchemas,
+	validateDictRuleFile as validateDictRuleFileFromSchemas,
+	validateReplaceRuleFile as validateReplaceRuleFileFromSchemas,
+	validateTxtTocRuleFile as validateTxtTocRuleFileFromSchemas,
+	validateReplaceRuleData,
+	validateTxtTocRuleData,
+	validateDictRuleData,
+	validateBookSourceData,
+} from "@readerx/schemas";
+
 // ---- Replace Rule Schema ----
 
 const replaceScopeSchema = z.strictObject({
@@ -326,40 +339,48 @@ function validate<T>(schema: z.ZodType<T>, data: unknown): Result<T> {
 	});
 }
 
+/** @deprecated Use validateBookSource from @readerx/schemas instead */
 export function validateBookSource(data: unknown): Result<BookSourceOutput> {
 	return validate(bookSourceSchema, data);
 }
 
+/** @deprecated Use validateDictRuleFile from @readerx/schemas instead */
 export function validateDictRuleFile(
 	data: unknown,
 ): Result<DictRuleFileOutput> {
 	return validate(dictRuleFileSchema, data);
 }
 
+/** @deprecated Use validateReplaceRuleFile from @readerx/schemas instead */
 export function validateReplaceRuleFile(
 	data: unknown,
 ): Result<ReplaceRuleFileOutput> {
 	return validate(replaceRuleFileSchema, data);
 }
 
+/** @deprecated Use validateTxtTocRuleFile from @readerx/schemas instead */
 export function validateTxtTocRuleFile(
 	data: unknown,
 ): Result<TxtTocRuleFileOutput> {
 	return validate(txtTocRuleFileSchema, data);
 }
 
+/** @deprecated Use validateBookSource from @readerx/schemas and unwrap the Result instead */
 export function parseBookSource(data: unknown): BookSourceOutput {
 	return bookSourceSchema.parse(data);
 }
 
+/** @deprecated Use validateDictRuleFile from @readerx/schemas and unwrap the Result instead */
 export function parseDictRuleFile(data: unknown): DictRuleFileOutput {
 	return dictRuleFileSchema.parse(data);
 }
 
+/** @deprecated Use validateReplaceRuleFile from @readerx/schemas and unwrap the Result instead */
 export function parseReplaceRuleFile(data: unknown): ReplaceRuleFileOutput {
 	return replaceRuleFileSchema.parse(data);
 }
 
+/** @deprecated Use validateTxtTocRuleFile from @readerx/schemas and unwrap the Result instead */
 export function parseTxtTocRuleFile(data: unknown): TxtTocRuleFileOutput {
 	return txtTocRuleFileSchema.parse(data);
 }

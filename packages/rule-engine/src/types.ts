@@ -1,3 +1,32 @@
+// ---- Re-exports from @readerx/schemas ----
+// These types are the canonical definitions moving forward.
+// Import them directly from @readerx/schemas in new code.
+export type {
+	RuleType,
+	RuleRecord,
+	RuleDataType,
+	BookSourceData,
+	SourceModuleType,
+	SourceModule,
+	RuleExpression,
+	RuleObjectDef,
+	RuleStepDef,
+	ExtractStepDef,
+	TransformStepDef,
+	StringTransformDef,
+	DomTransformDef,
+	ScriptStepDef,
+	ReplaceRuleData,
+	ReplaceScope as SchemaReplaceScope,
+	TxtTocRuleData,
+	DictRuleData,
+	DictField as SchemaDictField,
+	RequestConfig as SchemaRequestConfig,
+	RequestBody,
+	ExploreCategory as SchemaExploreCategory,
+	ReplacePair as SchemaReplacePair,
+} from "@readerx/schemas";
+
 // ---- Error Types ----
 
 export type RuleErrorCode =
@@ -120,9 +149,12 @@ export type CompiledRule = {
 };
 
 // ---- Book Source ----
+// @deprecated Use types from @readerx/schemas (BookSourceData, SourceModule, etc.)
 
+/** @deprecated Use BookSourceData from @readerx/schemas */
 export type BookSourceType = "novel" | "audio" | "comic" | "file";
 
+/** @deprecated Use RequestConfig (aliased as SchemaRequestConfig) from @readerx/schemas */
 export type RequestConfig = {
 	readonly url?: string;
 	readonly method?: "GET" | "POST";
@@ -132,6 +164,7 @@ export type RequestConfig = {
 	readonly responseType?: "html" | "json" | "xml" | "text";
 };
 
+/** @deprecated Use BookSourceData from @readerx/schemas */
 export type BookSource = {
 	readonly $schema: string;
 	readonly id: string;
@@ -170,17 +203,20 @@ export type SearchRules = {
 	readonly wordCount?: Rule;
 };
 
+/** @deprecated Use SourceModule from @readerx/schemas */
 export type SearchModule = RequestConfig & {
 	readonly url: string;
 	readonly checkKeyWord?: string;
 	readonly rules?: SearchRules;
 };
 
+/** @deprecated Use ExploreCategory from @readerx/schemas */
 export type ExploreCategory = {
 	readonly title: string;
 	readonly url?: string;
 };
 
+/** @deprecated Use SourceModule from @readerx/schemas */
 export type ExploreModule = RequestConfig & {
 	readonly categories: readonly ExploreCategory[];
 	readonly rules?: SearchRules;
@@ -199,6 +235,7 @@ export type BookInfoRules = {
 	readonly [key: string]: Rule | undefined;
 };
 
+/** @deprecated Use SourceModule from @readerx/schemas */
 export type BookInfoModule = RequestConfig & {
 	readonly rules?: BookInfoRules;
 };
@@ -213,6 +250,7 @@ export type TocRules = {
 	readonly [key: string]: Rule | undefined;
 };
 
+/** @deprecated Use SourceModule from @readerx/schemas */
 export type TocModule = RequestConfig & {
 	readonly nextUrl?: Rule;
 	readonly rules?: TocRules;
@@ -223,19 +261,23 @@ export type ContentRules = {
 	readonly [key: string]: Rule | undefined;
 };
 
+/** @deprecated Use SourceModule from @readerx/schemas */
 export type ContentModule = RequestConfig & {
 	readonly nextUrl?: Rule;
 	readonly replaceRegex?: readonly ReplacePair[];
 	readonly rules?: ContentRules;
 };
 
+/** @deprecated Use ReplacePair from @readerx/schemas */
 export type ReplacePair = {
 	readonly pattern: string;
 	readonly with: string;
 };
 
 // ---- Dict Rule ----
+// @deprecated Use DictRuleData and related types from @readerx/schemas
 
+/** @deprecated Use DictRuleFile types from @readerx/schemas */
 export type DictRuleFile = {
 	readonly $schema: string;
 	readonly authors?: readonly string[];
@@ -244,6 +286,7 @@ export type DictRuleFile = {
 	readonly rules: readonly DictRule[];
 };
 
+/** @deprecated Use DictRuleData from @readerx/schemas */
 export type DictRule = {
 	readonly id: string;
 	readonly name: string;
@@ -256,6 +299,7 @@ export type DictRule = {
 	readonly fields?: Readonly<Record<string, DictField>>;
 };
 
+/** @deprecated Use RequestConfig from @readerx/schemas */
 export type DictRequest = {
 	readonly url: string;
 	readonly method?: "GET" | "POST";
@@ -264,25 +308,30 @@ export type DictRequest = {
 	readonly body?: DictRequestBody;
 };
 
-/** Structured POST body for dict-rule requests */
+/** @deprecated Use RequestBody from @readerx/schemas */
 export type DictRequestBody =
 	| string
 	| { readonly type: "form" | "json" | "raw"; readonly data: unknown };
 
+/** @deprecated Field schema type — see DictField in @readerx/schemas */
 export type FieldSchema = "html" | "string" | "html[]" | "string[]";
 
+/** @deprecated Use DictField from @readerx/schemas */
 export type DictField = {
 	readonly schema?: FieldSchema;
 	readonly pipeline: readonly RuleStep[];
 };
 
 // ---- Replace Rule ----
+// @deprecated Use ReplaceRuleData and related types from @readerx/schemas
 
+/** @deprecated Use ReplaceRuleFile types from @readerx/schemas */
 export type ReplaceRuleFile = {
 	readonly $schema: string;
 	readonly rules: readonly ReplaceRule[];
 };
 
+/** @deprecated Use ReplaceRuleData from @readerx/schemas */
 export type ReplaceRule = {
 	readonly name: string;
 	readonly description?: string;
@@ -297,6 +346,7 @@ export type ReplaceRule = {
 	readonly replacementJs?: string;
 };
 
+/** @deprecated Use ReplaceScope from @readerx/schemas */
 export type ReplaceScope = {
 	readonly include?: readonly string[];
 	readonly exclude?: readonly string[];
@@ -304,12 +354,15 @@ export type ReplaceScope = {
 };
 
 // ---- TXT TOC Rule ----
+// @deprecated Use TxtTocRuleData and related types from @readerx/schemas
 
+/** @deprecated Use TxtTocRuleFile types from @readerx/schemas */
 export type TxtTocRuleFile = {
 	readonly $schema: string;
 	readonly rules: readonly TxtTocRule[];
 };
 
+/** @deprecated Use TxtTocRuleData from @readerx/schemas */
 export type TxtTocRule = {
 	readonly name: string;
 	readonly description?: string;

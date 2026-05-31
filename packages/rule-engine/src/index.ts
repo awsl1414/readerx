@@ -1,4 +1,40 @@
-// ---- Types ----
+// ---- Types from @readerx/schemas ----
+// Re-export canonical schema types for consumers.
+export type {
+	RuleType,
+	RuleRecord,
+	RuleDataType,
+	BookSourceData,
+	SourceModuleType,
+	SourceModule,
+	RuleExpression,
+	RuleObjectDef,
+	RuleStepDef,
+	ExtractStepDef,
+	TransformStepDef,
+	StringTransformDef,
+	DomTransformDef,
+	ScriptStepDef,
+	ReplaceRuleData,
+	ReplaceScope as SchemaReplaceScope,
+	TxtTocRuleData,
+	DictRuleData,
+	DictField as SchemaDictField,
+	RequestConfig as SchemaRequestConfig,
+	RequestBody,
+	ExploreCategory as SchemaExploreCategory,
+	ReplacePair as SchemaReplacePair,
+} from "@readerx/schemas";
+
+// Validation functions from @readerx/schemas
+export {
+	validateBookSourceData,
+	validateDictRuleData,
+	validateReplaceRuleData,
+	validateTxtTocRuleData,
+} from "@readerx/schemas";
+
+// ---- Types (legacy, @deprecated where applicable) ----
 
 // ---- Compile ----
 export { compileRule, compileSteps } from "./compile";
