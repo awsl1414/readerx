@@ -6,7 +6,7 @@ import type {
 	JsEvalResult,
 	JsExecutor,
 } from "@readerx/rule-engine";
-import { AnalyzeRule } from "@readerx/rule-engine";
+import { evaluateRule } from "@readerx/rule-engine";
 import * as Comlink from "comlink";
 
 // --- Public types ---
@@ -111,18 +111,14 @@ class WorkerBridge {
 			},
 			evalRule: async (rule: string) => {
 				const content = this.#activeContent ?? "";
-				const analyzer = new AnalyzeRule();
-				analyzer.setContent(content);
-				const result = analyzer.getStringSync(rule);
-				if (result.ok) return result.value;
+				const result = evaluateRule(rule, content);
+				if (result.ok && result.value.length > 0) return result.value[0];
 				return "";
 			},
 			evalRuleList: async (rule: string) => {
 				const content = this.#activeContent ?? "";
-				const analyzer = new AnalyzeRule();
-				analyzer.setContent(content);
-				const result = analyzer.getStringListSync(rule);
-				if (result.ok) return result.values;
+				const result = evaluateRule(rule, content);
+				if (result.ok) return result.value;
 				return [];
 			},
 		};
@@ -214,26 +210,18 @@ class WorkerBridge {
 		this.#activeContent = content;
 
 		try {
-			const analyzer = new AnalyzeRule();
-			analyzer.setContent(content);
-			analyzer.setJsExecutor(this.#createJsExecutor());
-			if (options?.baseUrl) {
-				analyzer.setEvalContext({ baseUrl: options.baseUrl });
-			}
+			const evalResult = evaluateRule(rule, content, {
+				baseUrl: options?.baseUrl,
+				allowScript: true,
+			});
 
-			const result = await this.#enqueue(
-				async () => analyzer.getString(rule),
-				options?.timeout,
-				options?.signal,
-			);
-
-			if (result.ok) {
+			if (evalResult.ok) {
 				return {
 					ok: true,
-					value: result.values.length > 1 ? result.values : result.value,
+					value: evalResult.value.length > 1 ? evalResult.value : (evalResult.value[0] ?? ""),
 				};
 			}
-			return { ok: false, error: { type: "runtime", message: result.error } };
+			return { ok: false, error: { type: "runtime", message: evalResult.error.message } };
 		} catch (error: unknown) {
 			if (error instanceof DOMException && error.name === "TimeoutError") {
 				return {
