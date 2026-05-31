@@ -234,6 +234,9 @@ importers:
       '@readerx/rule-engine':
         specifier: workspace:*
         version: link:../../packages/rule-engine
+      '@readerx/schemas':
+        specifier: workspace:*
+        version: link:../../packages/schemas
       '@tanstack/react-query':
         specifier: ^5.100.14
         version: 5.100.14(react@19.2.6)
