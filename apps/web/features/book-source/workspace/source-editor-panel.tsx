@@ -63,13 +63,12 @@ function SourceEditorPanel({ source, onDeselect }: SourceEditorPanelProps) {
 		}
 	}, [
 		source?.id,
-		source?.enabled,
-		source?.tags,
 		source?.data,
 		source?.name,
+		source?.tags,
+		source?.enabled,
 		source?.order,
-		source,
-	]); // eslint-disable-line react-hooks/exhaustive-deps -- intentionally use id as trigger
+	]); // Reset form when source changes
 
 	const selectedModule = useMemo(() => {
 		if (!localData || selectedModuleIndex === null) return null;

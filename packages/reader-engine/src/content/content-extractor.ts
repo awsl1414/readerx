@@ -39,7 +39,7 @@ async function extractContent(
 	const result = await evaluateRule(contentRule, source, ctx);
 
 	if (!result.ok) {
-		throw new Error(`Content extraction failed: ${result.error ?? "unknown"}`);
+		throw new Error(`Content extraction failed: ${result.error?.message ?? result.error?.code ?? "unknown"}`);
 	}
 
 	const content = result.value.join("\n");

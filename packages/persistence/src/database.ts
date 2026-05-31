@@ -63,9 +63,72 @@ export class ReaderXDB extends Dexie {
 						delete rule.isEnabled;
 					});
 			});
-		this.version(3).stores({
-			rules: "id, type, name, updatedAt",
-		});
+		this.version(3)
+			.stores({
+				rules: "id, type, name, updatedAt",
+				// Keep old tables alive during migration to prevent data loss
+				replaceRules: "id, name, group, order, enabled",
+				txtTocRules: "id, name, enabled",
+				dictRules: "id, name, enabled",
+			})
+			.upgrade(async (tx) => {
+				const rulesTable = tx.table("rules");
+				const now = new Date().toISOString();
+
+				// Migrate replaceRules → rules with type="replace"
+				const replaceCount = await tx.table("replaceRules").count();
+				if (replaceCount > 0) {
+					const replaceRecords = await tx.table("replaceRules").toArray();
+					const mapped = replaceRecords.map((r: Record<string, unknown>) => ({
+						id: String(r.id),
+						type: "replace" as const,
+						name: (r.name as string | undefined) ?? "Unnamed Replace Rule",
+						enabled: (r.enabled as boolean | undefined) ?? true,
+						order: (r.order as number | undefined) ?? 0,
+						createdAt: (r.createdAt as string | undefined) ?? now,
+						updatedAt: (r.updatedAt as string | undefined) ?? now,
+						tags: r.group ? [r.group as string] : [],
+						data: r,
+					}));
+					await rulesTable.bulkAdd(mapped);
+				}
+
+				// Migrate txtTocRules → rules with type="txt-toc"
+				const txtTocCount = await tx.table("txtTocRules").count();
+				if (txtTocCount > 0) {
+					const txtTocRecords = await tx.table("txtTocRules").toArray();
+					const mapped = txtTocRecords.map((r: Record<string, unknown>) => ({
+						id: String(r.id),
+						type: "txt-toc" as const,
+						name: (r.name as string | undefined) ?? "Unnamed TOC Rule",
+						enabled: (r.enabled as boolean | undefined) ?? true,
+						order: (r.order as number | undefined) ?? 0,
+						createdAt: (r.createdAt as string | undefined) ?? now,
+						updatedAt: (r.updatedAt as string | undefined) ?? now,
+						tags: [] as string[],
+						data: r,
+					}));
+					await rulesTable.bulkAdd(mapped);
+				}
+
+				// Migrate dictRules → rules with type="dict"
+				const dictCount = await tx.table("dictRules").count();
+				if (dictCount > 0) {
+					const dictRecords = await tx.table("dictRules").toArray();
+					const mapped = dictRecords.map((r: Record<string, unknown>) => ({
+						id: String(r.id),
+						type: "dict" as const,
+						name: (r.name as string | undefined) ?? "Unnamed Dict Rule",
+						enabled: (r.enabled as boolean | undefined) ?? true,
+						order: (r.order as number | undefined) ?? 0,
+						createdAt: (r.createdAt as string | undefined) ?? now,
+						updatedAt: (r.updatedAt as string | undefined) ?? now,
+						tags: [] as string[],
+						data: r,
+					}));
+					await rulesTable.bulkAdd(mapped);
+				}
+			});
 	}
 }
 

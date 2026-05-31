@@ -179,7 +179,7 @@ function PipelineEditor({
 
 			{steps.map((step, index) => (
 				<div
-					key={`step-${getStepKey(step)}`}
+					key={`step-${index}-${getStepKey(step)}`}
 					className="border-border bg-surface-1 rounded-md border"
 				>
 					{/* Row header */}
