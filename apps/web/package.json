@@ -16,6 +16,7 @@
 	"dependencies": {
 		"@readerx/infrastructure": "workspace:*",
 		"@readerx/persistence": "workspace:*",
+		"@readerx/schemas": "workspace:*",
 		"@readerx/quickjs-runtime": "workspace:*",
 		"@readerx/reader-engine": "workspace:*",
 		"@readerx/rule-engine": "workspace:*",

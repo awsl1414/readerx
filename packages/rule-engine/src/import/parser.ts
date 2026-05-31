@@ -1,5 +1,5 @@
-import type { ConversionResult } from "./types.js";
-import type { ExtractStep, RuleStep, StringTransformStep } from "../types.js";
+import type { ExtractStep, RuleStep, StringTransformStep } from "../types";
+import type { ConversionResult } from "./types";
 
 // ── Unsupported Feature Detection ─────────────────────────────
 
@@ -41,8 +41,9 @@ function parseJsoupSegment(segment: string): {
 	// type is class|id|tag
 	// name can contain alphanumeric, hyphens, underscores, and CSS attribute selectors
 	// index is an optional integer (can be negative)
-	const match =
-		/^(class|id|tag)\.([a-zA-Z0-9_\-[\]="':]+)(?:\.(-?\d+))?$/.exec(segment);
+	const match = /^(class|id|tag)\.([a-zA-Z0-9_\-[\]="':]+)(?:\.(-?\d+))?$/.exec(
+		segment,
+	);
 	if (match) {
 		const type = match[1] ?? "";
 		const name = match[2] ?? "";
@@ -170,7 +171,11 @@ export function parseJsoupChain(input: string): JsoupResult | null {
 		// Last segment is an output specifier, not a selector
 		outputSpec = lastSegment;
 		selectorSegments = segments.slice(0, -1);
-	} else if (lastAsOutput !== null && lastAsSelector !== null && segments.length > 1) {
+	} else if (
+		lastAsOutput !== null &&
+		lastAsSelector !== null &&
+		segments.length > 1
+	) {
 		// Ambiguous: could be output or selector. Check if the second-to-last
 		// is a valid selector. If so, the last is likely an output specifier.
 		const secondLast = segments[segments.length - 2] ?? "";

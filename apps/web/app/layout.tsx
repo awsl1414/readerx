@@ -33,6 +33,7 @@ export default async function RootLayout({
 			className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
 		>
 			<body className="min-h-dvh">
+				{/* biome-ignore lint/security/noDangerouslySetInnerHtml: 内联主题检测脚本，内容为硬编码常量，无 XSS 风险 */}
 				<script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
 				<NextIntlClientProvider messages={messages}>
 					<ThemeProvider defaultTheme="system">

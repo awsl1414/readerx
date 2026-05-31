@@ -15,19 +15,19 @@ import type {
 	SearchRules,
 	TocModule,
 	TocRules,
-} from "../../types.js";
+} from "../../types";
+import { parseLegadoRule } from "../parser";
+import { createReport } from "../report";
 import type {
 	ConversionResult,
-	ImportedResult,
 	ImportError,
+	ImportedResult,
 	LegadoBookSource,
 	LegadoRuleBookInfo,
 	LegadoRuleContent,
 	LegadoRuleFields,
 	LegadoRuleToc,
-} from "../types.js";
-import { parseLegadoRule } from "../parser.js";
-import { createReport } from "../report.js";
+} from "../types";
 
 const SCHEMA_ID = "readerx/book-source-rule/v1" as const;
 
@@ -83,7 +83,10 @@ const TOC_FIELD_MAP: Record<string, string> = {
 // ── Helpers ───────────────────────────────────────────────────
 
 function convertToRule(conversion: ConversionResult): Rule | undefined {
-	if (conversion.legacyScript && (!conversion.steps || conversion.steps.length === 0)) {
+	if (
+		conversion.legacyScript &&
+		(!conversion.steps || conversion.steps.length === 0)
+	) {
 		const scriptStep: ScriptStep = {
 			type: "script",
 			code: conversion.legacyScript,
@@ -124,9 +127,10 @@ function convertRuleFields(
 	return { rules, conversions };
 }
 
-function convertBookInfoRules(
-	ruleBookInfo: LegadoRuleBookInfo,
-): { rules: BookInfoRules; conversions: ConversionResult[] } {
+function convertBookInfoRules(ruleBookInfo: LegadoRuleBookInfo): {
+	rules: BookInfoRules;
+	conversions: ConversionResult[];
+} {
 	const rules: Record<string, Rule> = {};
 	const conversions: ConversionResult[] = [];
 
@@ -141,7 +145,7 @@ function convertBookInfoRules(
 				conversions.push(conversion);
 				const rule = convertToRule(conversion);
 				if (rule) {
-					rules["init"] = rule;
+					rules.init = rule;
 				}
 			}
 			continue;
@@ -158,9 +162,11 @@ function convertBookInfoRules(
 	return { rules: rules as BookInfoRules, conversions };
 }
 
-function convertTocRules(
-	ruleToc: LegadoRuleToc,
-): { rules: TocRules; nextUrl?: Rule; conversions: ConversionResult[] } {
+function convertTocRules(ruleToc: LegadoRuleToc): {
+	rules: TocRules;
+	nextUrl?: Rule;
+	conversions: ConversionResult[];
+} {
 	const rules: Record<string, Rule> = {};
 	const conversions: ConversionResult[] = [];
 	let nextUrl: Rule | undefined;
@@ -187,7 +193,11 @@ function convertTocRules(
 		}
 	}
 
-	const result: { rules: TocRules; nextUrl?: Rule; conversions: ConversionResult[] } = {
+	const result: {
+		rules: TocRules;
+		nextUrl?: Rule;
+		conversions: ConversionResult[];
+	} = {
 		rules: rules as TocRules,
 		conversions,
 	};
@@ -197,9 +207,7 @@ function convertTocRules(
 	return result;
 }
 
-function convertContentRules(
-	ruleContent: LegadoRuleContent,
-): {
+function convertContentRules(ruleContent: LegadoRuleContent): {
 	rules: ContentRules;
 	nextUrl?: Rule;
 	replaceRegex?: readonly ReplacePair[];
@@ -218,7 +226,7 @@ function convertContentRules(
 			conversions.push(conversion);
 			const rule = convertToRule(conversion);
 			if (rule) {
-				rules["text"] = rule;
+				rules.text = rule;
 			}
 		} else if (legadoKey === "nextContentUrl") {
 			const conversion = parseLegadoRule(value);
@@ -276,7 +284,8 @@ function parseHeader(header?: string): Record<string, string> | undefined {
 	if (!header) return undefined;
 	try {
 		const parsed = JSON.parse(header);
-		if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return undefined;
+		if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed))
+			return undefined;
 		const headers: Record<string, string> = {};
 		for (const [k, v] of Object.entries(parsed)) {
 			if (typeof v === "string") headers[k] = v;
@@ -302,7 +311,8 @@ export function convertLegadoBookSources(
 		// ── Top-level field mapping ──────────────────────────
 		const id = source.bookSourceUrl ?? "";
 		const name = source.bookSourceName ?? "";
-		const type: BookSourceType = BOOK_SOURCE_TYPE_MAP[source.bookSourceType ?? 0] ?? "novel";
+		const type: BookSourceType =
+			BOOK_SOURCE_TYPE_MAP[source.bookSourceType ?? 0] ?? "novel";
 
 		const builder: BookSourceBuilder = {
 			$schema: SCHEMA_ID,
@@ -403,7 +413,7 @@ export function convertLegadoBookSources(
 				if (source.ruleSearch) {
 					// checkKeyWord stays on search module directly
 					if (source.ruleSearch.checkKeyWord) {
-						searchModuleBuilder["checkKeyWord"] = source.ruleSearch.checkKeyWord;
+						searchModuleBuilder.checkKeyWord = source.ruleSearch.checkKeyWord;
 					}
 
 					const { rules, conversions } = convertRuleFields(
@@ -413,7 +423,7 @@ export function convertLegadoBookSources(
 					sourceConversions.push(...conversions);
 
 					if (Object.keys(rules).length > 0) {
-						searchModuleBuilder["rules"] = rules as SearchRules;
+						searchModuleBuilder.rules = rules as SearchRules;
 					}
 				}
 
@@ -438,7 +448,7 @@ export function convertLegadoBookSources(
 				sourceConversions.push(...conversions);
 
 				if (Object.keys(rules).length > 0) {
-					exploreModuleBuilder["rules"] = rules as SearchRules;
+					exploreModuleBuilder.rules = rules as SearchRules;
 				}
 			}
 
@@ -462,10 +472,10 @@ export function convertLegadoBookSources(
 
 			const tocModuleBuilder: Record<string, unknown> = {};
 			if (Object.keys(rules).length > 0) {
-				tocModuleBuilder["rules"] = rules;
+				tocModuleBuilder.rules = rules;
 			}
 			if (nextUrl) {
-				tocModuleBuilder["nextUrl"] = nextUrl;
+				tocModuleBuilder.nextUrl = nextUrl;
 			}
 
 			if (Object.keys(tocModuleBuilder).length > 0) {
@@ -482,13 +492,13 @@ export function convertLegadoBookSources(
 
 			const contentModuleBuilder: Record<string, unknown> = {};
 			if (Object.keys(rules).length > 0) {
-				contentModuleBuilder["rules"] = rules;
+				contentModuleBuilder.rules = rules;
 			}
 			if (nextUrl) {
-				contentModuleBuilder["nextUrl"] = nextUrl;
+				contentModuleBuilder.nextUrl = nextUrl;
 			}
 			if (replaceRegex) {
-				contentModuleBuilder["replaceRegex"] = replaceRegex;
+				contentModuleBuilder.replaceRegex = replaceRegex;
 			}
 
 			if (Object.keys(contentModuleBuilder).length > 0) {

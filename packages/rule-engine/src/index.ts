@@ -1,12 +1,90 @@
-// ---- Types ----
+// ---- Types from @readerx/schemas ----
+// Re-export canonical schema types for consumers.
+export type {
+	BookSourceData,
+	DictField as SchemaDictField,
+	DictRuleData,
+	DomTransformDef,
+	ExploreCategory as SchemaExploreCategory,
+	ExtractStepDef,
+	ReplacePair as SchemaReplacePair,
+	ReplaceRuleData,
+	ReplaceScope as SchemaReplaceScope,
+	RequestBody,
+	RequestConfig as SchemaRequestConfig,
+	RuleDataType,
+	RuleExpression,
+	RuleObjectDef,
+	RuleRecord,
+	RuleStepDef,
+	RuleType,
+	ScriptStepDef,
+	SourceModule,
+	SourceModuleType,
+	StringTransformDef,
+	TransformStepDef,
+	TxtTocRuleData,
+} from "@readerx/schemas";
 
+// Validation functions from @readerx/schemas
+export {
+	validateBookSourceData,
+	validateDictRuleData,
+	validateReplaceRuleData,
+	validateTxtTocRuleData,
+} from "@readerx/schemas";
+
+// ---- Types (legacy, @deprecated where applicable) ----
+
+export type { CachedCompiledPlan, CompileCache } from "./cache/interface";
 // ---- Compile ----
 export { compileRule, compileSteps } from "./compile";
+// ---- Runtime interfaces ----
+export type { RuleCompiler } from "./compiler/interface";
 // ---- Extract (individual engines) ----
 export { extractCss } from "./css";
 export { createDocumentCache } from "./document-cache";
 // ---- Evaluate ----
 export { evaluateCompiled, evaluateRule } from "./evaluate";
+export type { Executor } from "./executor/interface";
+export type {
+	ConversionReport,
+	ConversionResult,
+	ImportError,
+	ImportedResult,
+	ImportOptions,
+	LegadoBookSource,
+	LegadoDictRule,
+	LegadoReplaceRule,
+	LegadoTxtTocRule,
+	RuleFormatKind,
+} from "./import/index";
+// ── Import module ─────────────────────────────────────────
+export {
+	importBookSource,
+	importDictRuleFile,
+	importLegadoBookSources,
+	importLegadoDictRules,
+	importLegadoReplaceRules,
+	importLegadoTxtTocRules,
+	importReplaceRuleFile,
+	importTxtTocRuleFile,
+	tryDetectFormat,
+} from "./import/index";
+// ---- DAG IR types ----
+export type {
+	BranchNode,
+	ExecutionContext,
+	ExecutionNode,
+	ExecutionPlan,
+	ExecutionResult,
+	ExtractNode,
+	MergeNode,
+	RequestNode,
+	RuntimeAPI,
+	ScriptNode,
+	TransformNode,
+} from "./ir/types";
 export { extractJsonPath } from "./jsonpath";
 // ---- Normalize ----
 export { normalizeRule, toRule } from "./normalize";
@@ -96,28 +174,3 @@ export type {
 // ---- Utilities ----
 export { resolveUrl } from "./url";
 export { extractXPath } from "./xpath";
-// ── Import module ─────────────────────────────────────────
-export {
-	importBookSource,
-	importDictRuleFile,
-	importReplaceRuleFile,
-	importTxtTocRuleFile,
-	importLegadoBookSources,
-	importLegadoDictRules,
-	importLegadoReplaceRules,
-	importLegadoTxtTocRules,
-	tryDetectFormat,
-} from "./import/index.js";
-
-export type {
-	ImportError,
-	ImportOptions,
-	ConversionResult,
-	ConversionReport,
-	ImportedResult,
-	RuleFormatKind,
-	LegadoBookSource,
-	LegadoDictRule,
-	LegadoReplaceRule,
-	LegadoTxtTocRule,
-} from "./import/index.js";

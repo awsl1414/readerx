@@ -6,7 +6,7 @@ import type {
 	JsEvalResult,
 	JsExecutor,
 } from "@readerx/rule-engine";
-import { AnalyzeRule } from "@readerx/rule-engine";
+import { evaluateRule, toRule } from "@readerx/rule-engine";
 import * as Comlink from "comlink";
 
 // --- Public types ---
@@ -46,6 +46,24 @@ class WorkerUnavailableError extends Error {
 // --- Sandbox option sanitization ---
 
 import { sanitizeFetchOptions } from "./worker-bridge-utils";
+
+// --- Helper: parse raw rule string into Rule ---
+
+const SELECTOR_PREFIX_MAP: Record<string, "css" | "xpath" | "jsonpath"> = {
+	"//": "xpath",
+	$: "jsonpath",
+};
+
+function stringToRule(ruleStr: string) {
+	// Auto-detect engine from prefix; default to CSS
+	for (const [prefix, engine] of Object.entries(SELECTOR_PREFIX_MAP)) {
+		if (ruleStr.startsWith(prefix)) {
+			return toRule({ [engine]: ruleStr });
+		}
+	}
+	// Default: treat as CSS selector
+	return toRule({ css: ruleStr });
+}
 
 // --- WorkerBridge ---
 
@@ -111,18 +129,18 @@ class WorkerBridge {
 			},
 			evalRule: async (rule: string) => {
 				const content = this.#activeContent ?? "";
-				const analyzer = new AnalyzeRule();
-				analyzer.setContent(content);
-				const result = analyzer.getStringSync(rule);
-				if (result.ok) return result.value;
+				const parsed = stringToRule(rule);
+				if (!parsed.ok) return "";
+				const result = await evaluateRule(parsed.value, content);
+				if (result.ok && result.value.length > 0) return result.value[0] ?? "";
 				return "";
 			},
 			evalRuleList: async (rule: string) => {
 				const content = this.#activeContent ?? "";
-				const analyzer = new AnalyzeRule();
-				analyzer.setContent(content);
-				const result = analyzer.getStringListSync(rule);
-				if (result.ok) return result.values;
+				const parsed = stringToRule(rule);
+				if (!parsed.ok) return [];
+				const result = await evaluateRule(parsed.value, content);
+				if (result.ok) return result.value;
 				return [];
 			},
 		};
@@ -214,26 +232,32 @@ class WorkerBridge {
 		this.#activeContent = content;
 
 		try {
-			const analyzer = new AnalyzeRule();
-			analyzer.setContent(content);
-			analyzer.setJsExecutor(this.#createJsExecutor());
-			if (options?.baseUrl) {
-				analyzer.setEvalContext({ baseUrl: options.baseUrl });
-			}
-
-			const result = await this.#enqueue(
-				async () => analyzer.getString(rule),
-				options?.timeout,
-				options?.signal,
-			);
-
-			if (result.ok) {
+			const parsed = stringToRule(rule);
+			if (!parsed.ok) {
 				return {
-					ok: true,
-					value: result.values.length > 1 ? result.values : result.value,
+					ok: false,
+					error: { type: "syntax", message: "Failed to parse rule" },
 				};
 			}
-			return { ok: false, error: { type: "runtime", message: result.error } };
+
+			const evalResult = await evaluateRule(parsed.value, content, {
+				...(options?.baseUrl ? { baseUrl: options.baseUrl } : {}),
+				allowScript: true,
+			});
+
+			if (evalResult.ok) {
+				return {
+					ok: true,
+					value:
+						evalResult.value.length > 1
+							? evalResult.value
+							: (evalResult.value[0] ?? ""),
+				};
+			}
+			return {
+				ok: false,
+				error: { type: "runtime", message: evalResult.error.message },
+			};
 		} catch (error: unknown) {
 			if (error instanceof DOMException && error.name === "TimeoutError") {
 				return {
@@ -264,10 +288,8 @@ class WorkerBridge {
 				const out: JsEvalResult = {
 					success: result.success,
 					value: result.value ?? null,
+					...(result.error ? { error: result.error } : {}),
 				};
-				if (result.error) {
-					out.error = result.error;
-				}
 				return out;
 			},
 			options?.timeout,

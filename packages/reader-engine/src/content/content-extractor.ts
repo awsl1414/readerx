@@ -1,8 +1,10 @@
 import type {
-	AnalyzeRule,
-	ContentRule,
+	ContentModule,
+	EvalContext,
 	JsExecutor,
+	Rule,
 } from "@readerx/rule-engine";
+import { evaluateRule } from "@readerx/rule-engine";
 
 type ExtractResult = {
 	readonly content: string;
@@ -12,28 +14,35 @@ type ExtractResult = {
 const HTML_TAG_PATTERN = /<[a-zA-Z][^>]*>/;
 
 /**
- * Extract content from the source loaded into the analyzer,
- * applying the given ContentRule.
+ * Extract content from HTML/text source using a ContentModule's content rule.
  *
  * For v1 this handles single-page extraction only.
  * Multi-page (nextContentUrl) support is deferred to a future iteration.
  */
 async function extractContent(
-	analyzer: AnalyzeRule,
-	contentRule: ContentRule,
+	source: string,
+	contentModule: ContentModule,
 	jsExecutor?: JsExecutor,
 ): Promise<ExtractResult> {
-	if (jsExecutor !== undefined) {
-		analyzer.setJsExecutor(jsExecutor);
+	// The content rule is in contentModule.rules?.text
+	const contentRule: Rule | undefined = contentModule.rules?.text;
+
+	if (!contentRule || contentRule.length === 0) {
+		throw new Error("Content rule is empty or not defined");
 	}
 
-	const result = await analyzer.getString(contentRule.content);
+	const ctx: EvalContext = {
+		allowScript: true,
+		...(jsExecutor ? { jsExecutor } : {}),
+	};
+
+	const result = await evaluateRule(contentRule, source, ctx);
 
 	if (!result.ok) {
-		throw new Error(`Content extraction failed: ${result.error ?? "unknown"}`);
+		throw new Error(`Content extraction failed: ${result.error?.message ?? result.error?.code ?? "unknown"}`);
 	}
 
-	const content = result.value ?? "";
+	const content = result.value.join("\n");
 	const isHtml = HTML_TAG_PATTERN.test(content);
 
 	return { content, isHtml };

@@ -9,6 +9,7 @@ import {
 	fetchAndParse,
 	PretextLayouter,
 } from "@readerx/reader-engine";
+import type { ContentModule } from "@readerx/rule-engine";
 import { ATMOSPHERE_PRESETS } from "./atmosphere";
 import { RenderScheduler } from "./render-scheduler";
 import type {
@@ -184,14 +185,20 @@ class ReaderSession {
 		if (!source?.ruleContent) {
 			throw new Error(`No content rule found for source: ${this._origin}`);
 		}
-		const contentRule = { content: source.ruleContent };
+		const contentModule: ContentModule = {
+			rules: {
+				text: [
+					{ type: "extract", engine: "css", selector: source.ruleContent },
+				],
+			},
+		};
 
 		const pipelineDeps: PipelineDeps = {
 			httpFetcher: this.deps.httpFetcher,
 			...(this.deps.jsExecutor ? { jsExecutor: this.deps.jsExecutor } : {}),
 		};
 		const pipelineConfig: PipelineConfig = {
-			contentRule,
+			contentModule,
 			url: chapter.resourceUrl,
 		};
 

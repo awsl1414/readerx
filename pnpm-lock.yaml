@@ -234,6 +234,9 @@ importers:
       '@readerx/rule-engine':
         specifier: workspace:*
         version: link:../../packages/rule-engine
+      '@readerx/schemas':
+        specifier: workspace:*
+        version: link:../../packages/schemas
       '@tanstack/react-query':
         specifier: ^5.100.14
         version: 5.100.14(react@19.2.6)
@@ -324,6 +327,10 @@ importers:
         version: 4.4.3
 
   packages/infrastructure:
+    dependencies:
+      '@readerx/schemas':
+        specifier: workspace:*
+        version: link:../schemas
     devDependencies:
       '@types/node':
         specifier: ^25.9.1
@@ -337,6 +344,9 @@ importers:
 
   packages/persistence:
     dependencies:
+      '@readerx/schemas':
+        specifier: workspace:*
+        version: link:../schemas
       dexie:
         specifier: ^4.4.2
         version: 4.4.2
@@ -387,6 +397,9 @@ importers:
       '@readerx/rule-engine':
         specifier: workspace:*
         version: link:../rule-engine
+      '@readerx/schemas':
+        specifier: workspace:*
+        version: link:../schemas
       nanoid:
         specifier: ^5.1.11
         version: 5.1.11
@@ -406,6 +419,9 @@ importers:
 
   packages/rule-engine:
     dependencies:
+      '@readerx/schemas':
+        specifier: workspace:*
+        version: link:../schemas
       '@swaggerexpert/jsonpath':
         specifier: ^4.0.4
         version: 4.0.4
@@ -422,6 +438,19 @@ importers:
       '@types/node':
         specifier: ^25.9.1
         version: 25.9.1
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: ^4.1.7
+        version: 4.1.7(@types/node@25.9.1)(happy-dom@20.9.0)(jsdom@29.1.1(@noble/hashes@1.8.0))(msw@2.14.6(@types/node@25.9.1)(typescript@6.0.3))(vite@8.0.14(@types/node@25.9.1)(jiti@2.7.0))
+
+  packages/schemas:
+    dependencies:
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+    devDependencies:
       typescript:
         specifier: ^6.0.3
         version: 6.0.3

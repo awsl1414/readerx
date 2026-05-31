@@ -3,13 +3,14 @@
  * Validates that actual Legado JSON data is correctly imported
  * into ReaderX rule format.
  */
-import { describe, expect, it } from "vitest";
+
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { describe, expect, it } from "vitest";
 import { convertLegadoBookSources } from "../../src/import/converters/book-source.js";
-import { convertLegadoTxtTocRules } from "../../src/import/converters/txt-toc.js";
-import { convertLegadoReplaceRules } from "../../src/import/converters/replace-rule.js";
 import { convertLegadoDictRules } from "../../src/import/converters/dict-rule.js";
+import { convertLegadoReplaceRules } from "../../src/import/converters/replace-rule.js";
+import { convertLegadoTxtTocRules } from "../../src/import/converters/txt-toc.js";
 import type {
 	LegadoBookSource,
 	LegadoDictRule,
@@ -17,7 +18,10 @@ import type {
 	LegadoTxtTocRule,
 } from "../../src/import/types.js";
 
-const LEGADO_DATA_DIR = join(import.meta.dirname, "../../../../schemas/legado/data");
+const LEGADO_DATA_DIR = join(
+	import.meta.dirname,
+	"../../../../schemas/legado/data",
+);
 
 function loadLegadoData<T>(filename: string): readonly T[] {
 	const path = join(LEGADO_DATA_DIR, filename);
@@ -167,9 +171,7 @@ describe("E2E Legado Import: book-source-rule", () => {
 		const raw = loadLegadoData<LegadoBookSource>("book-source-rule.json");
 		const result = convertLegadoBookSources(raw);
 
-		const withContent = result.data.filter(
-			(s) => s.content !== undefined,
-		);
+		const withContent = result.data.filter((s) => s.content !== undefined);
 		expect(withContent.length).toBeGreaterThan(0);
 	});
 
@@ -197,36 +199,60 @@ describe("E2E Legado Import: book-source-rule", () => {
 
 describe("E2E Legado Import: conversion rate", () => {
 	it("achieves >= 70% structural conversion rate across all rule types", () => {
-		const bs = convertLegadoBookSources(loadLegadoData<LegadoBookSource>("book-source-rule.json"));
-		const dr = convertLegadoDictRules(loadLegadoData<LegadoDictRule>("dict-rule.json"));
-		const rr = convertLegadoReplaceRules(loadLegadoData<LegadoReplaceRule>("replace-rule.json"));
-		const tr = convertLegadoTxtTocRules(loadLegadoData<LegadoTxtTocRule>("txt-toc-rule.json"));
+		const bs = convertLegadoBookSources(
+			loadLegadoData<LegadoBookSource>("book-source-rule.json"),
+		);
+		const dr = convertLegadoDictRules(
+			loadLegadoData<LegadoDictRule>("dict-rule.json"),
+		);
+		const rr = convertLegadoReplaceRules(
+			loadLegadoData<LegadoReplaceRule>("replace-rule.json"),
+		);
+		const tr = convertLegadoTxtTocRules(
+			loadLegadoData<LegadoTxtTocRule>("txt-toc-rule.json"),
+		);
 
-		const total = bs.report.totalRules + dr.report.totalRules + rr.report.totalRules + tr.report.totalRules;
-		const structural = bs.report.convertedRules + bs.report.partialConvertedRules
-			+ dr.report.convertedRules + dr.report.partialConvertedRules
-			+ rr.report.convertedRules + rr.report.partialConvertedRules
-			+ tr.report.convertedRules + tr.report.partialConvertedRules;
+		const total =
+			bs.report.totalRules +
+			dr.report.totalRules +
+			rr.report.totalRules +
+			tr.report.totalRules;
+		const structural =
+			bs.report.convertedRules +
+			bs.report.partialConvertedRules +
+			dr.report.convertedRules +
+			dr.report.partialConvertedRules +
+			rr.report.convertedRules +
+			rr.report.partialConvertedRules +
+			tr.report.convertedRules +
+			tr.report.partialConvertedRules;
 
 		const rate = structural / total;
 		expect(rate).toBeGreaterThanOrEqual(0.7);
 	});
 
 	it("book sources achieve >= 60% structural rate (most complex)", () => {
-		const bs = convertLegadoBookSources(loadLegadoData<LegadoBookSource>("book-source-rule.json"));
-		const structural = bs.report.convertedRules + bs.report.partialConvertedRules;
+		const bs = convertLegadoBookSources(
+			loadLegadoData<LegadoBookSource>("book-source-rule.json"),
+		);
+		const structural =
+			bs.report.convertedRules + bs.report.partialConvertedRules;
 		const rate = structural / bs.report.totalRules;
 		expect(rate).toBeGreaterThanOrEqual(0.6);
 	});
 
 	it("replace rules achieve 100% (no DSL)", () => {
-		const rr = convertLegadoReplaceRules(loadLegadoData<LegadoReplaceRule>("replace-rule.json"));
+		const rr = convertLegadoReplaceRules(
+			loadLegadoData<LegadoReplaceRule>("replace-rule.json"),
+		);
 		expect(rr.report.scriptFallbackRules).toBe(0);
 		expect(rr.report.convertedRules).toBe(rr.report.totalRules);
 	});
 
 	it("txt-toc rules achieve 100% (no DSL)", () => {
-		const tr = convertLegadoTxtTocRules(loadLegadoData<LegadoTxtTocRule>("txt-toc-rule.json"));
+		const tr = convertLegadoTxtTocRules(
+			loadLegadoData<LegadoTxtTocRule>("txt-toc-rule.json"),
+		);
 		expect(tr.report.scriptFallbackRules).toBe(0);
 		expect(tr.report.convertedRules).toBe(tr.report.totalRules);
 	});
@@ -244,13 +270,13 @@ describe("E2E Legado Import: round-trip validation", () => {
 
 		expect(originalFirst).toBeDefined();
 		expect(convertedFirst).toBeDefined();
-		expect(convertedFirst!.name).toBe(originalFirst!.bookSourceName);
-		expect(convertedFirst!.id).toBe(originalFirst!.bookSourceUrl);
-		expect(convertedFirst!.baseUrl).toBe(originalFirst!.bookSourceUrl);
+		expect(convertedFirst?.name).toBe(originalFirst?.bookSourceName);
+		expect(convertedFirst?.id).toBe(originalFirst?.bookSourceUrl);
+		expect(convertedFirst?.baseUrl).toBe(originalFirst?.bookSourceUrl);
 
 		// Type mapping: 0 → "novel"
-		if (originalFirst!.bookSourceType === 0) {
-			expect(convertedFirst!.type).toBe("novel");
+		if (originalFirst?.bookSourceType === 0) {
+			expect(convertedFirst?.type).toBe("novel");
 		}
 	});
 });

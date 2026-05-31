@@ -120,7 +120,9 @@ describe("parseLegadoRule", () => {
 	// ── XPath ─────────────────────────────────────────────────
 
 	it("parses @xpath: prefix as xpath engine", () => {
-		const result = parseLegadoRule("@xpath://meta[@property='og:novel:author']/@content");
+		const result = parseLegadoRule(
+			"@xpath://meta[@property='og:novel:author']/@content",
+		);
 		expect(result.unsupported).toEqual([]);
 		expect(result.legacyScript).toBeUndefined();
 		expect(result.steps).toHaveLength(1);
@@ -359,7 +361,6 @@ describe("parseSimpleJsoup", () => {
 		expect(parseSimpleJsoup("")).toBeNull();
 	});
 });
-
 
 // ── JSoup Chain Parsing ──────────────────────────────────────
 

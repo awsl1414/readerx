@@ -1,4 +1,4 @@
-import type { RuleStep } from "../types.js";
+import type { RuleStep } from "../types";
 
 // ── Legado Raw Types ──────────────────────────────────────
 

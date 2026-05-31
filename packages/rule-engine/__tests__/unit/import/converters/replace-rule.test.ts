@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { convertLegadoReplaceRules } from "../../../../src/import/converters/replace-rule.js";
-import type { ReplaceRule } from "../../../../src/types.js";
 import type { LegadoReplaceRule } from "../../../../src/import/types.js";
+import type { ReplaceRule } from "../../../../src/types.js";
 
 /** Safe array access helper for noUncheckedIndexedAccess compliance */
 function getRule(rules: readonly ReplaceRule[], index: number): ReplaceRule {
@@ -178,10 +178,10 @@ describe("convertLegadoReplaceRules", () => {
 		const rule = getRule(result.data.rules, 0);
 
 		// target "content" is the default — omitted from output
-			expect(rule.scope?.target).toBeUndefined();
-		});
+		expect(rule.scope?.target).toBeUndefined();
+	});
 
-		it("handles empty scope (global rule) with only target", () => {
+	it("handles empty scope (global rule) with only target", () => {
 		const legado: LegadoReplaceRule[] = [
 			{
 				name: "Global rule",
@@ -195,7 +195,7 @@ describe("convertLegadoReplaceRules", () => {
 
 		expect(rule.scope).toBeDefined();
 		// target "content" is the default — omitted from output
-					expect(rule.scope?.target).toBeUndefined();
+		expect(rule.scope?.target).toBeUndefined();
 		expect(rule.scope?.include).toBeUndefined();
 		expect(rule.scope?.exclude).toBeUndefined();
 	});

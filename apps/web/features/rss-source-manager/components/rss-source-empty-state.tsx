@@ -1,9 +1,14 @@
 "use client";
 
-import { Rss } from "lucide-react";
+import { Rss, UploadIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
 
-function RssSourceEmptyState() {
+type RssSourceEmptyStateProps = {
+	readonly onImport: () => void;
+};
+
+function RssSourceEmptyState({ onImport }: RssSourceEmptyStateProps) {
 	const t = useTranslations("rssSourceManager");
 
 	return (
@@ -13,6 +18,10 @@ function RssSourceEmptyState() {
 			</div>
 			<h3 className="text-base font-medium">{t("emptyTitle")}</h3>
 			<p className="text-sm text-muted-foreground">{t("emptyDescription")}</p>
+			<Button variant="outline" size="sm" onClick={onImport}>
+				<UploadIcon className="size-3.5" />
+				{t("emptyImport")}
+			</Button>
 		</div>
 	);
 }

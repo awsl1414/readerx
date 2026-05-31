@@ -13,6 +13,7 @@
 		"test:watch": "vitest"
 	},
 	"dependencies": {
+		"@readerx/schemas": "workspace:*",
 		"dexie": "^4.4.2"
 	},
 	"devDependencies": {

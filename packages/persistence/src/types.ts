@@ -3,6 +3,8 @@
  * 参考 docs/legado/database-schema.md、docs/analysis/step3-persistence-analysis.md
  */
 
+export type { RuleRecord, RuleType } from "@readerx/schemas";
+
 // ─── BookSource ────────────────────────────────────────────
 
 /**
@@ -106,24 +108,6 @@ export type Cache = {
 	deadline: number;
 };
 
-// ─── ReplaceRule ───────────────────────────────────────────
-
-export type ReplaceRule = EnableableEntity &
-	SortableEntity &
-	TimestampEntity & {
-		id: string;
-		name: string;
-		group?: string;
-		pattern: string;
-		replacement: string;
-		scope?: string;
-		scopeTitle: boolean;
-		scopeContent: boolean;
-		excludeScope?: string;
-		isRegex: boolean;
-		timeoutMillisecond: number;
-	};
-
 // ─── Cookie ────────────────────────────────────────────────
 
 export type Cookie = {
@@ -157,21 +141,4 @@ export type RssSourceRecord = {
 	createdAt: number;
 	updatedAt: number;
 	raw: Record<string, unknown>;
-};
-
-// ─── TxtTocRule ───────────────────────────────────────────────
-
-export type TxtTocRule = EnableableEntity & {
-	id: string;
-	name: string;
-	rule: string;
-};
-
-// ─── DictRule ─────────────────────────────────────────────────
-
-export type DictRule = EnableableEntity & {
-	id: string;
-	name: string;
-	urlRule?: string;
-	showRule?: string;
 };

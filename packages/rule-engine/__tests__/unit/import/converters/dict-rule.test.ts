@@ -31,7 +31,7 @@ describe("convertLegadoDictRules", () => {
 
 		// fields.definition.pipeline should contain an ExtractStep
 		expect(dictRule?.fields).toBeDefined();
-		const definition = dictRule?.fields?.["definition"];
+		const definition = dictRule?.fields?.definition;
 		expect(definition).toBeDefined();
 		expect(definition?.pipeline).toHaveLength(1);
 		expect(definition?.pipeline[0]).toEqual({
@@ -68,13 +68,13 @@ describe("convertLegadoDictRules", () => {
 
 		// fields.definition.pipeline should contain a ScriptStep
 		expect(dictRule?.fields).toBeDefined();
-		const definition = dictRule?.fields?.["definition"];
+		const definition = dictRule?.fields?.definition;
 		expect(definition).toBeDefined();
 		expect(definition?.pipeline).toHaveLength(1);
 		expect(definition?.pipeline[0]?.type).toBe("script");
-		expect((definition?.pipeline[0] as { type: "script"; code: string }).code).toContain(
-			"legado-legacy",
-		);
+		expect(
+			(definition?.pipeline[0] as { type: "script"; code: string }).code,
+		).toContain("legado-legacy");
 
 		// Report: scriptFallbackRules should be 1
 		expect(result.report.scriptFallbackRules).toBe(1);
@@ -194,11 +194,15 @@ describe("convertLegadoDictRules", () => {
 		expect(result.data.rules[0]?.id).toBe("Dict1");
 		expect(result.data.rules[0]?.enabled).toBe(true);
 		expect(result.data.rules[0]?.weight).toBe(10);
-		expect(result.data.rules[0]?.fields?.["definition"]?.pipeline[0]?.type).toBe("extract");
+		expect(result.data.rules[0]?.fields?.definition?.pipeline[0]?.type).toBe(
+			"extract",
+		);
 
 		expect(result.data.rules[1]?.id).toBe("Dict2");
 		expect(result.data.rules[1]?.enabled).toBe(false);
 		expect(result.data.rules[1]?.weight).toBeUndefined();
-		expect(result.data.rules[1]?.fields?.["definition"]?.pipeline[0]?.type).toBe("extract");
+		expect(result.data.rules[1]?.fields?.definition?.pipeline[0]?.type).toBe(
+			"extract",
+		);
 	});
 });

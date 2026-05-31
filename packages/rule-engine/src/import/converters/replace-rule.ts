@@ -1,11 +1,11 @@
+import type { ReplaceRule, ReplaceRuleFile, ReplaceScope } from "../../types";
+import { createReport } from "../report";
 import type {
 	ConversionResult,
 	ImportError,
 	ImportedResult,
 	LegadoReplaceRule,
-} from "../types.js";
-import { createReport } from "../report.js";
-import type { ReplaceRule, ReplaceRuleFile, ReplaceScope } from "../../types.js";
+} from "../types";
 
 const SCHEMA_ID = "readerx/replace-rule/v1";
 

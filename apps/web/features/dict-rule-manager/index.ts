@@ -1,1 +1,0 @@
-export { dictRuleConfig } from "./config";

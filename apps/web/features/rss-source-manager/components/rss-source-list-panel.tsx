@@ -14,9 +14,14 @@ import { RssSourceListItem } from "./rss-source-list-item";
 type RssSourceListPanelProps = {
 	readonly sources: readonly RssSourceRecord[];
 	readonly isLoading: boolean;
+	readonly onImportOpen: () => void;
 };
 
-function RssSourceListPanel({ sources, isLoading }: RssSourceListPanelProps) {
+function RssSourceListPanel({
+	sources,
+	isLoading,
+	onImportOpen,
+}: RssSourceListPanelProps) {
 	const t = useTranslations("rssSourceManager");
 	const tCommon = useTranslations("common");
 	const filterMode = useRssSourceStore((s) => s.filterMode);
@@ -36,7 +41,7 @@ function RssSourceListPanel({ sources, isLoading }: RssSourceListPanelProps) {
 	}
 
 	if (sources.length === 0 && !searchQuery) {
-		return <RssSourceEmptyState />;
+		return <RssSourceEmptyState onImport={onImportOpen} />;
 	}
 
 	return (
@@ -55,7 +60,7 @@ function RssSourceListPanel({ sources, isLoading }: RssSourceListPanelProps) {
 					</div>
 					<button
 						type="button"
-						onClick={() => selectSource(null)}
+						onClick={onImportOpen}
 						className="flex size-8 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-surface-2"
 						aria-label={t("addSource")}
 					>
