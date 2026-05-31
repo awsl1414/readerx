@@ -1,6 +1,6 @@
 "use client";
 
-import { SourceWorkspace } from "@/features/source-manager";
+import { SourceWorkspace } from "@/features/book-source";
 
 export default function SourcesPage() {
 	return (
