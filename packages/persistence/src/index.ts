@@ -14,6 +14,7 @@ export { CookieRepository } from "./cookie-repo";
 export { DictRuleRepository } from "./dict-rule-repo";
 export { ReplaceRuleRepository } from "./replace-rule-repo";
 export { RssSourceRepository } from "./rss-source-repo";
+export { RulesRepository } from "./rules-repo";
 export { SearchKeywordRepository } from "./search-keyword-repo";
 export { TxtTocRuleRepository } from "./txt-toc-rule-repo";
 

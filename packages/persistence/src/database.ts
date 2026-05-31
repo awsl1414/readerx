@@ -11,12 +11,13 @@ import type {
 	DictRule,
 	ReplaceRule,
 	RssSourceRecord,
+	RuleRecord,
 	SearchKeyword,
 	TxtTocRule,
 } from "./types";
 
 export const DB_NAME = "readerx";
-export const DB_VERSION = 2;
+export const DB_VERSION = 3;
 
 export class ReaderXDB extends Dexie {
 	bookSources!: Table<BookSourceRecord, string>;
@@ -31,6 +32,7 @@ export class ReaderXDB extends Dexie {
 	rssSources!: Table<RssSourceRecord, string>;
 	txtTocRules!: Table<TxtTocRule, string>;
 	dictRules!: Table<DictRule, string>;
+	rules!: Table<RuleRecord, string>;
 
 	constructor(name = DB_NAME) {
 		super(name);
@@ -64,6 +66,9 @@ export class ReaderXDB extends Dexie {
 					rule.updatedAt = rule.updatedAt ?? Date.now();
 					delete rule.isEnabled;
 				});
+		});
+		this.version(3).stores({
+			rules: "id, type, name, updatedAt",
 		});
 	}
 }

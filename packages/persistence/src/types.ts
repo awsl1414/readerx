@@ -3,6 +3,8 @@
  * 参考 docs/legado/database-schema.md、docs/analysis/step3-persistence-analysis.md
  */
 
+export type { RuleRecord, RuleType } from "@readerx/schemas";
+
 // ─── BookSource ────────────────────────────────────────────
 
 /**
