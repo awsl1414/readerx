@@ -15,6 +15,7 @@
 	"dependencies": {
 		"@chenglou/pretext": "^0.0.7",
 		"@readerx/rule-engine": "workspace:*",
+		"@readerx/schemas": "workspace:*",
 		"nanoid": "^5.1.11"
 	},
 	"devDependencies": {

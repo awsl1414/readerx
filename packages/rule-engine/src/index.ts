@@ -157,3 +157,23 @@ export type {
 	LegadoReplaceRule,
 	LegadoTxtTocRule,
 } from "./import/index.js";
+
+// ---- DAG IR types ----
+export type {
+	ExecutionPlan,
+	ExecutionNode,
+	RequestNode,
+	ExtractNode,
+	TransformNode,
+	ScriptNode,
+	BranchNode,
+	MergeNode,
+	ExecutionContext,
+	RuntimeAPI,
+	ExecutionResult,
+} from "./ir/types";
+
+// ---- Runtime interfaces ----
+export type { RuleCompiler } from "./compiler/interface";
+export type { Executor } from "./executor/interface";
+export type { CachedCompiledPlan, CompileCache } from "./cache/interface";

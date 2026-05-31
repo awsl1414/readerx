@@ -327,6 +327,10 @@ importers:
         version: 4.4.3
 
   packages/infrastructure:
+    dependencies:
+      '@readerx/schemas':
+        specifier: workspace:*
+        version: link:../schemas
     devDependencies:
       '@types/node':
         specifier: ^25.9.1
@@ -393,6 +397,9 @@ importers:
       '@readerx/rule-engine':
         specifier: workspace:*
         version: link:../rule-engine
+      '@readerx/schemas':
+        specifier: workspace:*
+        version: link:../schemas
       nanoid:
         specifier: ^5.1.11
         version: 5.1.11
