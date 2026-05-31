@@ -1,8 +1,7 @@
 "use client";
 
-import { RuleListPage } from "@/features/simple-rule-manager";
-import { txtRuleConfig } from "@/features/txt-rule-manager";
+import { TocRuleListPage } from "@/features/txt-toc-rule";
 
 export default function TxtRulesPage() {
-	return <RuleListPage config={txtRuleConfig} />;
+	return <TocRuleListPage />;
 }
